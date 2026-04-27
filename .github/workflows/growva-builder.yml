@@ -1,0 +1,236 @@
+name: Growva Builder Agent
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'GitHub Issue number to build'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  build-feature:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.label.name, 'growva-build')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get issue number
+        id: issue
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "number=${{ inputs.issue_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get issue body
+        id: issue_body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue.outputs.number }}
+            });
+            core.setOutput('title', issue.data.title);
+            core.setOutput('body', issue.data.body);
+            core.setOutput('labels', issue.data.labels.map(l => l.name).join(','));
+
+      - name: Check safety rules
+        id: safety
+        run: |
+          BODY="${{ steps.issue_body.outputs.body }}"
+          LABELS="${{ steps.issue_body.outputs.labels }}"
+          
+          # Block risky changes
+          if echo "$LABELS" | grep -q "risky-change"; then
+            echo "safe=false" >> $GITHUB_OUTPUT
+            echo "reason=Risky change requires manual review" >> $GITHUB_OUTPUT
+          # Block billing/auth/pricing changes
+          elif echo "$BODY" | grep -qiE "(billing|stripe|auth|migration|DROP TABLE|ALTER TABLE|pricing change)"; then
+            echo "safe=false" >> $GITHUB_OUTPUT
+            echo "reason=Change touches billing/auth/DB migration — requires founder approval" >> $GITHUB_OUTPUT
+          else
+            echo "safe=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment if unsafe
+        if: steps.safety.outputs.safe == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue.outputs.number }},
+              body: `## ⛔ Builder Agent Blocked\n\n**Reason:** ${{ steps.safety.outputs.reason }}\n\nThis change requires manual founder review. Please implement it directly or approve via Growva Admin.\n\n*Growva Safety System*`
+            });
+
+      - name: Notify Growva — blocked
+        if: steps.safety.outputs.safe == 'false'
+        run: |
+          curl -s -X POST "${{ secrets.GROWVA_APP_URL }}/api/github/webhook" \
+            -H "Content-Type: application/json" \
+            -H "X-Growva-Internal: true" \
+            -d '{"action":"blocked","issue_number":${{ steps.issue.outputs.number }},"reason":"${{ steps.safety.outputs.reason }}"}'
+        continue-on-error: true
+
+      - name: Create branch
+        if: steps.safety.outputs.safe == 'true'
+        id: branch
+        run: |
+          BRANCH="growva/build-ticket-${{ steps.issue.outputs.number }}"
+          git config user.name "Growva Builder"
+          git config user.email "builder@growva.co"
+          git checkout -b "$BRANCH"
+          echo "name=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        if: steps.safety.outputs.safe == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Run Claude Code
+        if: steps.safety.outputs.safe == 'true'
+        id: claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are a precise code implementation agent for Growva.
+            
+            GitHub Issue #${{ steps.issue.outputs.number }}: ${{ steps.issue_body.outputs.title }}
+            
+            Issue body:
+            ${{ steps.issue_body.outputs.body }}
+            
+            RULES:
+            - Implement ONLY what is described in the issue
+            - Do NOT modify: stripe.ts, auth, schema migrations with DROP/ALTER, pricing
+            - Do NOT auto-merge
+            - Keep changes minimal and focused
+            - Every change must be traceable to this issue
+            - Run the build after changes to verify it works
+            
+            After implementing, the workflow will run npm install, prisma generate, and npm run build.
+        continue-on-error: true
+
+      - name: Install dependencies
+        if: steps.safety.outputs.safe == 'true'
+        run: npm install --legacy-peer-deps
+        continue-on-error: true
+
+      - name: Generate Prisma client
+        if: steps.safety.outputs.safe == 'true'
+        run: npx prisma generate
+        continue-on-error: true
+
+      - name: Build
+        if: steps.safety.outputs.safe == 'true'
+        id: build
+        run: npm run build
+        continue-on-error: true
+
+      - name: Check for changes
+        if: steps.safety.outputs.safe == 'true'
+        id: changes
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            git diff --staged --name-only
+          fi
+
+      - name: Commit changes
+        if: steps.safety.outputs.safe == 'true' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          git commit -m "feat: ${{ steps.issue_body.outputs.title }}
+
+          Implements GitHub Issue #${{ steps.issue.outputs.number }}
+          Build ticket generated by Growva Decision System v2
+          
+          Co-authored-by: Growva Builder <builder@growva.co>"
+
+      - name: Push branch
+        if: steps.safety.outputs.safe == 'true' && steps.changes.outputs.has_changes == 'true'
+        run: git push origin "${{ steps.branch.outputs.name }}"
+
+      - name: Open PR if build passed
+        if: steps.safety.outputs.safe == 'true' && steps.changes.outputs.has_changes == 'true' && steps.build.outcome == 'success'
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔥 [Growva Build] ${{ steps.issue_body.outputs.title }}',
+              body: `## Growva Auto-Build PR\n\nCloses #${{ steps.issue.outputs.number }}\n\n### ✅ Build passed\n\n### Changes\nSee diff above\n\n### Safety\n- ✅ No billing/auth/pricing changes\n- ✅ Traceable to BuildTicket\n- ⚠️ Human review required before merge\n\n**DO NOT merge without founder review.**\n\n*Generated by Growva Builder Agent*`,
+              head: '${{ steps.branch.outputs.name }}',
+              base: 'main',
+              draft: false
+            });
+            core.setOutput('pr_number', pr.data.number);
+            core.setOutput('pr_url', pr.data.html_url);
+
+      - name: Comment on issue — build failed
+        if: steps.safety.outputs.safe == 'true' && steps.build.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue.outputs.number }},
+              body: `## ❌ Build Failed\n\nThe builder agent ran but the build did not pass.\n\n**Next steps:**\n1. Review the workflow logs\n2. Fix the issue manually or re-run with updated instructions\n3. Use \`workflow_dispatch\` to retry\n\n*Growva Builder Agent*`
+            });
+
+      - name: Comment on issue — no changes
+        if: steps.safety.outputs.safe == 'true' && steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue.outputs.number }},
+              body: `## ⚠️ No Changes Made\n\nThe builder agent ran but produced no code changes. The issue description may need more detail.\n\n*Growva Builder Agent*`
+            });
+
+      - name: Notify Growva webhook — PR opened
+        if: steps.pr.outputs.pr_url != ''
+        run: |
+          curl -s -X POST "${{ secrets.GROWVA_APP_URL }}/api/github/webhook" \
+            -H "Content-Type: application/json" \
+            -H "X-Growva-Internal: true" \
+            -d "{\"action\":\"pr_opened\",\"issue_number\":${{ steps.issue.outputs.number }},\"pr_number\":${{ steps.pr.outputs.pr_number }},\"pr_url\":\"${{ steps.pr.outputs.pr_url }}\"}"
+        continue-on-error: true
+
+      - name: Notify Growva webhook — build failed
+        if: steps.safety.outputs.safe == 'true' && steps.build.outcome == 'failure'
+        run: |
+          curl -s -X POST "${{ secrets.GROWVA_APP_URL }}/api/github/webhook" \
+            -H "Content-Type: application/json" \
+            -H "X-Growva-Internal: true" \
+            -d "{\"action\":\"build_failed\",\"issue_number\":${{ steps.issue.outputs.number }}}"
+        continue-on-error: true

@@ -1,0 +1,640 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  url         String?
+  price       Float?
+  targetUser  String
+  goal        String   @default("revenue")
+  apiKey      String   @unique @default(cuid())
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  experiments     Experiment[]
+  events          Event[]
+  decisions       Decision[]
+  winningPatterns WinningPattern[]
+  score           ProductScore?
+  growthCards        GrowthCard[]
+  signalsAsSource    CrossProductSignal[] @relation("SignalSource")
+  signalsAsTarget    CrossProductSignal[] @relation("SignalTarget")
+  brainMemory        BrainMemory?
+  signalEvents         SignalEvent[]
+  featureRequests      FeatureRequest[]
+  competitorSignals    CompetitorSignal[]
+  executionLogs        ExecutionActionLog[]
+  executionApprovals   ExecutionApproval[]
+  monopolyOpportunities MonopolyOpportunity[]
+  buildTickets          BuildTicket[]
+
+  @@map("products")
+}
+
+model Experiment {
+  id                  String           @id @default(cuid())
+  productId           String
+  type                ExperimentType
+  angle               String
+  headline            String
+  copy                String
+  cta                 String
+  distributionChannel String
+  expectedKpi         String
+  status              ExperimentStatus @default(ACTIVE)
+  startedAt           DateTime         @default(now())
+  endedAt             DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  product   Product    @relation(fields: [productId], references: [id])
+  events    Event[]
+  decisions   Decision[]
+  growthCards GrowthCard[]
+
+  @@map("experiments")
+}
+
+model Event {
+  id           String    @id @default(cuid())
+  productId    String
+  experimentId String?
+  type         EventType
+  value        Float     @default(1)
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+
+  product    Product     @relation(fields: [productId], references: [id])
+  experiment Experiment? @relation(fields: [experimentId], references: [id])
+
+  @@map("events")
+}
+
+model Decision {
+  id           String         @id @default(cuid())
+  productId    String
+  experimentId String?
+  action       DecisionAction
+  reason       String
+  confidence   Float
+  executedAt    DateTime?
+  feedbackScore Int?      // set after 7-day feedback loop
+  metadata      Json?     // stores debate arguments
+  createdAt     DateTime       @default(now())
+
+  product    Product     @relation(fields: [productId], references: [id])
+  experiment Experiment? @relation(fields: [experimentId], references: [id])
+
+  @@map("decisions")
+}
+
+model DailyReport {
+  id          String   @id @default(cuid())
+  productId   String
+  date        DateTime @db.Date
+  totalEvents Int      @default(0)
+  conversions Int      @default(0)
+  revenue     Float    @default(0)
+  summary     String?
+  createdAt   DateTime @default(now())
+
+  @@unique([productId, date])
+  @@map("daily_reports")
+}
+
+model WinningPattern {
+  id              String   @id @default(cuid())
+  productId       String
+  experimentType  String
+  angle           String
+  channel         String
+  conversionRate  Float
+  revenue         Float    @default(0)
+  sampleSize      Int
+  confidence      Float
+  successCount    Int      @default(1)
+  confidenceScore Int      @default(50)
+  createdAt       DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("winning_patterns")
+}
+
+model DailyBrief {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date @unique
+  content   String
+  topFocus  String
+  actions   Json
+  createdAt DateTime @default(now())
+
+  @@map("daily_briefs")
+}
+
+model ProductScore {
+  id               String   @id @default(cuid())
+  productId        String   @unique
+  momentum         Float    @default(0)
+  conversionHealth Float    @default(0)
+  revenueVelocity  Float    @default(0)
+  growthChance     Float    @default(0)
+  overall          Float    @default(0)
+  updatedAt        DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("product_scores")
+}
+
+enum ExperimentType {
+  LANDING_PAGE
+  PRICING_TEST
+  OFFER_TEST
+  CONTENT_ANGLE
+  AD_COPY
+}
+
+enum ExperimentStatus {
+  ACTIVE
+  KILLED
+  SCALED
+  COMPLETED
+  PENDING
+}
+
+enum EventType {
+  PAGE_VIEW
+  CLICK
+  SIGNUP
+  PURCHASE
+  CHURN
+  CUSTOM
+}
+
+enum DecisionAction {
+  KILL
+  SCALE
+  ITERATE
+  CONTINUE
+  RESTART
+}
+
+// ─── BILLING ─────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  stripeCustomerId String? @unique
+  plan          Plan     @default(FREE)
+  productSlots  Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  subscriptions Subscription[]
+  purchases     Purchase[]
+
+  @@map("users")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  stripeSubscriptionId String             @unique
+  stripePriceId        String
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Purchase {
+  id              String      @id @default(cuid())
+  userId          String
+  stripePaymentId String      @unique
+  type            PurchaseType
+  amount          Int
+  status          String      @default("succeeded")
+  metadata        Json?
+  createdAt       DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("purchases")
+}
+
+enum Plan {
+  FREE
+  FOUNDING
+  GROWTH
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+enum PurchaseType {
+  FOUNDING_ACCESS
+  EXTRA_SLOT
+  DONE_FOR_YOU
+  AI_CONTENT_ENGINE
+  WEEKLY_REVIEW
+}
+
+model GrowthCard {
+  id             String   @id @default(cuid())
+  experimentId   String
+  productId      String
+  metricLabel    String
+  metricValue    String
+  headline       String
+  description    String
+  tweetText      String
+  shareCount     Int      @default(0)
+  isPublic       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  experiment Experiment @relation(fields: [experimentId], references: [id])
+  product    Product    @relation(fields: [productId], references: [id])
+
+  @@map("growth_cards")
+}
+
+// ─── COLLECTIVE BRAIN ─────────────────────────────────────────────────────────
+
+// Aggregated learnings from ALL experiments across ALL users
+model CollectivePattern {
+  id               String   @id @default(cuid())
+  productCategory  String   // saas_b2b, saas_b2c, marketplace, etc
+  experimentType   String   // LANDING_PAGE, PRICING_TEST, etc
+  angle            String   // the psychological angle
+  channel          String   // organic_social, paid_ads, etc
+  market           String   @default("global") // saudi, mena, global
+  avgConversionRate Float
+  sampleSize       Int      @default(1)
+  confidenceScore  Float    @default(0.5)
+  lastUpdated      DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  @@unique([productCategory, experimentType, angle, channel, market])
+  @@map("collective_patterns")
+}
+
+// Cross-product signals — what works in one product suggests for another
+model CrossProductSignal {
+  id               String   @id @default(cuid())
+  sourceProductId  String
+  targetProductId  String
+  signalType       String   // winning_angle, best_channel, pricing_insight
+  insight          String
+  confidence       Float
+  applied          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  sourceProduct Product @relation("SignalSource", fields: [sourceProductId], references: [id])
+  targetProduct Product @relation("SignalTarget", fields: [targetProductId], references: [id])
+
+  @@map("cross_product_signals")
+}
+
+// Market context — Saudi/MENA specific intelligence
+model MarketContext {
+  id          String   @id @default(cuid())
+  market      String   // saudi, mena, global
+  month       Int      // 1-12
+  contextType String   // seasonal, behavioral, channel_performance
+  insight     String
+  impact      String   // high, medium, low
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("market_contexts")
+}
+
+// Brain memory — persistent learnings per product
+model BrainMemory {
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  learnings   Json     // structured learnings object
+  lastThought String?  // last AI analysis
+  version     Int      @default(1)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("brain_memories")
+}
+
+// ─── MONOPOLY ENGINE ─────────────────────────────────────────────────────────
+
+// Predictive model — "if you do X, you'll likely get Y%"
+model PredictiveModel {
+  id              String   @id @default(cuid())
+  productCategory String
+  experimentType  String
+  angle           String
+  channel         String
+  market          String   @default("global")
+  sampleSize      Int      @default(0)
+  avgLift         Float    @default(0)    // avg conversion lift
+  winRate         Float    @default(0)    // % of time this wins
+  avgTimeToSignal Int      @default(7)    // days to get clear signal
+  confidenceScore Float    @default(0)
+  lastUpdated     DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  @@unique([productCategory, experimentType, angle, channel, market])
+  @@map("predictive_models")
+}
+
+// Personalization — per-user behavior profile
+model UserProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  productCategory     String?
+  bestChannel         String?
+  bestAngle           String?
+  avgWinRate          Float    @default(0)
+  totalExperiments    Int      @default(0)
+  totalWins           Int      @default(0)
+  consistencyScore    Float    @default(0)   // how consistently they run experiments
+  speedScore          Float    @default(0)   // how fast they act on decisions
+  growthStage         String   @default("early") // early / growing / scaling
+  behaviorTags        String[] // risk_taker, methodical, fast_executor, etc
+  lastActive          DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  createdAt           DateTime @default(now())
+
+  @@map("user_profiles")
+}
+
+// Segment benchmarks — "founders like you"
+model SegmentBenchmark {
+  id              String   @id @default(cuid())
+  segment         String   // saas_b2b_saudi, saas_b2c_global, etc
+  metric          String   // win_rate, avg_conversion, time_to_signal
+  p25             Float    // 25th percentile
+  p50             Float    // median
+  p75             Float    // 75th percentile
+  p90             Float    // top 10%
+  sampleSize      Int      @default(0)
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  @@unique([segment, metric])
+  @@map("segment_benchmarks")
+}
+
+// Data pipeline events — raw signal log
+model SignalEvent {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // experiment_started, decision_made, win, loss, lead_found
+  payload     Json
+  processed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("signal_events")
+}
+
+// Playbook — "proven plays for your market"
+model Playbook {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  productCategory String
+  market          String   @default("global")
+  steps           Json     // ordered list of experiments to run
+  avgTimeToWin    Int      @default(30) // days
+  successRate     Float    @default(0)
+  timesUsed       Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  @@map("playbooks")
+}
+
+// ─── EXECUTION AGENT ─────────────────────────────────────────────────────────
+
+model FeatureRequest {
+  id                    String   @id @default(cuid())
+  productId             String
+  source                String   // user_feedback | lead_objection | competitor_review | social_comment | support | analytics
+  rawText               String
+  normalizedFeature     String
+  frequency             Int      @default(1)
+  urgencyScore          Float    @default(0)
+  willingnessToPayScore Float    @default(0)
+  competitorGapScore    Float    @default(0)
+  buildComplexityScore  Float    @default(0)
+  monopolyScore         Float    @default(0)
+  revenuePotentialScore Float    @default(0)
+  opportunityScore      Float    @default(0)
+  status                String   @default("new") // new | scored | approved | building | launched | rejected
+  reasoning             String?
+  suggestedImpl         String?
+  pricingImpact         String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  product         Product          @relation(fields: [productId], references: [id])
+  featureDecision FeatureDecision?
+  @@map("feature_requests")
+}
+
+model CompetitorSignal {
+  id                    String   @id @default(cuid())
+  productId             String
+  competitorName        String
+  sourceUrl             String?
+  signalType            String   // feature | pricing | complaint | positioning | review
+  summary               String
+  weakness              String?
+  opportunity           String?
+  monopolyRelevanceScore Float   @default(0)
+  createdAt             DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  @@map("competitor_signals")
+}
+
+model ExecutionActionLog {
+  id           String   @id @default(cuid())
+  productId    String
+  actionType   String
+  inputJson    Json
+  outputJson   Json?
+  status       String   @default("pending") // pending | running | completed | failed
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  @@map("execution_action_logs")
+}
+
+model ExecutionApproval {
+  id             String    @id @default(cuid())
+  userId         String?
+  productId      String
+  actionType     String
+  proposedAction Json
+  riskLevel      String    @default("medium") // low | medium | high
+  status         String    @default("pending") // pending | approved | rejected | executed
+  createdAt      DateTime  @default(now())
+  executedAt     DateTime?
+
+  product Product @relation(fields: [productId], references: [id])
+  @@map("execution_approvals")
+}
+
+model InvoiceRecord {
+  id              String   @id @default(cuid())
+  userId          String?
+  customerEmail   String
+  customerName    String?
+  productPlan     String
+  addOns          Json     @default("[]")
+  amount          Int
+  currency        String   @default("usd")
+  status          String   @default("draft") // draft | sent | paid | void
+  stripeReference String?
+  createdAt       DateTime @default(now())
+
+  @@map("invoice_records")
+}
+
+model BillingOpportunity {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String   // upsell | addon | upgrade | renewal
+  currentPlan   String
+  suggestedPlan String
+  reason        String
+  estimatedMRR  Float    @default(0)
+  status        String   @default("new") // new | shown | converted | dismissed
+  createdAt     DateTime @default(now())
+
+  @@map("billing_opportunities")
+}
+
+model MonopolyOpportunity {
+  id                  String   @id @default(cuid())
+  productId           String
+  featureName         String
+  monopolyScore       Float    @default(0)
+  switchingCostScore  Float    @default(0)
+  dataFlywheelScore   Float    @default(0)
+  habitLoopScore      Float    @default(0)
+  revenueExpansion    Float    @default(0)
+  competitorGapScore  Float    @default(0)
+  saudiAdvantage      Float    @default(0)
+  automationDepth     Float    @default(0)
+  moatType            String?
+  buildPriority       String   @default("backlog") // immediate | high | medium | backlog
+  whyNow              String?
+  implementationPlan  String?
+  pricingRecommend    String?
+  status              String   @default("new")
+  createdAt           DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  @@map("monopoly_opportunities")
+}
+
+// ─── EXECUTION AGENT ─────────────────────────────────────────────────────────
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ─── DECISION V2 + BUILDER AGENT ─────────────────────────────────────────────
+
+model FeatureDecision {
+  id                  String   @id @default(cuid())
+  featureRequestId    String   @unique
+  decision            String   // BUILD_NOW | WAIT | REJECT
+  confidence          Float
+  focusScore          Float
+  oneLine             String
+  demandReasoning     String
+  revenueReasoning    String
+  monopolyReasoning   String
+  riskReasoning       String
+  revenueUplift       String?
+  retentionImpact     String?
+  timeToImpact        String?
+  complexity          String   // low | medium | high
+  estimatedTime       String?
+  filesTouched        String[]
+  downsideIfIgnored   String
+  buildTicketPreview  Json?
+  founderAction       String?  // BUILD_NOW | WAIT | REJECT (founder override)
+  founderActionAt     DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  featureRequest FeatureRequest @relation(fields: [featureRequestId], references: [id])
+  buildTicket    BuildTicket?
+
+  @@map("feature_decisions")
+}
+
+model BuildTicket {
+  id                String    @id @default(cuid())
+  featureDecisionId String?   @unique
+  productId         String
+  title             String
+  description       String
+  acceptanceCriteria String
+  filesTouched      String[]
+  complexity        String    @default("medium")
+  priority          String    @default("medium") // high | medium | low
+  riskLevel         String    @default("safe")   // safe | risky
+  status            String    @default("queued") // queued|sent_to_github|in_progress|pr_opened|failed|merged|rejected
+  githubIssueNumber Int?
+  githubIssueUrl    String?
+  githubBranch      String?
+  githubPrNumber    Int?
+  githubPrUrl       String?
+  githubError       String?
+  scheduledRecheckAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  featureDecision FeatureDecision? @relation(fields: [featureDecisionId], references: [id])
+  product         Product          @relation(fields: [productId], references: [id])
+
+  @@map("build_tickets")
+}
