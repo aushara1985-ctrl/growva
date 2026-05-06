@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://growva-production.up.railway.app'
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { trackingId: string } }
@@ -11,14 +13,15 @@ export async function GET(
       id: true,
       productId: true,
       status: true,
-      product: { select: { url: true } },
+      product: { select: { id: true, url: true } },
     },
   })
 
-  if (!experiment || !experiment.product.url) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!experiment) {
+    return NextResponse.json({ error: 'Tracking link not found' }, { status: 404 })
   }
 
+  // Record the click regardless of whether destination URL exists
   await prisma.event.create({
     data: {
       productId: experiment.productId,
@@ -33,5 +36,9 @@ export async function GET(
     },
   })
 
-  return NextResponse.redirect(experiment.product.url, { status: 302 })
+  // Redirect to product URL, or fall back to the product detail page
+  const destination = experiment.product.url
+    ?? `${BASE_URL}/products/${experiment.product.id}`
+
+  return NextResponse.redirect(destination, { status: 302 })
 }
