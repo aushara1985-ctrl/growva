@@ -92,7 +92,7 @@ export async function runDailyGrowthLoop() {
   const products = await prisma.product.findMany({
     where: { isActive: true },
     include: {
-      experiments: { where: { status: 'ACTIVE' } },
+      experiments: { where: { status: { in: ['ACTIVE', 'RUNNING'] } } },
       winningPatterns: { orderBy: { conversionRate: 'desc' }, take: 5 },
     },
   })
@@ -241,14 +241,16 @@ async function processProduct(product: any, today: Date) {
           cta: next.cta || experiment.cta,
           distributionChannel: next.distributionChannel || experiment.distributionChannel,
           expectedKpi: next.expectedKpi || experiment.expectedKpi,
-          status: 'ACTIVE',
+          status: 'PENDING',
         },
       })
     }
   }
 
-  // Step 2: Generate new experiments if none active
-  const activeCount = await prisma.experiment.count({ where: { productId: product.id, status: 'ACTIVE' } })
+  // Step 2: Generate new experiments if none running/active
+  const activeCount = await prisma.experiment.count({
+    where: { productId: product.id, status: { in: ['ACTIVE', 'RUNNING'] } },
+  })
   if (activeCount === 0) {
     const newExps = await generateExperimentsWithBrain(
       { id: product.id, name: product.name, description: product.description, price: product.price, targetUser: product.targetUser, goal: product.goal },
@@ -265,7 +267,7 @@ async function processProduct(product: any, today: Date) {
           cta: exp.cta,
           distributionChannel: exp.distributionChannel,
           expectedKpi: exp.expectedKpi,
-          status: 'ACTIVE',
+          status: 'PENDING',
         },
       })
     }

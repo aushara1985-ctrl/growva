@@ -75,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           cta: exp.cta,
           distributionChannel: exp.distributionChannel,
           expectedKpi: exp.expectedKpi,
-          status: 'ACTIVE',
+          status: 'PENDING',
         },
       })
     )
