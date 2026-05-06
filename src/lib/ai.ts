@@ -1,6 +1,13 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'placeholder' })
+let _openai: OpenAI | undefined
+function getOpenAI(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY environment variable is required')
+  }
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  return _openai
+}
 
 export interface ProductInput {
   name: string
@@ -89,7 +96,7 @@ Each experiment must have:
 
 Make each experiment test a different hypothesis. Be specific to this product and audience.`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
@@ -142,7 +149,7 @@ Return ONLY valid JSON:
   "nextExperiment": { only if ITERATE: new angle/headline suggestion }
 }`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
@@ -187,7 +194,7 @@ Return ONLY valid JSON:
 
 Be direct. Be specific. No fluff. Max 5 actions total.`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
@@ -286,7 +293,7 @@ Stats: ${stats.activeExperiments} active experiments, ${stats.totalConversions} 
 Decisions: ${stats.decisions.map(d => `${d.action}`).join(', ') || 'none'}
 Be direct. No fluff.`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.4,
@@ -381,7 +388,7 @@ Return ONLY valid JSON with this exact structure:
 
 Be specific to this product and audience. No generic copy.`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },

@@ -32,6 +32,11 @@ const s = {
   badge: (c:string) => ({ fontSize:10, padding:'2px 8px', borderRadius:100, background:c+'18', color:c, fontWeight:700 as const }),
 }
 
+const adminHeaders = {
+  'Content-Type': 'application/json',
+  'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET ?? '',
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<any>(null)
   const [decisions, setDecisions] = useState<any[]>([])
@@ -42,7 +47,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin').then(r=>r.json()),
+      fetch('/api/admin', { headers: adminHeaders }).then(r=>r.json()),
       fetch('/api/decisions-v2?limit=20').then(r=>r.json()).catch(()=>[]),
       fetch('/api/build-queue').then(r=>r.json()).catch(()=>[]),
     ]).then(([d, dec, bq]) => {
@@ -62,11 +67,11 @@ export default function AdminPage() {
   }
 
   const approveExec = async (id: string) => {
-    await fetch('/api/execution/approve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({approvalId:id}) })
+    await fetch('/api/execution/approve', { method:'POST', headers: adminHeaders, body: JSON.stringify({approvalId:id}) })
     location.reload()
   }
   const rejectExec = async (id: string) => {
-    await fetch('/api/execution/reject', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({approvalId:id}) })
+    await fetch('/api/execution/reject', { method:'POST', headers: adminHeaders, body: JSON.stringify({approvalId:id}) })
     location.reload()
   }
 

@@ -4,7 +4,17 @@ import { prisma } from '@/lib/db'
 import { getMonopolyStatus } from '@/lib/monopoly'
 import { getBillingOpportunities } from '@/lib/billing-executor'
 
+function requireAdmin(req: NextRequest): NextResponse | null {
+  const secret = process.env.ADMIN_SECRET
+  if (secret && req.headers.get('x-admin-secret') !== secret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  return null
+}
+
 export async function GET(req: NextRequest) {
+  const deny = requireAdmin(req)
+  if (deny) return deny
   const [
     totalUsers, totalProducts, totalExperiments, totalBuildTickets,
     pendingApprovals, recentActions, topFeatures,

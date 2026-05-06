@@ -23,13 +23,14 @@ export async function POST(req: NextRequest) {
   // Handle internal notifications from GitHub Actions
   const isInternal = req.headers.get('X-Growva-Internal') === 'true'
   if (!isInternal) {
-    // Verify GitHub webhook signature
+    // Verify GitHub webhook signature — secret is required
     const secret = process.env.GITHUB_WEBHOOK_SECRET
-    if (secret) {
-      const signature = req.headers.get('X-Hub-Signature-256') || ''
-      if (!verifyGitHubSignature(bodyText, signature, secret)) {
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-      }
+    if (!secret) {
+      return NextResponse.json({ error: 'GITHUB_WEBHOOK_SECRET is not configured' }, { status: 500 })
+    }
+    const signature = req.headers.get('X-Hub-Signature-256') || ''
+    if (!verifyGitHubSignature(bodyText, signature, secret)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
   }
 

@@ -754,6 +754,8 @@ export async function runFeedbackLoop() {
           angle: decision.experiment.angle,
           channel: decision.experiment.distributionChannel,
           conversionRate: afterConv,
+          confidence: feedbackScore / 100,
+          sampleSize: 1,
           confidenceScore: Math.round(feedbackScore),
           successCount: 1,
         },

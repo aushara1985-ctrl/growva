@@ -56,29 +56,20 @@ export async function runExecutionAgentLoop() {
       const requestedFeatures = await getTopFeatureRequests(product.id)
 
       // 7. Run executor
-      const actions = await runExecutor({
+      const { actions, approvalActions } = await runExecutor({
         productId: product.id,
         decision: latestDecision,
         productContext: product,
         brainMemory: brainMemory?.learnings,
         predictiveResult: null,
         winningPatterns,
-        marketSignals,
+        marketSignals: marketSignals.map(m => m.insight),
         competitorSignals,
         requestedFeatures,
         billingStatus: null,
       })
 
-      // 8. Execute safe actions, request approval for dangerous ones
-      for (const action of actions) {
-        if (action.safe) {
-          // executeSafeAction(product.id, action)
-        } else {
-          await queueForApproval(product.id, action).catch(() => {})
-        }
-      }
-
-      console.log(`[Execution Agent] ${product.name}: ${actions.length} actions generated`)
+      console.log(`[Execution Agent] ${product.name}: ${actions.length} actions, ${approvalActions.length} queued for approval`)
     } catch (err) {
       console.error(`[Execution Agent] Error for ${product.name}:`, err)
     }

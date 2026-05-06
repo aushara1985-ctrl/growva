@@ -399,7 +399,7 @@ export async function seedPlaybooks() {
       description: 'Proven 5-step sequence for SaaS products targeting Saudi market. Average time to first win: 18 days.',
       productCategory: 'saas_b2b',
       market: 'saudi',
-      steps: SAUDI_SAAS_PLAYBOOK,
+      steps: SAUDI_SAAS_PLAYBOOK as unknown as object,
       avgTimeToWin: 18,
       successRate: 0.71,
       active: true,

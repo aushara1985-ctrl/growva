@@ -92,7 +92,7 @@ async function executeSafeAction(productId: string, action: ExecutionAction) {
           revenuePotentialScore: action.payload?.revenuePotential || 5,
           opportunityScore: 5, status: 'scored',
           reasoning: action.reasoning,
-          suggestedImplementation: JSON.stringify(action.payload),
+          suggestedImpl: JSON.stringify(action.payload),
         },
       }).catch(() => {})
     }
@@ -104,10 +104,7 @@ async function executeSafeAction(productId: string, action: ExecutionAction) {
           copy: action.payload.copy || '', cta: action.payload.cta || 'Get started',
           distributionChannel: action.payload.channel || 'organic_social',
           expectedKpi: action.payload.kpi || 'signup_rate',
-          hypothesis: action.payload.hypothesis || '',
-          successCondition: action.payload.successCondition || '3%+ conversion',
-          killCondition: action.payload.killCondition || '<1% after 100 views',
-          status: 'RUNNING', startedAt: new Date(),
+          status: 'ACTIVE', startedAt: new Date(),
         },
       }).catch(() => {})
     }

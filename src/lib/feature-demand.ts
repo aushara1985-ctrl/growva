@@ -127,7 +127,7 @@ Return ONLY JSON:
         opportunityScore,
         status: 'scored',
         reasoning: f.reasoning,
-        suggestedImplementation: f.suggestedImplementation,
+        suggestedImpl: f.suggestedImplementation,
         pricingImpact: f.pricingImpact,
       },
     }).catch(() => {})

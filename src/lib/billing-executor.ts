@@ -17,12 +17,11 @@ export async function createDraftInvoice(data: InvoiceDraft) {
     data: {
       customerEmail: data.customerEmail,
       customerName: data.customerName,
-      plan: data.plan,
+      productPlan: data.plan ?? '',
       addOns: data.addOns || [],
       amount: data.amount,
       currency: data.currency || 'usd',
       status: 'draft',
-      notes: data.notes,
     },
   })
   return invoice
@@ -51,10 +50,11 @@ export async function detectBillingOpportunities() {
         data: {
           userId: user.id,
           type: 'addon',
-          description: `${user.email} has Founding Access but no AI Content Engine. High intent for content automation.`,
-          potentialMrr: 29,
-          probability: 0.4,
-          status: 'open',
+          currentPlan: 'founding',
+          suggestedPlan: 'ai_content',
+          reason: `${user.email} has Founding Access but no AI Content Engine. High intent for content automation.`,
+          estimatedMRR: 29,
+          status: 'new',
         },
       }).catch(() => null)
       if (opp) opportunities.push(opp)
@@ -66,10 +66,11 @@ export async function detectBillingOpportunities() {
         data: {
           userId: user.id,
           type: 'upgrade',
-          description: `${user.email} is on free plan. Upgrade to Founding Access ($199) or Growth ($99/mo).`,
-          potentialMrr: 99,
-          probability: 0.25,
-          status: 'open',
+          currentPlan: 'free',
+          suggestedPlan: 'founding',
+          reason: `${user.email} is on free plan. Upgrade to Founding Access ($199) or Growth ($99/mo).`,
+          estimatedMRR: 99,
+          status: 'new',
         },
       }).catch(() => null)
       if (opp) opportunities.push(opp)
@@ -102,8 +103,8 @@ export async function recommendUpsell(userId: string): Promise<string[]> {
 
 export async function getBillingOpportunities(limit = 20) {
   return prisma.billingOpportunity.findMany({
-    where: { status: 'open' },
-    orderBy: { potentialMrr: 'desc' },
+    where: { status: 'new' },
+    orderBy: { estimatedMRR: 'desc' },
     take: limit,
   })
 }

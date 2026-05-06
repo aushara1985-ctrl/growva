@@ -189,7 +189,7 @@ enum DecisionAction {
   RESTART
 }
 
-// ─── BILLING ─────────────────────────────────────────────────────────────────
+// --- BILLING -----------------------------------------------------------------
 
 model User {
   id            String   @id @default(cuid())
@@ -279,7 +279,7 @@ model GrowthCard {
   @@map("growth_cards")
 }
 
-// ─── COLLECTIVE BRAIN ─────────────────────────────────────────────────────────
+// --- COLLECTIVE BRAIN ---------------------------------------------------------
 
 // Aggregated learnings from ALL experiments across ALL users
 model CollectivePattern {
@@ -299,7 +299,7 @@ model CollectivePattern {
   @@map("collective_patterns")
 }
 
-// Cross-product signals — what works in one product suggests for another
+// Cross-product signals -- what works in one product suggests for another
 model CrossProductSignal {
   id               String   @id @default(cuid())
   sourceProductId  String
@@ -316,7 +316,7 @@ model CrossProductSignal {
   @@map("cross_product_signals")
 }
 
-// Market context — Saudi/MENA specific intelligence
+// Market context -- Saudi/MENA specific intelligence
 model MarketContext {
   id          String   @id @default(cuid())
   market      String   // saudi, mena, global
@@ -330,7 +330,7 @@ model MarketContext {
   @@map("market_contexts")
 }
 
-// Brain memory — persistent learnings per product
+// Brain memory -- persistent learnings per product
 model BrainMemory {
   id          String   @id @default(cuid())
   productId   String   @unique
@@ -345,9 +345,9 @@ model BrainMemory {
   @@map("brain_memories")
 }
 
-// ─── MONOPOLY ENGINE ─────────────────────────────────────────────────────────
+// --- MONOPOLY ENGINE ---------------------------------------------------------
 
-// Predictive model — "if you do X, you'll likely get Y%"
+// Predictive model -- "if you do X, you'll likely get Y%"
 model PredictiveModel {
   id              String   @id @default(cuid())
   productCategory String
@@ -367,7 +367,7 @@ model PredictiveModel {
   @@map("predictive_models")
 }
 
-// Personalization — per-user behavior profile
+// Personalization -- per-user behavior profile
 model UserProfile {
   id                  String   @id @default(cuid())
   userId              String   @unique
@@ -388,7 +388,7 @@ model UserProfile {
   @@map("user_profiles")
 }
 
-// Segment benchmarks — "founders like you"
+// Segment benchmarks -- "founders like you"
 model SegmentBenchmark {
   id              String   @id @default(cuid())
   segment         String   // saas_b2b_saudi, saas_b2c_global, etc
@@ -405,7 +405,7 @@ model SegmentBenchmark {
   @@map("segment_benchmarks")
 }
 
-// Data pipeline events — raw signal log
+// Data pipeline events -- raw signal log
 model SignalEvent {
   id          String   @id @default(cuid())
   productId   String
@@ -419,7 +419,7 @@ model SignalEvent {
   @@map("signal_events")
 }
 
-// Playbook — "proven plays for your market"
+// Playbook -- "proven plays for your market"
 model Playbook {
   id              String   @id @default(cuid())
   title           String
@@ -436,7 +436,7 @@ model Playbook {
   @@map("playbooks")
 }
 
-// ─── EXECUTION AGENT ─────────────────────────────────────────────────────────
+// --- EXECUTION AGENT ---------------------------------------------------------
 
 model FeatureRequest {
   id                    String   @id @default(cuid())
@@ -563,7 +563,7 @@ model MonopolyOpportunity {
   @@map("monopoly_opportunities")
 }
 
-// ─── EXECUTION AGENT ─────────────────────────────────────────────────────────
+// --- EXECUTION AGENT ---------------------------------------------------------
 
 
 
@@ -579,7 +579,7 @@ model MonopolyOpportunity {
 
 
 
-// ─── DECISION V2 + BUILDER AGENT ─────────────────────────────────────────────
+// --- DECISION V2 + BUILDER AGENT ---------------------------------------------
 
 model FeatureDecision {
   id                  String   @id @default(cuid())
