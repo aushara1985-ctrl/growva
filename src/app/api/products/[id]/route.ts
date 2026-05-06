@@ -84,6 +84,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json({ message: 'Growth mode started', experiments: created, category })
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const body = await req.json()
+  const updated = await prisma.product.update({
+    where: { id: params.id },
+    data: { metadata: body.metadata },
+    select: { id: true, metadata: true },
+  })
+  return NextResponse.json(updated)
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   await prisma.product.delete({ where: { id: params.id } })
   return NextResponse.json({ message: 'Deleted' })
