@@ -84,6 +84,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true)
   const [activating, setActivating] = useState<string | null>(null)
   const [deciding, setDeciding] = useState<string | null>(null)
+  const [trackingTab, setTrackingTab] = useState<'link' | 'snippet'>('link')
 
   const fetchProduct = async () => {
     const res = await fetch(`/api/products/${params.id}`)
@@ -162,9 +163,16 @@ export default function ProductPage() {
 
             const isPending = exp.status === 'PENDING'
             const isRunning = exp.status === 'RUNNING' || exp.status === 'ACTIVE'
-            const isDecisionReady = isRunning && exp.reviewDueAt != null && new Date(exp.reviewDueAt) <= new Date()
-            const hoursLeft = exp.reviewDueAt && !isDecisionReady ? hoursUntil(exp.reviewDueAt) : 0
+
+            // Decision ready: 48h window closed OR threshold reached (300 views or 10 signups)
+            const windowClosed   = exp.reviewDueAt != null && new Date(exp.reviewDueAt) <= new Date()
+            const thresholdReady = pageViews >= 300 || signups >= 10
+            const isDecisionReady = isRunning && (windowClosed || thresholdReady)
+            const decisionTrigger = thresholdReady ? 'Threshold reached' : 'Decision window closed'
+
+            const hoursLeft = exp.reviewDueAt && !windowClosed ? hoursUntil(exp.reviewDueAt) : 0
             const trackingUrl = exp.trackingId ? `${BASE_URL}/api/track/${exp.trackingId}` : null
+            const snippetCode = `<script src="${BASE_URL}/api/g.js"\n  data-key="${product.apiKey}"\n  data-experiment="${exp.trackingId || ''}"></script>`
 
             return (
               <div key={exp.id} style={{
@@ -277,30 +285,94 @@ export default function ProductPage() {
                 {/* Decision ready banner */}
                 {isRunning && isDecisionReady && (
                   <div style={{ background: '#1c1917', border: '1px solid #f59e0b33', borderRadius: 6, padding: '12px 16px', marginBottom: 12 }}>
-                    <div style={{ fontSize: 12, color: '#fbbf24', fontWeight: 600 }}>
+                    <div style={{ fontSize: 12, color: '#fbbf24', fontWeight: 600, marginBottom: 2 }}>
                       Decision ready — click "DECIDE NOW" to get Growva's recommendation
+                    </div>
+                    <div style={{ fontSize: 11, color: '#78716c' }}>
+                      {decisionTrigger} · {pageViews} views, {signups} signups
                     </div>
                   </div>
                 )}
 
-                {/* Tracking link — shown after activation */}
-                {isRunning && trackingUrl && (
-                  <div style={{ background: '#0a0a0a', border: '1px solid #1f2937', borderRadius: 6, padding: '14px 16px', marginBottom: 12 }}>
-                    <div style={{ fontSize: 10, color: '#555', letterSpacing: 2, marginBottom: 10 }}>TRACKING LINK</div>
-                    <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.6, marginBottom: 10 }}>
-                      Use this link in your post, landing page, DM, or campaign so Growva can measure clicks.
+                {/* Tracking — shown after activation */}
+                {isRunning && (
+                  <div style={{ background: '#0a0a0a', border: '1px solid #1f2937', borderRadius: 6, padding: '16px', marginBottom: 12 }}>
+
+                    {/* Tab header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, color: '#555', letterSpacing: 2 }}>TRACKING</div>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {(['link', 'snippet'] as const).map(tab => (
+                          <button key={tab} onClick={() => setTrackingTab(tab)} style={{
+                            background: trackingTab === tab ? '#1f2937' : 'transparent',
+                            color: trackingTab === tab ? '#e8e8e8' : '#555',
+                            border: `1px solid ${trackingTab === tab ? '#374151' : '#1f2937'}`,
+                            borderRadius: 5, padding: '4px 12px', fontSize: 11,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                          }}>
+                            {tab === 'link' ? '🔗 Link' : '</> Snippet'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#111', border: '1px solid #1f2937', borderRadius: 5, padding: '8px 12px', marginBottom: 10 }}>
-                      <code style={{ fontSize: 11, color: '#10b981', flex: 1, wordBreak: 'break-all' }}>{trackingUrl}</code>
-                      <CopyButton text={trackingUrl} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 20, fontSize: 11 }}>
+
+                    {/* Link tab */}
+                    {trackingTab === 'link' && trackingUrl && (
+                      <>
+                        <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10, lineHeight: 1.6 }}>
+                          Use in posts, DMs, emails, or campaigns. Growva measures clicks and source.
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#111', border: '1px solid #1f2937', borderRadius: 5, padding: '8px 12px', marginBottom: 12 }}>
+                          <code style={{ fontSize: 11, color: '#10b981', flex: 1, wordBreak: 'break-all' as const }}>{trackingUrl}</code>
+                          <CopyButton text={trackingUrl} />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Snippet tab */}
+                    {trackingTab === 'snippet' && (
+                      <>
+                        <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10, lineHeight: 1.6 }}>
+                          Paste in your page <code style={{ color: '#9ca3af' }}>&lt;head&gt;</code> or before <code style={{ color: '#9ca3af' }}>&lt;/body&gt;</code>.
+                          Auto-tracks page views. Call <code style={{ color: '#9ca3af' }}>growva.track()</code> for signups and purchases.
+                        </div>
+
+                        {/* Install snippet */}
+                        <div style={{ fontSize: 10, color: '#555', letterSpacing: 1, marginBottom: 6 }}>INSTALL</div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#111', border: '1px solid #1f2937', borderRadius: 5, padding: '10px 12px', marginBottom: 14 }}>
+                          <code style={{ fontSize: 11, color: '#60a5fa', flex: 1, whiteSpace: 'pre', fontFamily: 'monospace', lineHeight: 1.6 }}>{snippetCode}</code>
+                          <CopyButton text={snippetCode} />
+                        </div>
+
+                        {/* Manual events */}
+                        <div style={{ fontSize: 10, color: '#555', letterSpacing: 1, marginBottom: 6 }}>MANUAL EVENTS</div>
+                        <div style={{ background: '#111', border: '1px solid #1f2937', borderRadius: 5, padding: '10px 12px', marginBottom: 10 }}>
+                          {[
+                            { label: 'Signup', code: "growva.track('SIGNUP')" },
+                            { label: 'Purchase', code: "growva.track('PURCHASE', { amount: 29, currency: 'USD' })" },
+                            { label: 'Custom', code: "growva.track('CUSTOM', { name: 'demo_booked' })" },
+                          ].map(({ label, code }) => (
+                            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                              <code style={{ fontSize: 11, color: '#a78bfa', flex: 1, fontFamily: 'monospace' }}>{code}</code>
+                              <CopyButton text={code} />
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Signal stats — always visible */}
+                    <div style={{ display: 'flex', gap: 20, fontSize: 11, paddingTop: 10, borderTop: '1px solid #1f2937' }}>
                       <span style={{ color: '#555' }}>Clicks: <span style={{ color: '#10b981', fontWeight: 600 }}>{clicks}</span></span>
                       <span style={{ color: '#555' }}>Views: <span style={{ color: '#e8e8e8' }}>{pageViews}</span></span>
                       <span style={{ color: '#555' }}>Signups: <span style={{ color: '#22c55e' }}>{signups}</span></span>
                       {revenue > 0 && <span style={{ color: '#555' }}>Revenue: <span style={{ color: '#22c55e' }}>${revenue.toFixed(0)}</span></span>}
                       <span style={{ color: '#555' }}>Conv: <span style={{ color: parseFloat(convRate) > 3 ? '#22c55e' : parseFloat(convRate) > 1 ? '#f59e0b' : '#6b7280' }}>{convRate}%</span></span>
+                      {!pageViews && !signups && (
+                        <span style={{ color: '#6b7280', fontStyle: 'italic' }}>No signal yet — share the link or install the snippet</span>
+                      )}
                     </div>
+
                   </div>
                 )}
 

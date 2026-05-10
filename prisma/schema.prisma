@@ -74,6 +74,7 @@ model Event {
   experimentId String?
   type         EventType
   value        Float     @default(1)
+  visitorId    String?   // anonymous visitor ID for funnel stitching (click > pageview > signup > purchase)
   metadata     Json?
   createdAt    DateTime  @default(now())
 

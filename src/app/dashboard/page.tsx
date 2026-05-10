@@ -164,6 +164,11 @@ export default function Dashboard() {
   const router = useRouter()
   const [form, setForm] = useState({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
 
+  // First-run setup flow (0 = not started, 1-4 = steps)
+  const [setupStep, setSetupStep] = useState(0)
+  const [setupData, setSetupData] = useState({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '' })
+  const [setupLoading, setSetupLoading] = useState(false)
+
   const load = useCallback(async () => {
     const [dash, brain] = await Promise.all([
       fetch('/api/dashboard').then(r => r.json()),
@@ -224,6 +229,42 @@ export default function Dashboard() {
 
   const toggleProduct = (id: string) => {
     setOpenProducts(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
+  }
+
+  const runFirstSetup = async () => {
+    if (!setupData.name || !setupData.targetUser || !setupData.url || !setupData.trackingMethod) return
+    setSetupLoading(true)
+    try {
+      // 1. Create product
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: setupData.name,
+          targetUser: setupData.targetUser,
+          description: setupData.context || `${setupData.name} — built for ${setupData.targetUser}`,
+          url: setupData.url,
+          goal: setupData.goal,
+        }),
+      })
+      const product = await res.json()
+      if (!product?.id) { setSetupLoading(false); return }
+
+      // 2. Save tracking method
+      await fetch(`/api/products/${product.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metadata: { trackingMethod: setupData.trackingMethod } }),
+      })
+
+      // 3. Generate experiments (non-blocking — if OpenAI fails, user lands on product page)
+      fetch(`/api/products/${product.id}`, { method: 'POST' }).catch(() => {})
+
+      // 4. Route to product page
+      router.push(`/products/${product.id}`)
+    } catch {
+      setSetupLoading(false)
+    }
   }
 
   if (!data) return (
@@ -308,19 +349,176 @@ export default function Dashboard() {
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
 
-        {/* Phase 4 — Zero state: no products */}
+        {/* ── FIRST-RUN SETUP FLOW ── */}
         {productList.length === 0 && (
-          <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '48px 32px', textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: 24, marginBottom: 12 }}>→</div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>
-              Add your first product.
-            </div>
-            <div style={{ fontSize: 14, color: '#888', marginBottom: 24, maxWidth: 400, margin: '0 auto 24px' }}>
-              Growva will structure 3 experiments, open a 48-hour monitoring window, and give you a verdict — scale, kill, or iterate.
-            </div>
-            <button onClick={() => setAdding(true)} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 24px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
-              + Add product
-            </button>
+          <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, marginBottom: 24, overflow: 'hidden' }}>
+
+            {/* Step 0 — Welcome */}
+            {setupStep === 0 && (
+              <div style={{ padding: '48px 40px', textAlign: 'center' }}>
+                <div style={{ fontSize: 13, color: '#bbb', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 20 }}>
+                  Prepare your first growth experiment
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 600, color: '#0a0a0a', marginBottom: 10 }}>
+                  Growva needs two things to make a decision.
+                </div>
+                <div style={{ fontSize: 14, color: '#888', maxWidth: 420, margin: '0 auto 32px', lineHeight: 1.7 }}>
+                  What you're testing, and how it should collect signal. Takes 2 minutes.
+                </div>
+                <button onClick={() => setSetupStep(1)} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  Set up first experiment →
+                </button>
+              </div>
+            )}
+
+            {/* Step 1 — What + Who */}
+            {setupStep === 1 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 1 OF 4</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 24 }}>What are you testing, and who is it for?</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>What are you testing?</div>
+                    <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })}
+                      placeholder="e.g. Pricing page headline, Beta launch post"
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Who is this for?</div>
+                    <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })}
+                      placeholder="e.g. Solo founders, ops teams, cafes"
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontSize: 11, color: '#bbb', marginBottom: 6 }}>Context for Growva <span style={{ color: '#ddd', fontWeight: 400 }}>(optional — what's been tried, what's working)</span></div>
+                  <textarea value={setupData.context} onChange={e => setSetupData({ ...setupData, context: e.target.value })}
+                    placeholder="Brief description — the more context, the more targeted the experiments."
+                    rows={2}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #f0f0f0', borderRadius: 7, fontSize: 13, resize: 'none', outline: 'none', boxSizing: 'border-box' as const }} />
+                </div>
+                <button onClick={() => { if (setupData.name && setupData.targetUser) setSetupStep(2) }}
+                  style={{ background: setupData.name && setupData.targetUser ? '#0a0a0a' : '#e8e8e8', color: setupData.name && setupData.targetUser ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                  Next →
+                </button>
+              </div>
+            )}
+
+            {/* Step 2 — Signal */}
+            {setupStep === 2 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 2 OF 4</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>What outcome matters most?</div>
+                <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Growva will watch for this signal and use it in its verdict.</div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const, marginBottom: 28 }}>
+                  {[
+                    { value: 'signups', label: 'Signups', desc: 'Email captures, waitlist joins' },
+                    { value: 'revenue', label: 'Revenue', desc: 'Sales, purchases, payments' },
+                    { value: 'clicks', label: 'Clicks', desc: 'Link clicks, CTA engagement' },
+                    { value: 'activation', label: 'Activation', desc: 'First meaningful action' },
+                  ].map(opt => (
+                    <button key={opt.value} onClick={() => setSetupData({ ...setupData, goal: opt.value })}
+                      style={{
+                        padding: '12px 20px', borderRadius: 8, fontSize: 13, fontWeight: 500, textAlign: 'left' as const,
+                        border: `1px solid ${setupData.goal === opt.value ? '#0a0a0a' : '#e8e8e8'}`,
+                        background: setupData.goal === opt.value ? '#0a0a0a' : '#fff',
+                        color: setupData.goal === opt.value ? '#fff' : '#444',
+                        cursor: 'pointer', minWidth: 140,
+                      }}>
+                      <div>{opt.label}</div>
+                      <div style={{ fontSize: 11, marginTop: 2, opacity: 0.6 }}>{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => setSetupStep(1)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button onClick={() => setSetupStep(3)} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Next →</button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 — URL (required) */}
+            {setupStep === 3 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 3 OF 4</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>Where is this experiment running?</div>
+                <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Growva needs the URL for context, attribution, and future integrations.</div>
+                <div style={{ marginBottom: 28 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Product or page URL <span style={{ color: '#dc2626', fontWeight: 600 }}>*</span></div>
+                  <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })}
+                    placeholder="https://yourproduct.com/pricing"
+                    type="url"
+                    style={{ width: '100%', padding: '10px 12px', border: `1px solid ${setupData.url ? '#e8e8e8' : '#fca5a5'}`, borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
+                  {!setupData.url && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>URL is required to continue.</div>}
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => setSetupStep(2)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button onClick={() => { if (setupData.url) setSetupStep(4) }}
+                    style={{ background: setupData.url ? '#0a0a0a' : '#e8e8e8', color: setupData.url ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4 — Tracking method (Link or Snippet — no skip) */}
+            {setupStep === 4 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 4 OF 4</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>How should Growva collect signal?</div>
+                <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Choose your tracking method. You need at least one for Growva to make a reliable decision.</div>
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12, marginBottom: 28 }}>
+                  {[
+                    {
+                      id: 'tracking_links',
+                      icon: '🔗',
+                      label: 'Tracking links',
+                      desc: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment — share it anywhere.',
+                      tracks: 'Tracks: clicks, source, referrer',
+                    },
+                    {
+                      id: 'site_snippet',
+                      icon: '</>',
+                      label: 'Site snippet',
+                      desc: 'Paste a small script on your landing page or product. Automatically tracks page views. Call growva.track() for signups and purchases.',
+                      tracks: 'Tracks: page views, signups, purchases, custom events',
+                    },
+                  ].map(opt => (
+                    <button key={opt.id} onClick={() => setSetupData({ ...setupData, trackingMethod: opt.id })}
+                      style={{
+                        background: setupData.trackingMethod === opt.id ? '#f8f8f8' : '#fff',
+                        border: `2px solid ${setupData.trackingMethod === opt.id ? '#0a0a0a' : '#e8e8e8'}`,
+                        borderRadius: 10, padding: '16px 20px', textAlign: 'left' as const, cursor: 'pointer',
+                        display: 'flex', gap: 16, alignItems: 'flex-start',
+                      }}>
+                      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1, fontFamily: 'monospace' }}>{opt.icon}</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a', marginBottom: 4 }}>{opt.label}</div>
+                        <div style={{ fontSize: 12, color: '#666', lineHeight: 1.5, marginBottom: 4 }}>{opt.desc}</div>
+                        <div style={{ fontSize: 11, color: '#10b981', fontWeight: 500 }}>{opt.tracks}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button onClick={() => setSetupStep(3)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button
+                    onClick={runFirstSetup}
+                    disabled={!setupData.trackingMethod || setupLoading}
+                    style={{
+                      background: setupData.trackingMethod && !setupLoading ? '#0a0a0a' : '#e8e8e8',
+                      color: setupData.trackingMethod && !setupLoading ? '#fff' : '#bbb',
+                      border: 'none', borderRadius: 7, padding: '10px 28px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    }}>
+                    {setupLoading ? 'Setting up...' : 'Generate experiments →'}
+                  </button>
+                  {!setupData.trackingMethod && (
+                    <span style={{ fontSize: 12, color: '#dc2626' }}>Select a tracking method to continue</span>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 
@@ -354,6 +552,57 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* ── CURRENT EXPERIMENT PANEL ── shown when any experiment is running */}
+        {productList.some(p => p.runningCount > 0) && (() => {
+          // Find the first running experiment across all products
+          const runningProduct = productList.find(p => p.runningCount > 0)
+          const runningExp = runningProduct?.experiments.find(e => e.status === 'RUNNING' || e.status === 'ACTIVE')
+          if (!runningProduct || !runningExp) return null
+          const isReady = runningProduct.decisionReadyCount > 0
+          const hoursLeft = runningExp.reviewDueAt && !isReady ? hoursUntil(runningExp.reviewDueAt) : 0
+          return (
+            <div style={{ background: '#fff', border: `1px solid ${isReady ? '#fde68a' : '#e8e8e8'}`, borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}
+              key={runningExp.id}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: isReady ? '#d97706' : '#16a34a' }}>
+                      {isReady ? 'DECISION READY' : 'MONITORING'}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#bbb' }}>·</span>
+                    <span style={{ fontSize: 12, color: '#888' }}>{runningProduct.name}</span>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#0a0a0a', marginBottom: 4 }}>{runningExp.headline}</div>
+                  <div style={{ fontSize: 12, color: '#999', fontStyle: 'italic' }}>{runningExp.angle}</div>
+                </div>
+                <div style={{ flexShrink: 0, textAlign: 'right' as const }}>
+                  {isReady ? (
+                    <button onClick={() => router.push(`/products/${runningProduct.id}`)}
+                      style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      Get verdict →
+                    </button>
+                  ) : (
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#0a0a0a' }}>{hoursLeft}h left</div>
+                      <div style={{ fontSize: 11, color: '#bbb', marginTop: 2 }}>in decision window</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {!isReady && (
+                <div style={{ marginTop: 12, fontSize: 12, color: '#aaa' }}>
+                  Signal: <span style={{ color: '#555' }}>{runningExp.expectedKpi}</span>
+                  {!runningExp.trackingId && (
+                    <span style={{ marginLeft: 12, color: '#f59e0b' }}>
+                      · No tracking link yet — open the experiment to activate
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* WAR ROOM */}
         {productList.length > 0 && (
