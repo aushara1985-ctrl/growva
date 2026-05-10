@@ -1,68 +1,61 @@
 import Link from 'next/link'
 
-const FIRE = '#FF4500'
-const AMBER = '#FF9200'
-const GREEN = '#1DEB7A'
-const BLUE = '#5B6EFF'
-const MUTED = '#6A6A7A'
-const DIM = '#3A3A48'
+const AMBER  = '#E8A020'
+const MUTED  = '#6A6A7A'
+const DIM    = '#3A3A48'
+const BORDER = 'rgba(255,255,255,0.07)'
 
 export default function LandingPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#08080A', fontFamily: "'DM Sans', -apple-system, sans-serif", color: '#F2F0E8', overflowX: 'hidden' }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&display=swap" rel="stylesheet" />
 
       {/* ── NAV ── */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(8,8,10,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(8,8,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${BORDER}`, padding: '0 32px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: `linear-gradient(135deg,${FIRE},${AMBER})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#000' }}>G</div>
+          <div style={{ width: 28, height: 28, borderRadius: 7, background: AMBER, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#000' }}>G</div>
           <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: -0.3 }}>Growva</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link href="/pricing" style={{ padding: '7px 16px', color: MUTED, fontSize: 13, textDecoration: 'none', borderRadius: 8 }}>Pricing</Link>
-          <Link href="/dashboard" style={{ padding: '7px 18px', background: `linear-gradient(90deg,${FIRE},${AMBER})`, color: '#000', fontSize: 13, fontWeight: 700, textDecoration: 'none', borderRadius: 8 }}>Open App →</Link>
+          <a href="#pricing" style={{ padding: '7px 16px', color: MUTED, fontSize: 13, textDecoration: 'none', borderRadius: 8 }}>Pricing</a>
+          <Link href="/dashboard" style={{ padding: '7px 18px', background: AMBER, color: '#000', fontSize: 13, fontWeight: 700, textDecoration: 'none', borderRadius: 8 }}>Open App →</Link>
         </div>
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ paddingTop: 140, paddingBottom: 100, textAlign: 'center', maxWidth: 760, margin: '0 auto', padding: '140px 24px 100px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.2)', borderRadius: 100, padding: '5px 14px', fontSize: 12, color: AMBER, fontWeight: 600, marginBottom: 32, letterSpacing: 0.5 }}>
-          AI-POWERED GROWTH ENGINE
-        </div>
-
-        <h1 style={{ fontSize: 'clamp(40px, 7vw, 72px)', fontWeight: 300, letterSpacing: -3, lineHeight: 1.05, margin: '0 0 24px', color: '#F2F0E8' }}>
-          Your product grows<br />
-          <span style={{ background: `linear-gradient(90deg,${FIRE},${AMBER})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>while you sleep</span>
+      <section style={{ paddingTop: 160, paddingBottom: 100, textAlign: 'center', maxWidth: 760, margin: '0 auto', padding: '160px 24px 100px' }}>
+        <h1 style={{ fontSize: 'clamp(42px, 7vw, 68px)', fontWeight: 300, letterSpacing: -3, lineHeight: 1.08, margin: '0 0 28px', color: '#F2F0E8' }}>
+          Run the experiment.<br />Get the decision.
         </h1>
 
-        <p style={{ fontSize: 18, color: MUTED, lineHeight: 1.7, maxWidth: 520, margin: '0 auto 48px', fontWeight: 400 }}>
-          Growva runs daily A/B experiments, kills what's losing, scales what's winning — and tells you exactly what to build next.
+        <p style={{ fontSize: 18, color: MUTED, lineHeight: 1.75, maxWidth: 500, margin: '0 auto 48px', fontWeight: 400 }}>
+          Growva structures your growth experiments, monitors the results, and tells you what to scale, kill, or iterate — before you waste another month.
         </p>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/pricing" style={{ padding: '14px 32px', background: `linear-gradient(90deg,${FIRE},${AMBER})`, color: '#000', fontSize: 15, fontWeight: 700, textDecoration: 'none', borderRadius: 10 }}>
+          <a href="#pricing" style={{ padding: '14px 32px', background: AMBER, color: '#000', fontSize: 15, fontWeight: 700, textDecoration: 'none', borderRadius: 10 }}>
             Get Founding Access — $199
-          </Link>
-          <Link href="/dashboard" style={{ padding: '14px 28px', background: 'rgba(255,255,255,0.05)', color: '#F2F0E8', fontSize: 15, textDecoration: 'none', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)' }}>
-            View Dashboard
+          </a>
+          <Link href="/dashboard" style={{ padding: '14px 28px', background: 'rgba(255,255,255,0.05)', color: '#F2F0E8', fontSize: 15, textDecoration: 'none', borderRadius: 10, border: `1px solid ${BORDER}` }}>
+            Open dashboard
           </Link>
         </div>
 
         <p style={{ marginTop: 20, fontSize: 12, color: DIM }}>First 1,000 founders only · Lifetime access · No monthly fees</p>
       </section>
 
-      {/* ── STATS BAR ── */}
-      <section style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '32px 24px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0 }}>
+      {/* ── CONVICTION ── */}
+      <section style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, padding: '56px 24px', textAlign: 'center' }}>
+        <p style={{ fontSize: 'clamp(17px, 3vw, 22px)', fontWeight: 300, color: '#F2F0E8', maxWidth: 540, margin: '0 auto 28px', letterSpacing: -0.4, lineHeight: 1.5 }}>
+          Growva doesn't automate your growth.<br />It structures your decisions.
+        </p>
+        <div style={{ display: 'flex', gap: 48, justifyContent: 'center', flexWrap: 'wrap' }}>
           {[
-            { v: 'Daily', l: 'Automated growth loops' },
-            { v: '100%', l: 'Data-driven decisions' },
-            { v: '0 hrs', l: 'Manual analysis needed' },
-          ].map(({ v, l }) => (
-            <div key={l} style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 32, fontWeight: 700, color: AMBER, letterSpacing: -1, lineHeight: 1 }}>{v}</div>
-              <div style={{ fontSize: 12, color: MUTED, marginTop: 6 }}>{l}</div>
-            </div>
+            'Every experiment has a hypothesis.',
+            'Every result has a verdict.',
+            'Every decision has a reason.',
+          ].map(line => (
+            <span key={line} style={{ fontSize: 13, color: MUTED, letterSpacing: 0.1 }}>{line}</span>
           ))}
         </div>
       </section>
@@ -70,76 +63,127 @@ export default function LandingPage() {
       {/* ── HOW IT WORKS ── */}
       <section style={{ maxWidth: 900, margin: '0 auto', padding: '100px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>How it works</div>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 300, letterSpacing: -1.5, margin: 0 }}>Three steps to autonomous growth</h2>
+          <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 16 }}>How Growva works</div>
+          <h2 style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 300, letterSpacing: -1.5, margin: 0 }}>Three steps from question to decision</h2>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
           {[
-            { n: '01', title: 'Connect your product', body: 'Add one SDK line. Growva starts tracking real user behavior — pageviews, clicks, signups, purchases.', color: BLUE },
-            { n: '02', title: 'AI runs experiments', body: 'Every day, the engine generates A/B tests, picks the best angles, and decides what to kill or scale.', color: AMBER },
-            { n: '03', title: 'You get the playbook', body: 'Daily brief in your dashboard: what worked, what to build next, and what your competitors are missing.', color: GREEN },
-          ].map(({ n, title, body, color }) => (
-            <div key={n} style={{ background: '#0F0F12', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '32px 28px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color, letterSpacing: 2, marginBottom: 20 }}>{n}</div>
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, letterSpacing: -0.3 }}>{title}</div>
-              <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.7 }}>{body}</div>
+            {
+              n: '01',
+              title: "Define what you're testing",
+              body: 'Add your product, your target user, and the outcome that matters. Growva generates 3 structured experiments tailored to your goal.',
+            },
+            {
+              n: '02',
+              title: 'Activate an experiment',
+              body: 'Run it on your own channels. When you go live, tell Growva. It opens a 48-hour monitoring window and starts collecting signal.',
+            },
+            {
+              n: '03',
+              title: 'Get the verdict',
+              body: 'Scale, kill, or iterate. Growva tells you exactly why — based on what happened, not gut feel. Then it structures the next experiment.',
+            },
+          ].map(({ n, title, body }) => (
+            <div key={n} style={{ background: '#0F0F12', border: `1px solid ${BORDER}`, borderRadius: 16, padding: '32px 28px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 2, marginBottom: 20 }}>{n}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12, letterSpacing: -0.3, lineHeight: 1.3 }}>{title}</div>
+              <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.75 }}>{body}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── FEATURES ── */}
-      <section style={{ background: '#0A0A0D', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '100px 24px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+      {/* ── PRICING ── */}
+      <section id="pricing" style={{ background: '#0A0A0D', borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, padding: '100px 24px' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 64 }}>
-            <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>What you get</div>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 300, letterSpacing: -1.5, margin: 0 }}>Everything to dominate your market</h2>
+            <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 16 }}>Pricing</div>
+            <h2 style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 300, letterSpacing: -1.5, margin: '0 0 12px' }}>One tool. One decision at a time.</h2>
+            <p style={{ fontSize: 16, color: MUTED, margin: 0 }}>Founding access for builders who are serious about knowing what works.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
-            {[
-              { icon: '⚡', title: 'Daily AI Growth Loop', body: 'Automatically generates, runs, and evaluates experiments every 24 hours. No manual work.' },
-              { icon: '🧠', title: 'Collective Brain', body: 'Learns from every product on the platform. What works for similar founders gets suggested to you first.' },
-              { icon: '🎯', title: 'Feature Decision Engine', body: 'AI ranks your feature backlog by revenue potential, monopoly score, and founder focus.' },
-              { icon: '🔥', title: 'Growth Cards', body: 'Shareable proof-of-growth cards for every winning experiment. Show your traction.' },
-              { icon: '📊', title: 'Monopoly Scoring', body: 'Measures your data moat and switching cost. Know exactly how defensible you are.' },
-              { icon: '🏗', title: 'Builder Agent', body: 'Approved features get turned into GitHub issues automatically. Ship faster.' },
-            ].map(({ icon, title, body }) => (
-              <div key={title} style={{ background: '#0F0F12', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '28px 24px', display: 'flex', gap: 16 }}>
-                <div style={{ fontSize: 22, flexShrink: 0, marginTop: 2 }}>{icon}</div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, letterSpacing: -0.2 }}>{title}</div>
-                  <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.6 }}>{body}</div>
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+
+            {/* Founding plan */}
+            <div style={{ background: '#111114', border: `1px solid ${AMBER}44`, borderRadius: 20, padding: '40px 36px', position: 'relative' as const }}>
+              <div style={{ position: 'absolute' as const, top: -13, left: '50%', transform: 'translateX(-50%)', background: AMBER, color: '#000', fontSize: 11, fontWeight: 700, padding: '4px 18px', borderRadius: 100, whiteSpace: 'nowrap' as const, letterSpacing: 0.5 }}>
+                Founding Access
               </div>
-            ))}
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 1.5, textTransform: 'uppercase' as const, marginBottom: 16 }}>One-time</div>
+              <div style={{ fontSize: 52, fontWeight: 300, letterSpacing: -2, lineHeight: 1, marginBottom: 6 }}>$199</div>
+              <div style={{ fontSize: 14, color: MUTED, marginBottom: 32 }}>1 product · Lifetime access · First 1,000</div>
+              <div style={{ height: 1, background: BORDER, marginBottom: 24 }} />
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'flex', flexDirection: 'column' as const, gap: 11 }}>
+                {[
+                  'Structured experiment framework',
+                  '48-hour decision window',
+                  'Scale · Kill · Iterate verdicts',
+                  'Tracking links per experiment',
+                  'All future releases',
+                ].map(f => (
+                  <li key={f} style={{ fontSize: 14, color: '#9A9A9A', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: AMBER, fontWeight: 700, flexShrink: 0 }}>+</span> {f}
+                  </li>
+                ))}
+              </ul>
+              <p style={{ fontSize: 12, color: DIM, marginBottom: 16 }}>Only <strong style={{ color: '#F2F0E8', fontWeight: 400 }}>1,000 spots.</strong> Price increases after.</p>
+              <Link href="/pricing" style={{ display: 'block', padding: '14px 0', background: AMBER, color: '#000', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none', textAlign: 'center' as const }}>
+                Get Founding Access →
+              </Link>
+            </div>
+
+            {/* Growth plan */}
+            <div style={{ background: '#111114', border: `1px solid ${BORDER}`, borderRadius: 20, padding: '40px 36px' }}>
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 1.5, textTransform: 'uppercase' as const, marginBottom: 16 }}>Monthly</div>
+              <div style={{ fontSize: 52, fontWeight: 300, letterSpacing: -2, lineHeight: 1, marginBottom: 6 }}>
+                $99<span style={{ fontSize: 16, color: MUTED, fontWeight: 300 }}>/mo</span>
+              </div>
+              <div style={{ fontSize: 14, color: MUTED, marginBottom: 32 }}>Multiple products · Full decision history</div>
+              <div style={{ height: 1, background: BORDER, marginBottom: 24 }} />
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'flex', flexDirection: 'column' as const, gap: 11 }}>
+                {[
+                  '5 products',
+                  'Full decision history',
+                  'Winning pattern memory',
+                  'Priority support',
+                  'All releases',
+                ].map(f => (
+                  <li key={f} style={{ fontSize: 14, color: '#9A9A9A', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: MUTED, flexShrink: 0 }}>+</span> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/pricing" style={{ display: 'block', padding: '14px 0', background: 'transparent', color: '#9A9A9A', border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
+                Start Growth plan
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section style={{ maxWidth: 640, margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 300, letterSpacing: -2, lineHeight: 1.1, marginBottom: 24 }}>
-          Ready to grow on<br />
-          <span style={{ background: `linear-gradient(90deg,${FIRE},${AMBER})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>autopilot?</span>
+      {/* ── FINAL CTA ── */}
+      <section style={{ maxWidth: 600, margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 'clamp(30px, 5vw, 46px)', fontWeight: 300, letterSpacing: -2, lineHeight: 1.1, marginBottom: 24, color: '#F2F0E8' }}>
+          Start your first experiment.
         </h2>
         <p style={{ fontSize: 16, color: MUTED, marginBottom: 40, lineHeight: 1.7 }}>
-          Join the first 1,000 founders getting Founding Access. One-time payment, lifetime use.
+          Founding access · $199 · 1,000 spots only.
         </p>
-        <Link href="/pricing" style={{ display: 'inline-block', padding: '16px 40px', background: `linear-gradient(90deg,${FIRE},${AMBER})`, color: '#000', fontSize: 16, fontWeight: 700, textDecoration: 'none', borderRadius: 12 }}>
-          See Pricing →
-        </Link>
-        <p style={{ marginTop: 16, fontSize: 12, color: DIM }}>No subscription · Cancel anytime on monthly plans</p>
+        <a href="#pricing" style={{ display: 'inline-block', padding: '15px 40px', background: AMBER, color: '#000', fontSize: 16, fontWeight: 700, textDecoration: 'none', borderRadius: 12 }}>
+          Get access →
+        </a>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '32px 24px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
-          <div style={{ width: 22, height: 22, borderRadius: 5, background: `linear-gradient(135deg,${FIRE},${AMBER})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#000' }}>G</div>
+      <footer style={{ borderTop: `1px solid ${BORDER}`, padding: '32px 24px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
+          <div style={{ width: 22, height: 22, borderRadius: 5, background: AMBER, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#000' }}>G</div>
           <span style={{ fontWeight: 700, fontSize: 13 }}>Growva</span>
         </div>
-        <p style={{ fontSize: 12, color: DIM, margin: 0 }}>Autonomous Revenue Layer for Internet Products</p>
+        <p style={{ fontSize: 12, color: DIM, margin: '0 0 6px' }}>Decision infrastructure for early-stage founders.</p>
+        <p style={{ fontSize: 12, color: DIM, margin: 0 }}>All payments secured by Stripe · <a href="mailto:hello@growva.co" style={{ color: DIM, textDecoration: 'none' }}>hello@growva.co</a></p>
       </footer>
     </div>
   )

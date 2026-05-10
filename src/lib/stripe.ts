@@ -27,16 +27,16 @@ export const CATALOG = [
     priceKey: 'FOUNDING_ACCESS',
     type: 'one_time' as const,
     badge: 'Most popular',
-    features: ['1 product', 'Full decision engine', 'Daily AI briefs', 'Growth card generator', 'All future releases'],
+    features: ['1 product', 'Structured experiment framework', '48-hour decision window', 'Scale · Kill · Iterate verdicts', 'Tracking links per experiment', 'All future releases'],
   },
   {
     id: 'growth',
     name: 'Growth',
-    description: 'Multiple products · Advanced automations',
+    description: 'Multiple products · Full decision history',
     price: 99,
     priceKey: 'GROWTH_MONTHLY',
     type: 'recurring' as const,
-    features: ['5 products', 'Autonomous daily loop', 'Winning patterns memory', 'Priority support', 'All releases'],
+    features: ['5 products', 'Full decision history', 'Winning pattern memory', 'Priority support', 'All releases'],
   },
 ]
 

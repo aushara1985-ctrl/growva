@@ -162,7 +162,7 @@ export default function Dashboard() {
   const [openProducts, setOpenProducts] = useState<Set<string>>(new Set())
   const [onboardingProductId, setOnboardingProductId] = useState<string | null>(null)
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', description: '', url: '', price: '', targetUser: '' })
+  const [form, setForm] = useState({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
 
   const load = useCallback(async () => {
     const [dash, brain] = await Promise.all([
@@ -183,7 +183,7 @@ export default function Dashboard() {
     })
     const product = await res.json()
     setAdding(false)
-    setForm({ name: '', description: '', url: '', price: '', targetUser: '' })
+    setForm({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
     await load()
     // Show tracking method selection for the new product
     if (product?.id) setOnboardingProductId(product.id)
@@ -296,11 +296,13 @@ export default function Dashboard() {
           <span style={{ fontSize: 15, fontWeight: 600, color: '#0a0a0a', letterSpacing: -0.3 }}>Growva</span>
         </div>
         <div style={{ display: 'flex', gap: 20, fontSize: 13, color: '#888', alignItems: 'center' }}>
-          <span>{overview.products} products</span>
-          <span style={{ color: '#16a34a', fontWeight: 500 }}>{overview.activeExperiments} monitoring</span>
-          <button onClick={() => router.push('/pricing')} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 14px', fontSize: 12, cursor: 'pointer' }}>
-            Upgrade
-          </button>
+          <span>{overview.products} {overview.products === 1 ? 'product' : 'products'}</span>
+          {overview.activeExperiments > 0 && (
+            <span style={{ color: '#16a34a', fontWeight: 500 }}>{overview.activeExperiments} running</span>
+          )}
+          {overview.activeExperiments === 0 && overview.products > 0 && (
+            <span style={{ color: '#bbb' }}>no active experiments</span>
+          )}
         </div>
       </div>
 
@@ -309,12 +311,12 @@ export default function Dashboard() {
         {/* Phase 4 — Zero state: no products */}
         {productList.length === 0 && (
           <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '48px 32px', textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: 24, marginBottom: 12 }}>⚡</div>
+            <div style={{ fontSize: 24, marginBottom: 12 }}>→</div>
             <div style={{ fontSize: 18, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>
-              Add your first product to get today's growth decision.
+              Add your first product.
             </div>
             <div style={{ fontSize: 14, color: '#888', marginBottom: 24, maxWidth: 400, margin: '0 auto 24px' }}>
-              Growva will generate 3 experiments, monitor results, and tell you exactly what to scale or kill.
+              Growva will structure 3 experiments, open a 48-hour monitoring window, and give you a verdict — scale, kill, or iterate.
             </div>
             <button onClick={() => setAdding(true)} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 24px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
               + Add product
@@ -364,24 +366,87 @@ export default function Dashboard() {
             </div>
 
             {adding && (
-              <div style={{ padding: '20px 24px', background: '#fafafa', borderBottom: '1px solid #f0f0f0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
-                {[{ k: 'name', p: 'Product name', lbl: 'Name' }, { k: 'targetUser', p: 'Solo founders', lbl: 'Target user' }, { k: 'url', p: 'https://...', lbl: 'URL' }, { k: 'price', p: '29', lbl: 'Price ($)' }].map(f => (
-                  <div key={f.k}>
-                    <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>{f.lbl}</div>
-                    <input value={(form as any)[f.k]} onChange={e => setForm({ ...form, [f.k]: e.target.value })} placeholder={f.p} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e8e8e8', borderRadius: 6, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              <div style={{ padding: '24px', background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#999', marginBottom: 6, fontWeight: 500 }}>What are you testing?</div>
+                    <input
+                      value={form.name}
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      placeholder="e.g. Growva, SeatX, landing page v2"
+                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 13, outline: 'none', boxSizing: 'border-box' as const }}
+                    />
                   </div>
-                ))}
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>Description</div>
-                  <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="What it does and who it's for" rows={2} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e8e8e8', borderRadius: 6, fontSize: 13, resize: 'none', outline: 'none', boxSizing: 'border-box' }} />
+                  <div>
+                    <div style={{ fontSize: 11, color: '#999', marginBottom: 6, fontWeight: 500 }}>Who is this for?</div>
+                    <input
+                      value={form.targetUser}
+                      onChange={e => setForm({ ...form, targetUser: e.target.value })}
+                      placeholder="e.g. solo founders, ops teams, cafes"
+                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 13, outline: 'none', boxSizing: 'border-box' as const }}
+                    />
+                  </div>
                 </div>
-                <button onClick={addProduct} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 7, padding: '9px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Add product</button>
+
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6, fontWeight: 500 }}>What outcome matters most?</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
+                    {[
+                      { value: 'signups', label: 'Signups' },
+                      { value: 'revenue', label: 'Revenue' },
+                      { value: 'clicks', label: 'Clicks' },
+                      { value: 'waitlist', label: 'Waitlist' },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setForm({ ...form, goal: opt.value })}
+                        style={{
+                          padding: '7px 16px', borderRadius: 6, fontSize: 12, fontWeight: 500,
+                          border: `1px solid ${form.goal === opt.value ? '#0a0a0a' : '#e8e8e8'}`,
+                          background: form.goal === opt.value ? '#0a0a0a' : '#fff',
+                          color: form.goal === opt.value ? '#fff' : '#555',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6, fontWeight: 500 }}>Context Growva should know <span style={{ color: '#ccc', fontWeight: 400 }}>(what's the product, what's failed, what's working)</span></div>
+                  <textarea
+                    value={form.description}
+                    onChange={e => setForm({ ...form, description: e.target.value })}
+                    placeholder="Brief description — the more context, the more targeted the experiments."
+                    rows={2}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 13, resize: 'none', outline: 'none', boxSizing: 'border-box' as const }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, color: '#bbb', marginBottom: 6 }}>Product URL <span style={{ color: '#ddd', fontWeight: 400 }}>(optional)</span></div>
+                  <input
+                    value={form.url}
+                    onChange={e => setForm({ ...form, url: e.target.value })}
+                    placeholder="https://..."
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #f0f0f0', borderRadius: 7, fontSize: 13, outline: 'none', boxSizing: 'border-box' as const, color: '#666' }}
+                  />
+                </div>
+
+                <button
+                  onClick={addProduct}
+                  style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                >
+                  Add product →
+                </button>
               </div>
             )}
 
             {/* Table header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 100px 80px 200px', padding: '10px 24px', borderBottom: '1px solid #f5f5f5', gap: 16 }}>
-              {['Product', 'Revenue 7d', 'Conv. 7d', 'Tests', 'Status'].map(h => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px 80px 88px', padding: '10px 24px', borderBottom: '1px solid #f5f5f5', gap: 16 }}>
+              {['Product', 'Status', 'Tests', ''].map(h => (
                 <div key={h} style={{ fontSize: 11, fontWeight: 600, color: '#bbb', letterSpacing: 0.5 }}>{h.toUpperCase()}</div>
               ))}
             </div>
@@ -395,7 +460,7 @@ export default function Dashboard() {
                 <div key={p.id}>
                   <div
                     onClick={() => toggleProduct(p.id)}
-                    style={{ display: 'grid', gridTemplateColumns: '2fr 120px 100px 80px 200px', padding: '14px 24px', borderBottom: '1px solid #f5f5f5', alignItems: 'center', gap: 16, cursor: 'pointer' }}
+                    style={{ display: 'grid', gridTemplateColumns: '1fr 200px 80px 88px', padding: '14px 24px', borderBottom: '1px solid #f5f5f5', alignItems: 'center', gap: 16, cursor: 'pointer' }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#fafafa')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
@@ -403,24 +468,35 @@ export default function Dashboard() {
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#0a0a0a', marginBottom: 2 }}>{p.name}</div>
                       <div style={{ fontSize: 12, color: '#999' }}>{p.targetUser}</div>
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: p.revenue7d > 0 ? '#16a34a' : '#0a0a0a' }}>${p.revenue7d.toFixed(0)}</div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: '#0a0a0a' }}>{p.conversions7d}</div>
-                    <div style={{ fontSize: 13, color: '#666' }}>{totalTests}</div>
-                    {/* Phase 4 — state pill */}
+
+                    {/* Status column */}
                     <div onClick={e => e.stopPropagation()}>
                       {state ? (
-                        <span style={{ fontSize: 11, fontWeight: 600, color: state.color, background: state.bg, border: `1px solid ${state.color}33`, borderRadius: 6, padding: '4px 10px', display: 'inline-block' }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: state.color, background: state.bg, border: `1px solid ${state.color}33`, borderRadius: 6, padding: '4px 10px', display: 'inline-block', whiteSpace: 'nowrap' as const }}>
                           {state.label}
                         </span>
                       ) : (
                         <button
                           onClick={() => startGrowth(p.id)}
                           disabled={startingId === p.id}
-                          style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                          style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 12px', fontSize: 11, fontWeight: 500, cursor: 'pointer' }}
                         >
                           {startingId === p.id ? 'Starting...' : 'Start growth'}
                         </button>
                       )}
+                    </div>
+
+                    {/* Tests count */}
+                    <div style={{ fontSize: 13, color: '#aaa' }}>{totalTests > 0 ? totalTests : '—'}</div>
+
+                    {/* Open button — always visible */}
+                    <div onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => router.push(`/products/${p.id}`)}
+                        style={{ background: 'transparent', color: '#555', border: '1px solid #e8e8e8', borderRadius: 7, padding: '6px 14px', fontSize: 12, cursor: 'pointer' }}
+                      >
+                        Open →
+                      </button>
                     </div>
                   </div>
 
@@ -433,7 +509,7 @@ export default function Dashboard() {
                         <div style={{ padding: '16px 20px', background: '#fff', border: '1px solid #e8e8e8', borderRadius: 8, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 500, color: '#0a0a0a', marginBottom: 2 }}>Generate your first 3 experiments</div>
-                            <div style={{ fontSize: 12, color: '#888' }}>Growva will create targeted experiments based on your product and target user.</div>
+                            <div style={{ fontSize: 12, color: '#888' }}>Growva will structure 3 targeted experiments and open your first 48-hour decision window.</div>
                           </div>
                           <button
                             onClick={() => startGrowth(p.id)}

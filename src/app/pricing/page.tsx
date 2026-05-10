@@ -39,8 +39,8 @@ export default function PricingPage() {
     emailNote: { fontSize: 12, color: '#5A5A6E', textAlign: 'center' as const },
     plansGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 48 },
     plan: { background: '#111116', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '44px 40px', position: 'relative' as const },
-    planFeatured: { background: '#111116', border: '1px solid #5B6EFF', borderRadius: 20, padding: '44px 40px', position: 'relative' as const },
-    badge: { position: 'absolute' as const, top: -12, left: '50%', transform: 'translateX(-50%)', background: '#5B6EFF', color: '#fff', fontSize: 11, fontWeight: 600, padding: '4px 16px', borderRadius: 100, whiteSpace: 'nowrap' as const },
+    planFeatured: { background: '#111116', border: '1px solid #E8A020', borderRadius: 20, padding: '44px 40px', position: 'relative' as const },
+    badge: { position: 'absolute' as const, top: -12, left: '50%', transform: 'translateX(-50%)', background: '#E8A020', color: '#fff', fontSize: 11, fontWeight: 600, padding: '4px 16px', borderRadius: 100, whiteSpace: 'nowrap' as const },
     planName: { fontSize: 12, color: '#5A5A6E', letterSpacing: 1.5, textTransform: 'uppercase' as const, marginBottom: 16 },
     price: { fontSize: 52, fontWeight: 300, letterSpacing: -2, lineHeight: 1, marginBottom: 6 },
     priceSub: { fontSize: 14, color: '#5A5A6E', marginBottom: 32 },
@@ -48,7 +48,7 @@ export default function PricingPage() {
     features: { listStyle: 'none', display: 'flex', flexDirection: 'column' as const, gap: 10, marginBottom: 36 },
     feature: { fontSize: 14, color: '#8A8A9A', display: 'flex', alignItems: 'center', gap: 10 },
     scarcity: { fontSize: 12, color: '#5A5A6E', marginBottom: 16 },
-    btnPrimary: { display: 'block', width: '100%', padding: 14, background: '#5B6EFF', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'opacity 0.2s' },
+    btnPrimary: { display: 'block', width: '100%', padding: 14, background: '#E8A020', color: '#000', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'opacity 0.2s' },
     btnOutline: { display: 'block', width: '100%', padding: 14, background: 'transparent', color: '#8A8A9A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' },
     addonsSection: { marginBottom: 48 },
     addonsLabel: { fontSize: 11, color: '#5A5A6E', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 20 },
@@ -74,8 +74,8 @@ export default function PricingPage() {
 
       <div style={s.wrap}>
         <div style={s.header}>
-          <h1 style={s.h1}>Simple pricing.</h1>
-          <p style={s.sub}>Start free. Upgrade when you're growing.</p>
+          <h1 style={s.h1}>One tool. One decision at a time.</h1>
+          <p style={s.sub}>Founding access for builders who are serious about knowing what works.</p>
 
           <div style={s.emailWrap}>
             <input
@@ -151,9 +151,8 @@ export default function PricingPage() {
         {/* FAQ */}
         <div style={s.faq}>
           <p style={s.faqText}>
-            Questions? Email us at <span style={{ color: '#8A8A9A' }}>hello@revenueengine.co</span>
+            Questions? Email us at <span style={{ color: '#8A8A9A' }}>hello@growva.co</span>
             &nbsp;·&nbsp; All payments secured by Stripe
-            &nbsp;·&nbsp; Cancel anytime
           </p>
         </div>
       </div>
