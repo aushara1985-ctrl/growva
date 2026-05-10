@@ -31,11 +31,56 @@ export async function POST(req: NextRequest) {
   if (!experiment) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const pageViews = experiment.events.filter(e => e.type === 'PAGE_VIEW').length
-  const clicks = experiment.events.filter(e => e.type === 'CLICK').length
-  const signups = experiment.events.filter(e => e.type === 'SIGNUP').length
-  const revenue = experiment.events.filter(e => e.type === 'PURCHASE').reduce((s, e) => s + e.value, 0)
+  const clicks    = experiment.events.filter(e => e.type === 'CLICK').length
+  const signups   = experiment.events.filter(e => e.type === 'SIGNUP').length
+  const revenue   = experiment.events.filter(e => e.type === 'PURCHASE').reduce((s, e) => s + e.value, 0)
   const conversionRate = pageViews > 0 ? signups / pageViews : 0
 
+  // ─── Signal quality gates ─────────────────────────────────────────────────
+  const MIN_VIEWS   = 300
+  const MIN_SIGNUPS = 10
+
+  const hasAnySignal    = clicks > 0 || pageViews > 0 || signups > 0
+  const thresholdReached = pageViews >= MIN_VIEWS || signups >= MIN_SIGNUPS
+  const windowClosed    = experiment.reviewDueAt != null && new Date(experiment.reviewDueAt) <= new Date()
+
+  // Case 1: no tracking data at all
+  if (!hasAnySignal) {
+    const saved = await prisma.decision.create({
+      data: {
+        productId: experiment.productId,
+        experimentId: experiment.id,
+        action: 'CONTINUE',
+        reason: 'No tracking data received yet. Install the site snippet on your page, or share your tracking link, so Growva can collect signal before making a decision.',
+        confidence: 0,
+        metadata: { insufficientData: true, reason: 'no_tracking', pageViews, clicks, signups },
+        executedAt: new Date(),
+      },
+    })
+    return NextResponse.json({ decision: saved, noData: true })
+  }
+
+  // Case 2: below threshold and window still open — too early to decide
+  if (!thresholdReached && !windowClosed) {
+    const needed = pageViews < MIN_VIEWS
+      ? `${MIN_VIEWS - pageViews} more page views`
+      : `${MIN_SIGNUPS - signups} more signups`
+    const saved = await prisma.decision.create({
+      data: {
+        productId: experiment.productId,
+        experimentId: experiment.id,
+        action: 'CONTINUE',
+        reason: `CONTINUE — ${pageViews} page views and ${signups} signups so far. Need ${needed} to reach the minimum threshold for a reliable decision. Keep sending traffic.`,
+        confidence: 0.3,
+        metadata: { insufficientData: true, reason: 'below_threshold', pageViews, clicks, signups, revenue },
+        executedAt: new Date(),
+      },
+    })
+    return NextResponse.json({ decision: saved, belowThreshold: true })
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Threshold reached OR window closed → proceed to AI debate
   // 1. جيب الذاكرة الكاملة
   const memory = await getDecisionMemory(experiment.productId, experiment.id)
 
