@@ -2,16 +2,24 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getUserFromRequest } from '@/lib/auth'
 import { getDecisionMemory, debateDecision, updateBrainMemory } from '@/lib/brain'
 import { sprintVerdict, generateSprintNarrative, SprintType, SprintResult } from '@/lib/sprint'
 
 // GET /api/decisions?productId=xxx
 export async function GET(req: NextRequest) {
+  const session = getUserFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const productId = searchParams.get('productId')
 
+  // Scope to user's products
   const decisions = await prisma.decision.findMany({
-    where: { ...(productId && { productId }) },
+    where: {
+      ...(productId ? { productId } : {}),
+      product: { userId: session.userId },
+    },
     include: { experiment: true },
     orderBy: { createdAt: 'desc' },
     take: 50,
@@ -22,6 +30,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/decisions — Debate-powered decision
 export async function POST(req: NextRequest) {
+  const session = getUserFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+
   const { experimentId } = await req.json()
 
   const experiment = await prisma.experiment.findUnique({
@@ -30,6 +41,11 @@ export async function POST(req: NextRequest) {
   })
 
   if (!experiment) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Ownership check — allow unowned legacy products
+  if (experiment.product.userId && experiment.product.userId !== session.userId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   // ─── Sprint Mode branch ───────────────────────────────────────────────────
   if (experiment.mode === 'SPRINT') {

@@ -1,15 +1,21 @@
 export const dynamic = 'force-dynamic'
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getUserFromRequest } from '@/lib/auth'
 import { startOfDay, subDays } from 'date-fns'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const session = getUserFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+
+  const userId = session.userId
   const today = startOfDay(new Date())
   const last7 = subDays(today, 7)
 
   const [products, recentDecisions, todayBrief] = await Promise.all([
     prisma.product.findMany({
+      where: { userId },
       include: {
         experiments: { orderBy: { createdAt: 'desc' } },
         score: true,
@@ -19,6 +25,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     }),
     prisma.decision.findMany({
+      where: { product: { userId } },
       orderBy: { createdAt: 'desc' },
       take: 10,
       include: { product: true, experiment: true },
@@ -27,6 +34,8 @@ export async function GET() {
   ])
 
   // Per-product 7-day stats
+  const productIds = products.map(p => p.id)
+
   const productStats = await Promise.all(
     products.map(async p => {
       const [conv, rev] = await Promise.all([
@@ -45,13 +54,17 @@ export async function GET() {
   const scaledTotal = products.reduce((s, p) => s + p.experiments.filter(e => e.status === 'SCALED').length, 0)
   const killedTotal = products.reduce((s, p) => s + p.experiments.filter(e => e.status === 'KILLED').length, 0)
 
-  // Daily chart last 7 days
+  // Daily chart last 7 days — scoped to this user's products
   const dailyData = await Promise.all(
     Array.from({ length: 7 }, (_, i) => {
       const day = subDays(today, 6 - i)
       const next = subDays(today, 5 - i)
-      return prisma.event.count({ where: { createdAt: { gte: day, lt: next } } })
-        .then(count => ({ date: day.toISOString().split('T')[0], events: count }))
+      return prisma.event.count({
+        where: {
+          productId: { in: productIds },
+          createdAt: { gte: day, lt: next },
+        },
+      }).then(count => ({ date: day.toISOString().split('T')[0], events: count }))
     })
   )
 

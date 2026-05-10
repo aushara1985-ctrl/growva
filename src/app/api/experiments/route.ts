@@ -2,10 +2,14 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getUserFromRequest } from '@/lib/auth'
 import { generateSprintPlan, SprintType } from '@/lib/sprint'
 
 // POST /api/experiments — create a single sprint experiment
 export async function POST(req: NextRequest) {
+  const session = getUserFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+
   const { productId, hypothesis, sprintType, targetAudience } = await req.json()
 
   if (!productId || !hypothesis || !sprintType) {
@@ -14,6 +18,11 @@ export async function POST(req: NextRequest) {
 
   const product = await prisma.product.findUnique({ where: { id: productId } })
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+
+  // Ownership check — allow unowned legacy products
+  if (product.userId && product.userId !== session.userId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const audience = targetAudience || product.targetUser
 
