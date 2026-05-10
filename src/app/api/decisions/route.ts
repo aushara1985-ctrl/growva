@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getDecisionMemory, debateDecision, updateBrainMemory } from '@/lib/brain'
+import { sprintVerdict, generateSprintNarrative, SprintType, SprintResult } from '@/lib/sprint'
 
 // GET /api/decisions?productId=xxx
 export async function GET(req: NextRequest) {
@@ -29,6 +30,57 @@ export async function POST(req: NextRequest) {
   })
 
   if (!experiment) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // ─── Sprint Mode branch ───────────────────────────────────────────────────
+  if (experiment.mode === 'SPRINT') {
+    const meta = (experiment.metadata as any) ?? {}
+    const sprintType = (meta.sprintType as SprintType) ?? 'DM'
+    const plan = meta.sprintPlan ?? {}
+    const hypothesis = meta.hypothesis ?? experiment.headline
+    const manualResult: Partial<SprintResult> = meta.sprintResult ?? {}
+
+    const auto = {
+      clicks:    experiment.events.filter(e => e.type === 'CLICK').length,
+      signups:   experiment.events.filter(e => e.type === 'SIGNUP').length,
+      pageViews: experiment.events.filter(e => e.type === 'PAGE_VIEW').length,
+      revenue:   experiment.events.filter(e => e.type === 'PURCHASE').reduce((s, e) => s + e.value, 0),
+    }
+
+    const verdict = sprintVerdict(sprintType, auto, manualResult)
+    const reason  = await generateSprintNarrative(verdict, auto, manualResult, sprintType, hypothesis, plan)
+
+    const confidenceMap = { SCALE: 0.85, CONTINUE: 0.55, KILL: 0.8 }
+
+    const saved = await prisma.decision.create({
+      data: {
+        productId: experiment.productId,
+        experimentId: experiment.id,
+        action: verdict,
+        reason,
+        confidence: confidenceMap[verdict],
+        metadata: {
+          mode: 'SPRINT',
+          sprintType,
+          autoSignals: auto,
+          manualSignals: manualResult,
+          plan,
+        },
+        executedAt: new Date(),
+      },
+    })
+
+    // Update experiment status based on verdict
+    if (verdict === 'KILL') {
+      await prisma.experiment.update({ where: { id: experiment.id }, data: { status: 'KILLED', endedAt: new Date() } })
+    } else if (verdict === 'SCALE') {
+      await prisma.experiment.update({ where: { id: experiment.id }, data: { status: 'SCALED' } })
+    }
+
+    await updateBrainMemory(experiment.productId).catch(() => {})
+
+    return NextResponse.json({ decision: saved, mode: 'SPRINT' })
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   const pageViews = experiment.events.filter(e => e.type === 'PAGE_VIEW').length
   const clicks    = experiment.events.filter(e => e.type === 'CLICK').length

@@ -52,6 +52,8 @@ model Experiment {
   distributionChannel String
   expectedKpi         String
   status              ExperimentStatus @default(PENDING)
+  mode                String           @default("TRAFFIC")
+  metadata            Json?
   activatedAt         DateTime?
   reviewDueAt         DateTime?
   trackingId          String?          @unique

@@ -164,9 +164,16 @@ export default function Dashboard() {
   const router = useRouter()
   const [form, setForm] = useState({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
 
-  // First-run setup flow (0 = not started, 1-4 = steps)
+  // First-run setup flow
+  // setupMode: '' = question not answered yet, 'TRAFFIC' = has traffic, 'SPRINT' = needs traffic
+  // setupStep: 0 = mode question, 1-4 = steps within chosen mode
+  const [setupMode, setSetupMode] = useState<'' | 'TRAFFIC' | 'SPRINT'>('')
   const [setupStep, setSetupStep] = useState(0)
-  const [setupData, setSetupData] = useState({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '' })
+  const [setupData, setSetupData] = useState({
+    name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '',
+    // Sprint-specific
+    hypothesis: '', sprintType: '',
+  })
   const [setupLoading, setSetupLoading] = useState(false)
 
   const load = useCallback(async () => {
@@ -231,11 +238,11 @@ export default function Dashboard() {
     setOpenProducts(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
   }
 
-  const runFirstSetup = async () => {
+  // Traffic Mode setup — existing flow
+  const runTrafficSetup = async () => {
     if (!setupData.name || !setupData.targetUser || !setupData.url || !setupData.trackingMethod) return
     setSetupLoading(true)
     try {
-      // 1. Create product
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -250,17 +257,52 @@ export default function Dashboard() {
       const product = await res.json()
       if (!product?.id) { setSetupLoading(false); return }
 
-      // 2. Save tracking method
       await fetch(`/api/products/${product.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metadata: { trackingMethod: setupData.trackingMethod } }),
+        body: JSON.stringify({ metadata: { trackingMethod: setupData.trackingMethod, mode: 'TRAFFIC' } }),
       })
 
-      // 3. Generate experiments (non-blocking — if OpenAI fails, user lands on product page)
+      // Generate 3 experiments non-blocking
       fetch(`/api/products/${product.id}`, { method: 'POST' }).catch(() => {})
 
-      // 4. Route to product page
+      router.push(`/products/${product.id}`)
+    } catch {
+      setSetupLoading(false)
+    }
+  }
+
+  // Sprint Mode setup — creates product + single sprint experiment
+  const runSprintSetup = async () => {
+    if (!setupData.name || !setupData.hypothesis || !setupData.sprintType) return
+    setSetupLoading(true)
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: setupData.name,
+          targetUser: setupData.targetUser || setupData.name,
+          description: setupData.hypothesis,
+          url: setupData.url || null,
+          goal: 'signups',
+        }),
+      })
+      const product = await res.json()
+      if (!product?.id) { setSetupLoading(false); return }
+
+      // Create single sprint experiment (starts RUNNING immediately)
+      await fetch('/api/experiments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          hypothesis: setupData.hypothesis,
+          sprintType: setupData.sprintType,
+          targetAudience: setupData.targetUser,
+        }),
+      })
+
       router.push(`/products/${product.id}`)
     } catch {
       setSetupLoading(false)
@@ -353,34 +395,57 @@ export default function Dashboard() {
         {productList.length === 0 && (
           <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, marginBottom: 24, overflow: 'hidden' }}>
 
-            {/* Step 0 — Welcome */}
+            {/* Step 0 — Do you have traffic? */}
             {setupStep === 0 && (
-              <div style={{ padding: '48px 40px', textAlign: 'center' }}>
-                <div style={{ fontSize: 13, color: '#bbb', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 20 }}>
-                  Prepare your first growth experiment
+              <div style={{ padding: '48px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 20 }}>
+                  Start your first experiment
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 600, color: '#0a0a0a', marginBottom: 10 }}>
-                  Growva needs two things to make a decision.
+                <div style={{ fontSize: 20, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>
+                  Do you already have traffic for this experiment?
                 </div>
-                <div style={{ fontSize: 14, color: '#888', maxWidth: 420, margin: '0 auto 32px', lineHeight: 1.7 }}>
-                  What you're testing, and how it should collect signal. Takes 2 minutes.
+                <div style={{ fontSize: 14, color: '#888', marginBottom: 36, lineHeight: 1.6 }}>
+                  A landing page, campaign, waitlist, or audience you can send to a link.
                 </div>
-                <button onClick={() => setSetupStep(1)} style={{ background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                  Set up first experiment →
-                </button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, maxWidth: 560 }}>
+                  <button
+                    onClick={() => { setSetupMode('TRAFFIC'); setSetupStep(1) }}
+                    style={{ background: '#fff', border: '2px solid #e8e8e8', borderRadius: 10, padding: '20px 24px', textAlign: 'left' as const, cursor: 'pointer' }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = '#0a0a0a')}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = '#e8e8e8')}
+                  >
+                    <div style={{ fontSize: 20, marginBottom: 8 }}>📊</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a', marginBottom: 4 }}>Yes — I have traffic</div>
+                    <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5 }}>Track existing traffic and get a data-driven decision</div>
+                  </button>
+                  <button
+                    onClick={() => { setSetupMode('SPRINT'); setSetupStep(1) }}
+                    style={{ background: '#fff', border: '2px solid #e8e8e8', borderRadius: 10, padding: '20px 24px', textAlign: 'left' as const, cursor: 'pointer' }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = '#0a0a0a')}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = '#e8e8e8')}
+                  >
+                    <div style={{ fontSize: 20, marginBottom: 8 }}>⚡</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#0a0a0a', marginBottom: 4 }}>No — I need to create traffic</div>
+                    <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5 }}>Run a 48-hour sprint — Growva gives you the plan and tracking link</div>
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Step 1 — What + Who */}
-            {setupStep === 1 && (
+            {/* ── TRAFFIC PATH ── */}
+
+            {/* Traffic Step 1 — What + Who */}
+            {setupMode === 'TRAFFIC' && setupStep === 1 && (
               <div style={{ padding: '32px 40px' }}>
-                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 1 OF 4</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <span style={{ fontSize: 11, color: '#bbb', letterSpacing: 2 }}>TRAFFIC MODE · STEP 1 OF 4</span>
+                </div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 24 }}>What are you testing, and who is it for?</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
                   <div>
                     <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>What are you testing?</div>
                     <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })}
-                      placeholder="e.g. Pricing page headline, Beta launch post"
+                      placeholder="e.g. Pricing page headline, Beta launch"
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
                   </div>
                   <div>
@@ -391,23 +456,26 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, color: '#bbb', marginBottom: 6 }}>Context for Growva <span style={{ color: '#ddd', fontWeight: 400 }}>(optional — what's been tried, what's working)</span></div>
+                  <div style={{ fontSize: 11, color: '#bbb', marginBottom: 6 }}>Context for Growva <span style={{ color: '#ddd', fontWeight: 400 }}>(optional)</span></div>
                   <textarea value={setupData.context} onChange={e => setSetupData({ ...setupData, context: e.target.value })}
-                    placeholder="Brief description — the more context, the more targeted the experiments."
+                    placeholder="What has been tried, what is working, what is the product."
                     rows={2}
                     style={{ width: '100%', padding: '9px 12px', border: '1px solid #f0f0f0', borderRadius: 7, fontSize: 13, resize: 'none', outline: 'none', boxSizing: 'border-box' as const }} />
                 </div>
-                <button onClick={() => { if (setupData.name && setupData.targetUser) setSetupStep(2) }}
-                  style={{ background: setupData.name && setupData.targetUser ? '#0a0a0a' : '#e8e8e8', color: setupData.name && setupData.targetUser ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-                  Next →
-                </button>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => { setSetupMode(''); setSetupStep(0) }} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button onClick={() => { if (setupData.name && setupData.targetUser) setSetupStep(2) }}
+                    style={{ background: setupData.name && setupData.targetUser ? '#0a0a0a' : '#e8e8e8', color: setupData.name && setupData.targetUser ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                    Next →
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Step 2 — Signal */}
-            {setupStep === 2 && (
+            {/* Traffic Step 2 — Signal */}
+            {setupMode === 'TRAFFIC' && setupStep === 2 && (
               <div style={{ padding: '32px 40px' }}>
-                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 2 OF 4</div>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>TRAFFIC MODE · STEP 2 OF 4</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>What outcome matters most?</div>
                 <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Growva will watch for this signal and use it in its verdict.</div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const, marginBottom: 28 }}>
@@ -437,19 +505,19 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Step 3 — URL (required) */}
-            {setupStep === 3 && (
+            {/* Traffic Step 3 — URL (required) */}
+            {setupMode === 'TRAFFIC' && setupStep === 3 && (
               <div style={{ padding: '32px 40px' }}>
-                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 3 OF 4</div>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>TRAFFIC MODE · STEP 3 OF 4</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>Where is this experiment running?</div>
-                <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Growva needs the URL for context, attribution, and future integrations.</div>
+                <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Growva needs the URL for context and attribution.</div>
                 <div style={{ marginBottom: 28 }}>
                   <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Product or page URL <span style={{ color: '#dc2626', fontWeight: 600 }}>*</span></div>
                   <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })}
-                    placeholder="https://yourproduct.com/pricing"
+                    placeholder="https://yourproduct.com"
                     type="url"
                     style={{ width: '100%', padding: '10px 12px', border: `1px solid ${setupData.url ? '#e8e8e8' : '#fca5a5'}`, borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
-                  {!setupData.url && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>URL is required to continue.</div>}
+                  {!setupData.url && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>URL is required.</div>}
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={() => setSetupStep(2)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
@@ -461,28 +529,16 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Step 4 — Tracking method (Link or Snippet — no skip) */}
-            {setupStep === 4 && (
+            {/* Traffic Step 4 — Tracking method */}
+            {setupMode === 'TRAFFIC' && setupStep === 4 && (
               <div style={{ padding: '32px 40px' }}>
-                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>STEP 4 OF 4</div>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>TRAFFIC MODE · STEP 4 OF 4</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>How should Growva collect signal?</div>
                 <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Choose your tracking method. You need at least one for Growva to make a reliable decision.</div>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12, marginBottom: 28 }}>
                   {[
-                    {
-                      id: 'tracking_links',
-                      icon: '🔗',
-                      label: 'Tracking links',
-                      desc: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment — share it anywhere.',
-                      tracks: 'Tracks: clicks, source, referrer',
-                    },
-                    {
-                      id: 'site_snippet',
-                      icon: '</>',
-                      label: 'Site snippet',
-                      desc: 'Paste a small script on your landing page or product. Automatically tracks page views. Call growva.track() for signups and purchases.',
-                      tracks: 'Tracks: page views, signups, purchases, custom events',
-                    },
+                    { id: 'tracking_links', icon: '🔗', label: 'Tracking links', desc: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment.', tracks: 'Tracks: clicks, source, referrer' },
+                    { id: 'site_snippet',   icon: '</>', label: 'Site snippet',   desc: 'Paste a small script on your page. Auto-tracks page views. Call growva.track() for signups and purchases.', tracks: 'Tracks: page views, signups, purchases' },
                   ].map(opt => (
                     <button key={opt.id} onClick={() => setSetupData({ ...setupData, trackingMethod: opt.id })}
                       style={{
@@ -503,19 +559,121 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <button onClick={() => setSetupStep(3)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
                   <button
-                    onClick={runFirstSetup}
+                    onClick={runTrafficSetup}
                     disabled={!setupData.trackingMethod || setupLoading}
-                    style={{
-                      background: setupData.trackingMethod && !setupLoading ? '#0a0a0a' : '#e8e8e8',
-                      color: setupData.trackingMethod && !setupLoading ? '#fff' : '#bbb',
-                      border: 'none', borderRadius: 7, padding: '10px 28px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    }}>
+                    style={{ background: setupData.trackingMethod && !setupLoading ? '#0a0a0a' : '#e8e8e8', color: setupData.trackingMethod && !setupLoading ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 28px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                     {setupLoading ? 'Setting up...' : 'Generate experiments →'}
                   </button>
-                  {!setupData.trackingMethod && (
-                    <span style={{ fontSize: 12, color: '#dc2626' }}>Select a tracking method to continue</span>
-                  )}
+                  {!setupData.trackingMethod && <span style={{ fontSize: 12, color: '#dc2626' }}>Select a tracking method to continue</span>}
                 </div>
+              </div>
+            )}
+
+            {/* ── SPRINT PATH ── */}
+
+            {/* Sprint Step 1 — What + Who */}
+            {setupMode === 'SPRINT' && setupStep === 1 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>SPRINT MODE · STEP 1 OF 3</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 24 }}>What are you trying to validate?</div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Product name</div>
+                  <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })}
+                    placeholder="e.g. Growva, SeatX, pricing page"
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Hypothesis — what you want to validate</div>
+                  <input value={setupData.hypothesis} onChange={e => setSetupData({ ...setupData, hypothesis: e.target.value })}
+                    placeholder="e.g. Will solo founders pay for a decision engine?"
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
+                </div>
+                <div style={{ marginBottom: 28 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Who are you targeting?</div>
+                  <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })}
+                    placeholder="e.g. SaaS founders under $5k MRR"
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const }} />
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => { setSetupMode(''); setSetupStep(0) }} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button onClick={() => { if (setupData.name && setupData.hypothesis && setupData.targetUser) setSetupStep(2) }}
+                    style={{ background: setupData.name && setupData.hypothesis && setupData.targetUser ? '#0a0a0a' : '#e8e8e8', color: setupData.name && setupData.hypothesis && setupData.targetUser ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Sprint Step 2 — Sprint type */}
+            {setupMode === 'SPRINT' && setupStep === 2 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>SPRINT MODE · STEP 2 OF 3</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>How will you create traffic?</div>
+                <div style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>Growva will generate the exact action, script, and tracking link for your sprint.</div>
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10, marginBottom: 28 }}>
+                  {([
+                    { id: 'DM',           icon: '💬', label: 'DM 20 people',             desc: 'Personal outreach — best for B2B and niche communities' },
+                    { id: 'X_POST',       icon: '𝕏',  label: 'Post on X',               desc: 'Public validation — good if your audience is on Twitter' },
+                    { id: 'REDDIT',       icon: '↑',  label: 'Post on Reddit',           desc: 'Community validation — find the right subreddit first' },
+                    { id: 'INTERVIEW',    icon: '🎙', label: 'Interview 5 users',        desc: '5 conversations — best for deep problem validation' },
+                    { id: 'LANDING_SEND', icon: '🔗', label: 'Send page to 10 founders', desc: 'Direct link — get feedback on your landing or offer' },
+                    { id: 'PAID_ACCESS',  icon: '💳', label: 'Offer paid early access',  desc: 'Ultimate test — people vote with their wallet' },
+                  ] as const).map(opt => (
+                    <button key={opt.id} onClick={() => setSetupData({ ...setupData, sprintType: opt.id })}
+                      style={{
+                        background: setupData.sprintType === opt.id ? '#f8f8f8' : '#fff',
+                        border: `2px solid ${setupData.sprintType === opt.id ? '#0a0a0a' : '#e8e8e8'}`,
+                        borderRadius: 10, padding: '14px 18px', textAlign: 'left' as const, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 14,
+                      }}>
+                      <span style={{ fontSize: 20, flexShrink: 0, width: 28, textAlign: 'center' as const }}>{opt.icon}</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0a0a0a', marginBottom: 2 }}>{opt.label}</div>
+                        <div style={{ fontSize: 12, color: '#888' }}>{opt.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => setSetupStep(1)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button onClick={() => { if (setupData.sprintType) setSetupStep(3) }}
+                    style={{ background: setupData.sprintType ? '#0a0a0a' : '#e8e8e8', color: setupData.sprintType ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 24px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Sprint Step 3 — URL (optional) + Generate */}
+            {setupMode === 'SPRINT' && setupStep === 3 && (
+              <div style={{ padding: '32px 40px' }}>
+                <div style={{ fontSize: 11, color: '#bbb', letterSpacing: 2, marginBottom: 20 }}>SPRINT MODE · STEP 3 OF 3</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>Do you have a page for this experiment?</div>
+                <div style={{ fontSize: 13, color: '#999', marginBottom: 24, lineHeight: 1.6 }}>
+                  If yes, paste the URL — Growva will generate a tracking link and give you the option to install the snippet for deeper signals.
+                  If no, the tracking link alone is enough to start.
+                </div>
+                <div style={{ marginBottom: 32 }}>
+                  <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Page URL <span style={{ color: '#bbb', fontWeight: 400 }}>(optional)</span></div>
+                  <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })}
+                    placeholder="https://yourpage.com — leave blank if you don't have one yet"
+                    type="url"
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e8e8', borderRadius: 7, fontSize: 14, outline: 'none', boxSizing: 'border-box' as const, color: '#555' }} />
+                </div>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button onClick={() => setSetupStep(2)} style={{ background: 'transparent', color: '#888', border: '1px solid #e8e8e8', borderRadius: 7, padding: '10px 20px', fontSize: 13, cursor: 'pointer' }}>← Back</button>
+                  <button
+                    onClick={runSprintSetup}
+                    disabled={setupLoading}
+                    style={{ background: !setupLoading ? '#0a0a0a' : '#e8e8e8', color: !setupLoading ? '#fff' : '#bbb', border: 'none', borderRadius: 7, padding: '10px 28px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                    {setupLoading ? 'Generating sprint...' : '⚡ Generate sprint →'}
+                  </button>
+                </div>
+                {!setupLoading && (
+                  <div style={{ marginTop: 14, fontSize: 12, color: '#aaa', lineHeight: 1.6 }}>
+                    Growva will create a 48-hour sprint plan, a tracking link, and the exact script to use.
+                  </div>
+                )}
               </div>
             )}
 

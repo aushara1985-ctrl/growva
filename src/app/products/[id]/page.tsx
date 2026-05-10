@@ -11,6 +11,15 @@ interface Event {
   experimentId?: string | null
 }
 
+interface SprintPlan {
+  action: string
+  script: string
+  successThreshold: string
+  weakThreshold: string
+  killSignal: string
+  generatedBy: string
+}
+
 interface Experiment {
   id: string
   type: string
@@ -21,10 +30,24 @@ interface Experiment {
   distributionChannel: string
   expectedKpi: string
   status: string
+  mode: string
   startedAt: string
   activatedAt: string | null
   reviewDueAt: string | null
   trackingId: string | null
+  metadata?: {
+    mode?: string
+    hypothesis?: string
+    sprintType?: string
+    targetAudience?: string
+    sprintPlan?: SprintPlan
+    sprintResult?: {
+      replies?: number
+      paidInterest?: number
+      objections?: string
+      notes?: string
+    }
+  } | null
 }
 
 interface Product {
@@ -85,6 +108,10 @@ export default function ProductPage() {
   const [activating, setActivating] = useState<string | null>(null)
   const [deciding, setDeciding] = useState<string | null>(null)
   const [trackingTab, setTrackingTab] = useState<'link' | 'snippet'>('link')
+  // Sprint state
+  const [sprintResult, setSprintResult] = useState({ replies: 0, paidInterest: 0, objections: '', notes: '' })
+  const [sprintEvidenceOpen, setSprintEvidenceOpen] = useState(false)
+  const [savingEvidence, setSavingEvidence] = useState(false)
 
   const fetchProduct = async () => {
     const res = await fetch(`/api/products/${params.id}`)
@@ -102,8 +129,22 @@ export default function ProductPage() {
     fetchProduct()
   }
 
-  const triggerDecision = async (experimentId: string) => {
+  const saveSprintEvidence = async (experimentId: string) => {
+    setSavingEvidence(true)
+    await fetch(`/api/experiments/${experimentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sprintResult }),
+    })
+    setSavingEvidence(false)
+  }
+
+  const triggerDecision = async (experimentId: string, isSprint = false) => {
     setDeciding(experimentId)
+    // For sprint: save manual evidence first, then request decision
+    if (isSprint && (sprintResult.replies > 0 || sprintResult.paidInterest > 0 || sprintResult.objections || sprintResult.notes)) {
+      await saveSprintEvidence(experimentId)
+    }
     await fetch('/api/decisions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -163,6 +204,202 @@ export default function ProductPage() {
 
             const isPending = exp.status === 'PENDING'
             const isRunning = exp.status === 'RUNNING' || exp.status === 'ACTIVE'
+            const trackingUrl = exp.trackingId ? `${BASE_URL}/api/track/${exp.trackingId}` : null
+
+            // ── SPRINT EXPERIMENT VIEW ──────────────────────────────────────
+            if (exp.mode === 'SPRINT' || exp.metadata?.mode === 'SPRINT') {
+              const plan = exp.metadata?.sprintPlan
+              const hypothesis = exp.metadata?.hypothesis || exp.headline
+              const sprintType = exp.metadata?.sprintType || ''
+              const windowClosed = exp.reviewDueAt != null && new Date(exp.reviewDueAt) <= new Date()
+              const hoursLeft = exp.reviewDueAt && !windowClosed ? hoursUntil(exp.reviewDueAt) : 0
+              const isDecided = ['KILLED', 'SCALED'].includes(exp.status)
+              const canDecide = isRunning && (windowClosed || clicks >= 3 || signups >= 1)
+
+              const scriptWithLink = plan?.script?.replace('{trackingLink}', trackingUrl || '[tracking link]') ?? ''
+
+              return (
+                <div key={exp.id} style={{ background: '#0d0d0d', border: '1px solid #f59e0b22', borderRadius: 8, padding: 24 }}>
+
+                  {/* Sprint header */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 16 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <span style={{ fontSize: 9, letterSpacing: 2, color: '#f59e0b', background: '#f59e0b18', border: '1px solid #f59e0b33', borderRadius: 4, padding: '2px 8px' }}>
+                          ⚡ SPRINT
+                        </span>
+                        <span style={{ fontSize: 10, color: '#555', letterSpacing: 2 }}>48H VALIDATION</span>
+                        {!isDecided && !windowClosed && (
+                          <span style={{ fontSize: 10, color: '#10b981' }}>{hoursLeft}h left</span>
+                        )}
+                        {windowClosed && !isDecided && (
+                          <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 600 }}>WINDOW CLOSED</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 15, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, marginBottom: 4 }}>
+                        {hypothesis}
+                      </div>
+                      {sprintType && (
+                        <div style={{ fontSize: 11, color: '#555' }}>Sprint type: {sprintType.toLowerCase().replace('_', ' ')}</div>
+                      )}
+                    </div>
+
+                    {isRunning && (
+                      <button
+                        onClick={() => triggerDecision(exp.id, true)}
+                        disabled={deciding === exp.id}
+                        style={{
+                          background: deciding === exp.id ? '#1a1a1a' : canDecide ? '#111' : '#0d0d0d',
+                          color: deciding === exp.id ? '#555' : canDecide ? '#f59e0b' : '#444',
+                          border: `1px solid ${canDecide ? '#f59e0b33' : '#1a1a1a'}`, borderRadius: 6,
+                          padding: '8px 16px', fontSize: 11, fontWeight: 600,
+                          cursor: deciding === exp.id ? 'not-allowed' : 'pointer',
+                          fontFamily: 'inherit', letterSpacing: 1, flexShrink: 0,
+                        }}>
+                        {deciding === exp.id ? 'DECIDING...' : '⚡ GET VERDICT'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Sprint plan */}
+                  {plan && (
+                    <div style={{ marginBottom: 20 }}>
+                      {/* Action */}
+                      <div style={{ background: '#111', border: '1px solid #1f2937', borderRadius: 6, padding: '14px 16px', marginBottom: 12 }}>
+                        <div style={{ fontSize: 10, color: '#555', letterSpacing: 2, marginBottom: 8 }}>YOUR ACTION</div>
+                        <div style={{ fontSize: 13, color: '#e8e8e8', lineHeight: 1.6 }}>{plan.action}</div>
+                      </div>
+
+                      {/* Script */}
+                      <div style={{ background: '#111', border: '1px solid #1f2937', borderRadius: 6, padding: '14px 16px', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <div style={{ fontSize: 10, color: '#555', letterSpacing: 2 }}>SCRIPT — COPY & USE</div>
+                          <CopyButton text={scriptWithLink} />
+                        </div>
+                        <pre style={{ fontSize: 12, color: '#a5b4fc', lineHeight: 1.7, margin: 0, fontFamily: 'monospace', whiteSpace: 'pre-wrap' as const, wordBreak: 'break-word' as const }}>
+                          {scriptWithLink}
+                        </pre>
+                      </div>
+
+                      {/* Tracking link */}
+                      {trackingUrl && (
+                        <div style={{ background: '#111', border: '1px solid #1f2937', borderRadius: 6, padding: '12px 16px', marginBottom: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <div style={{ fontSize: 10, color: '#555', letterSpacing: 2 }}>TRACKING LINK — USE IN YOUR SPRINT</div>
+                            <CopyButton text={trackingUrl} />
+                          </div>
+                          <code style={{ fontSize: 12, color: '#10b981', wordBreak: 'break-all' as const }}>{trackingUrl}</code>
+                          <div style={{ fontSize: 11, color: '#555', marginTop: 6 }}>Every click is measured automatically. Share this link in your DMs, posts, or emails.</div>
+                        </div>
+                      )}
+
+                      {/* Optional snippet if product has URL */}
+                      {product.url && (
+                        <div style={{ marginBottom: 12 }}>
+                          <button onClick={() => setTrackingTab(trackingTab === 'snippet' ? 'link' : 'snippet')}
+                            style={{ background: 'transparent', border: '1px solid #1f2937', borderRadius: 5, padding: '5px 12px', fontSize: 11, color: '#555', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            {trackingTab === 'snippet' ? 'Hide snippet' : '</> Also install snippet on your page'}
+                          </button>
+                          {trackingTab === 'snippet' && (() => {
+                            const snippetCode = `<script src="${BASE_URL}/api/g.js"\n  data-key="${product.apiKey}"\n  data-experiment="${exp.trackingId || ''}"></script>`
+                            return (
+                              <div style={{ background: '#111', border: '1px solid #1f2937', borderRadius: 6, padding: '12px 16px', marginTop: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
+                                  <code style={{ fontSize: 11, color: '#60a5fa', flex: 1, whiteSpace: 'pre', fontFamily: 'monospace', lineHeight: 1.6 }}>{snippetCode}</code>
+                                  <CopyButton text={snippetCode} />
+                                </div>
+                                <div style={{ fontSize: 11, color: '#555' }}>Paste in your page &lt;head&gt; — auto-tracks page views from snippet installs.</div>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )}
+
+                      {/* Thresholds */}
+                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 16px' }}>
+                        <div style={{ fontSize: 10, color: '#555', letterSpacing: 2, marginBottom: 12 }}>SIGNAL THRESHOLDS</div>
+                        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                          <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
+                            <span style={{ color: '#16a34a', fontWeight: 600, minWidth: 52, flexShrink: 0 }}>SCALE →</span>
+                            <span style={{ color: '#555', lineHeight: 1.5 }}>{plan.successThreshold}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
+                            <span style={{ color: '#d97706', fontWeight: 600, minWidth: 52, flexShrink: 0 }}>CONT. →</span>
+                            <span style={{ color: '#555', lineHeight: 1.5 }}>{plan.weakThreshold}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
+                            <span style={{ color: '#dc2626', fontWeight: 600, minWidth: 52, flexShrink: 0 }}>STOP →</span>
+                            <span style={{ color: '#555', lineHeight: 1.5 }}>{plan.killSignal}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Live signals */}
+                  <div style={{ display: 'flex', gap: 20, fontSize: 11, paddingBottom: 16, borderBottom: '1px solid #1a1a1a', marginBottom: 16 }}>
+                    <span style={{ color: '#555' }}>Clicks: <span style={{ color: '#10b981', fontWeight: 600 }}>{clicks}</span></span>
+                    <span style={{ color: '#555' }}>Views: <span style={{ color: '#e8e8e8' }}>{pageViews}</span></span>
+                    <span style={{ color: '#555' }}>Signups: <span style={{ color: '#22c55e' }}>{signups}</span></span>
+                    {revenue > 0 && <span style={{ color: '#555' }}>Revenue: <span style={{ color: '#22c55e' }}>${revenue.toFixed(0)}</span></span>}
+                    {!clicks && !signups && !pageViews && (
+                      <span style={{ color: '#555', fontStyle: 'italic' }}>No signal yet — share your tracking link to start</span>
+                    )}
+                  </div>
+
+                  {/* Manual evidence — collapsible fallback */}
+                  {isRunning && (
+                    <div>
+                      <button onClick={() => setSprintEvidenceOpen(!sprintEvidenceOpen)}
+                        style={{ background: 'transparent', border: 'none', color: '#555', fontSize: 11, cursor: 'pointer', padding: 0, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>{sprintEvidenceOpen ? '▾' : '▸'}</span>
+                        <span>Can't track everything automatically? Log evidence manually</span>
+                      </button>
+
+                      {sprintEvidenceOpen && (
+                        <div style={{ marginTop: 14, background: '#111', border: '1px solid #1f2937', borderRadius: 6, padding: '16px' }}>
+                          <div style={{ fontSize: 10, color: '#555', letterSpacing: 2, marginBottom: 14 }}>MANUAL EVIDENCE — supplements automatic tracking</div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                            <div>
+                              <div style={{ fontSize: 11, color: '#555', marginBottom: 5 }}>Replies received</div>
+                              <input type="number" min={0} value={sprintResult.replies}
+                                onChange={e => setSprintResult({ ...sprintResult, replies: parseInt(e.target.value) || 0 })}
+                                style={{ width: '100%', padding: '8px 10px', background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: 5, fontSize: 13, color: '#e8e8e8', outline: 'none', boxSizing: 'border-box' as const }} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 11, color: '#555', marginBottom: 5 }}>Paid interest <span style={{ color: '#444' }}>(asked about price)</span></div>
+                              <input type="number" min={0} value={sprintResult.paidInterest}
+                                onChange={e => setSprintResult({ ...sprintResult, paidInterest: parseInt(e.target.value) || 0 })}
+                                style={{ width: '100%', padding: '8px 10px', background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: 5, fontSize: 13, color: '#e8e8e8', outline: 'none', boxSizing: 'border-box' as const }} />
+                            </div>
+                          </div>
+                          <div style={{ marginBottom: 12 }}>
+                            <div style={{ fontSize: 11, color: '#555', marginBottom: 5 }}>Most common objection</div>
+                            <input value={sprintResult.objections}
+                              onChange={e => setSprintResult({ ...sprintResult, objections: e.target.value })}
+                              placeholder="e.g. Price too high, already have a solution"
+                              style={{ width: '100%', padding: '8px 10px', background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: 5, fontSize: 13, color: '#e8e8e8', outline: 'none', boxSizing: 'border-box' as const }} />
+                          </div>
+                          <div style={{ marginBottom: 14 }}>
+                            <div style={{ fontSize: 11, color: '#555', marginBottom: 5 }}>Notes</div>
+                            <textarea value={sprintResult.notes}
+                              onChange={e => setSprintResult({ ...sprintResult, notes: e.target.value })}
+                              placeholder="Anything else that matters — reactions, quotes, surprises"
+                              rows={2}
+                              style={{ width: '100%', padding: '8px 10px', background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: 5, fontSize: 13, color: '#e8e8e8', outline: 'none', resize: 'none', boxSizing: 'border-box' as const }} />
+                          </div>
+                          <button onClick={() => saveSprintEvidence(exp.id)} disabled={savingEvidence}
+                            style={{ background: savingEvidence ? '#1a1a1a' : '#1f2937', color: savingEvidence ? '#555' : '#e8e8e8', border: 'none', borderRadius: 5, padding: '7px 16px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+                            {savingEvidence ? 'Saving...' : 'Save evidence'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+            // ── END SPRINT VIEW ─────────────────────────────────────────────
 
             // Decision ready: 48h window closed OR threshold reached (300 views or 10 signups)
             const windowClosed   = exp.reviewDueAt != null && new Date(exp.reviewDueAt) <= new Date()
@@ -171,7 +408,6 @@ export default function ProductPage() {
             const decisionTrigger = thresholdReady ? 'Threshold reached' : 'Decision window closed'
 
             const hoursLeft = exp.reviewDueAt && !windowClosed ? hoursUntil(exp.reviewDueAt) : 0
-            const trackingUrl = exp.trackingId ? `${BASE_URL}/api/track/${exp.trackingId}` : null
             const snippetCode = `<script src="${BASE_URL}/api/g.js"\n  data-key="${product.apiKey}"\n  data-experiment="${exp.trackingId || ''}"></script>`
 
             return (
