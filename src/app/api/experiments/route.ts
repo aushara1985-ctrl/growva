@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         hypothesis,
         sprintType,
         targetAudience: audience,
-        sprintPlan: plan,
+        sprintPlan: plan as unknown as Record<string, unknown>,
       },
     },
   })
