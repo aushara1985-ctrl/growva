@@ -49,13 +49,14 @@ export async function POST(req: NextRequest) {
       activatedAt: now,
       reviewDueAt,
       trackingId,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       metadata: {
         mode: 'SPRINT',
         hypothesis,
         sprintType,
         targetAudience: audience,
-        sprintPlan: plan as unknown as Record<string, unknown>,
-      },
+        sprintPlan: plan,
+      } as any,
     },
   })
 
