@@ -36,9 +36,11 @@ export async function GET(
     },
   })
 
-  // Redirect to product URL, or fall back to the product detail page
+  // Redirect to product URL if set.
+  // If not (Sprint Mode founders without a page), go to the public sprint page.
+  // Never send to /products/* — that's an auth-protected internal route.
   const destination = experiment.product.url
-    ?? `${BASE_URL}/products/${experiment.product.id}`
+    ?? `${BASE_URL}/s/${params.trackingId}`
 
   return NextResponse.redirect(destination, { status: 302 })
 }
