@@ -36,7 +36,7 @@ export async function PATCH(
       metadata: {
         ...currentMeta,
         sprintResult,
-      },
+      } as any,
     },
   })
 
