@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
           autoSignals: auto,
           manualSignals: manualResult,
           plan,
-        },
+        } as any,
         executedAt: new Date(),
       },
     })
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         action: 'CONTINUE',
         reason: 'No tracking data received yet. Install the site snippet on your page, or share your tracking link, so Growva can collect signal before making a decision.',
         confidence: 0,
-        metadata: { insufficientData: true, reason: 'no_tracking', pageViews, clicks, signups },
+        metadata: { insufficientData: true, reason: 'no_tracking', pageViews, clicks, signups } as any,
         executedAt: new Date(),
       },
     })
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
         action: 'CONTINUE',
         reason: `CONTINUE — ${pageViews} page views and ${signups} signups so far. Need ${needed} to reach the minimum threshold for a reliable decision. Keep sending traffic.`,
         confidence: 0.3,
-        metadata: { insufficientData: true, reason: 'below_threshold', pageViews, clicks, signups, revenue },
+        metadata: { insufficientData: true, reason: 'below_threshold', pageViews, clicks, signups, revenue } as any,
         executedAt: new Date(),
       },
     })
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
         finalJudgment: debate.finalJudgment,
         dataQuality: debate.dataQuality,
         insufficientData: debate.action === 'INSUFFICIENT_DATA',
-      },
+      } as any,
       executedAt: new Date(),
     },
   })
