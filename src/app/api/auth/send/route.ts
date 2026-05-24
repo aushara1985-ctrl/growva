@@ -6,7 +6,8 @@ import { createMagicToken } from '@/lib/auth'
 const ADMIN_EMAIL = 'aushara1985@gmail.com'
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json()
+  const body = await req.json()
+  const { email, from } = body
 
   if (!email || !email.includes('@')) {
     return NextResponse.json({ error: 'Valid email required' }, { status: 400 })
@@ -15,7 +16,8 @@ export async function POST(req: NextRequest) {
   const normalizedEmail = email.toLowerCase().trim()
   const token = createMagicToken(normalizedEmail)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${req.headers.get('host')}`
-  const magicLink = `${baseUrl}/api/auth/verify?token=${token}`
+  const fromPath = (typeof from === 'string' && from.startsWith('/')) ? from : '/dashboard'
+  const magicLink = `${baseUrl}/api/auth/verify?token=${token}&from=${encodeURIComponent(fromPath)}`
 
   const resendKey = process.env.RESEND_API_KEY
 
