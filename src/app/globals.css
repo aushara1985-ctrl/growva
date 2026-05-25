@@ -1,7 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 ::-webkit-scrollbar {
@@ -20,14 +22,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #333;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #333;
-}
-
-input:focus,
-textarea:focus {
-  border-color: #00ff8844 !important;
 }
