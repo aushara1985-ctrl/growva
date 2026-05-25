@@ -10,21 +10,6 @@ interface Brief {
   actions: Array<{ product: string; action: string; reason: string; priority: 'high' | 'medium' | 'low' }>
 }
 
-interface Score {
-  momentum: number
-  conversionHealth: number
-  revenueVelocity: number
-  growthChance: number
-  overall: number
-}
-
-interface WinningPattern {
-  experimentType: string
-  angle: string
-  channel: string
-  conversionRate: number
-}
-
 interface Experiment {
   id: string
   status: string
@@ -48,8 +33,8 @@ interface Product {
   apiKey: string
   isActive: boolean
   experiments: Experiment[]
-  score: Score | null
-  winningPatterns: WinningPattern[]
+  score: null
+  winningPatterns: []
   conversions7d: number
   revenue7d: number
   pendingCount: number
@@ -82,15 +67,15 @@ const ACTION_COLOR: Record<string, string> = { KILL: '#ef4444', SCALE: '#22c55e'
 const ACTION_ICON: Record<string, string> = { KILL: '—', SCALE: '↑', ITERATE: '↻', CONTINUE: '→' }
 
 const TRACKING_OPTIONS = [
-  { id: 'tracking_links', label: 'Use Growva tracking links', description: 'Best for beta. We give each experiment a tracking link and monitor clicks.', status: 'available' as const, icon: '🔗' },
-  { id: 'analytics', label: 'Connect analytics', description: 'Google Analytics, Plausible — helps Growva understand visits and conversions.', status: 'coming_soon' as const, icon: '📊' },
+  { id: 'tracking_links', label: 'Use Growva tracking links', description: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment.', status: 'available' as const, icon: '🔗' },
+  { id: 'analytics', label: 'Connect analytics', description: 'Google Analytics, Plausible — helps Growva understand visits.', status: 'coming_soon' as const, icon: '📊' },
   { id: 'payments', label: 'Connect payments', description: 'Stripe, Lemon Squeezy, Gumroad — helps Growva see which experiments drive revenue.', status: 'coming_soon' as const, icon: '💳' },
   { id: 'forms', label: 'Connect forms / waitlists', description: 'Tally, Typeform — helps Growva measure leads and signups.', status: 'coming_soon' as const, icon: '📋' },
-  { id: 'social', label: 'Track posts and campaigns', description: 'Use tracking links for X, LinkedIn, Reddit posts. API integrations later.', status: 'available' as const, icon: '📣' },
-  { id: 'skip', label: "I don't track results yet", description: 'Growva will still guide you with tracking links and simple check-ins.', status: 'available' as const, icon: '→' },
+  { id: 'social', label: 'Track posts and campaigns', description: 'Use tracking links for X, LinkedIn, Reddit posts.', status: 'available' as const, icon: '📣' },
+  { id: 'skip', label: "I don't track results yet", description: 'Growva will still guide you with tracking links and check-ins.', status: 'available' as const, icon: '→' },
 ]
 
-function hoursUntil(dateStr: string): number {
+function hoursUntil(dateStr: string) {
   return Math.max(0, Math.round((new Date(dateStr).getTime() - Date.now()) / 36e5))
 }
 
@@ -106,7 +91,6 @@ function productStateLabel(p: Product): { label: string; color: string; ringColo
   return null
 }
 
-// ── shared input / button primitives ──────────────────────────────────────────
 const inputCls = 'w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/10 transition-all'
 const textareaCls = 'w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/10 resize-none transition-all'
 const btnPrimary = 'bg-white text-black text-sm font-semibold px-4 py-2 rounded-lg hover:bg-zinc-100 active:scale-[.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed'
@@ -114,7 +98,6 @@ const btnSecondary = 'bg-transparent text-zinc-400 text-sm border border-zinc-70
 
 export default function Dashboard() {
   const [data, setData] = useState<DashData | null>(null)
-  const [adding, setAdding] = useState(false)
   const [briefLoading, setBriefLoading] = useState(false)
   const [startingId, setStartingId] = useState<string | null>(null)
   const [activatingId, setActivatingId] = useState<string | null>(null)
@@ -122,12 +105,17 @@ export default function Dashboard() {
   const [openProducts, setOpenProducts] = useState<Set<string>>(new Set())
   const [onboardingProductId, setOnboardingProductId] = useState<string | null>(null)
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
 
+  // New experiment flow
+  // showNewExp: whether the "start new experiment" card is expanded
+  const [showNewExp, setShowNewExp] = useState(false)
   const [setupMode, setSetupMode] = useState<'' | 'TRAFFIC' | 'SPRINT'>('')
   const [setupStep, setSetupStep] = useState(0)
   const [setupData, setSetupData] = useState({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '', hypothesis: '', sprintType: '' })
   const [setupLoading, setSetupLoading] = useState(false)
+
+  // Add product (legacy inline form - still used for "add another")
+  const [form, setForm] = useState({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
 
   const load = useCallback(async () => {
     const [dash, brain] = await Promise.all([
@@ -138,16 +126,6 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t) }, [load])
-
-  const addProduct = async () => {
-    if (!form.name || !form.description || !form.targetUser) return
-    const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-    const product = await res.json()
-    setAdding(false)
-    setForm({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
-    await load()
-    if (product?.id) setOnboardingProductId(product.id)
-  }
 
   const saveTrackingMethod = async (productId: string, methodId: string) => {
     await fetch(`/api/products/${productId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ metadata: { trackingMethod: methodId } }) })
@@ -182,6 +160,8 @@ export default function Dashboard() {
     setOpenProducts(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
   }
 
+  const resetSetup = () => { setSetupMode(''); setSetupStep(0); setShowNewExp(false); setSetupData({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '', hypothesis: '', sprintType: '' }) }
+
   const runTrafficSetup = async () => {
     if (!setupData.name || !setupData.targetUser || !setupData.url || !setupData.trackingMethod) return
     setSetupLoading(true)
@@ -215,10 +195,14 @@ export default function Dashboard() {
 
   const { overview, productList, recentDecisions, dailyData, hasAnyEvents, todayBrief } = data
 
+  // Whether to show the full setup card (first run or user clicked "start new experiment")
+  const isFirstRun = productList.length === 0
+  const showSetupCard = isFirstRun || showNewExp
+
   return (
     <div className="min-h-screen bg-[#09090B] text-white" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
 
-      {/* ── Tracking method onboarding modal ── */}
+      {/* ── Tracking method modal ── */}
       {onboardingProductId && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -226,12 +210,11 @@ export default function Dashboard() {
             <div className="text-xs text-zinc-500 mb-6">Choose how you'll track experiment performance. You can change this later.</div>
             <div className="flex flex-col gap-3">
               {TRACKING_OPTIONS.map(opt => (
-                <button key={opt.id} onClick={() => saveTrackingMethod(onboardingProductId, opt.id)}
-                  disabled={opt.status === 'coming_soon'}
+                <button key={opt.id} onClick={() => saveTrackingMethod(onboardingProductId, opt.id)} disabled={opt.status === 'coming_soon'}
                   className={`text-left border rounded-xl p-4 flex items-start gap-3 transition-all ${opt.status === 'available' ? 'bg-zinc-800 border-zinc-700 hover:border-zinc-500 cursor-pointer' : 'bg-zinc-900 border-zinc-800 opacity-50 cursor-default'}`}>
                   <span className="text-lg shrink-0 mt-0.5">{opt.icon}</span>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-sm font-medium text-white">{opt.label}</span>
                       {opt.status === 'coming_soon' && <span className="text-[10px] font-semibold text-zinc-500 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 uppercase tracking-wide">Soon</span>}
                       {opt.status === 'available' && opt.id !== 'skip' && <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded px-1.5 py-0.5 uppercase tracking-wide">Available</span>}
@@ -263,36 +246,55 @@ export default function Dashboard() {
 
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
 
-        {/* ── First-run setup flow ── */}
-        {productList.length === 0 && (
+        {/* ══════════════════════════════════════════════════════════════
+            ACTION PANEL — always at top
+            First run: full two-card layout
+            Returning user: compact entry → expands on click
+        ══════════════════════════════════════════════════════════════ */}
+
+        {/* ── First run / expanded setup ── */}
+        {showSetupCard && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
 
-            {/* Step 0 — traffic or sprint? */}
+            {/* Path selection — step 0 */}
             {setupStep === 0 && (
-              <div className="p-10">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Start your first experiment</div>
-                <div className="text-lg font-semibold text-white mb-2">Do you already have traffic for this experiment?</div>
-                <div className="text-sm text-zinc-500 mb-8 leading-relaxed">A landing page, campaign, waitlist, or audience you can send to a link.</div>
-                <div className="grid grid-cols-2 gap-3 max-w-lg">
-                  {[
-                    { mode: 'TRAFFIC' as const, icon: '📊', title: 'Yes — I have traffic', desc: 'Track existing traffic and get a data-driven decision' },
-                    { mode: 'SPRINT' as const,  icon: '⚡', title: 'No — I need to create traffic', desc: 'Run a 48-hour sprint — Growva gives you the plan and tracking link' },
-                  ].map(opt => (
-                    <button key={opt.mode} onClick={() => { setSetupMode(opt.mode); setSetupStep(1) }}
-                      className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-5 text-left transition-all group">
-                      <div className="text-xl mb-3">{opt.icon}</div>
-                      <div className="text-sm font-semibold text-white mb-1">{opt.title}</div>
-                      <div className="text-xs text-zinc-500 leading-relaxed">{opt.desc}</div>
-                    </button>
-                  ))}
+              <div className="p-8">
+                {!isFirstRun && (
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Start new experiment</div>
+                    <button onClick={resetSetup} className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors">✕ Cancel</button>
+                  </div>
+                )}
+                {isFirstRun && (
+                  <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Welcome to Growva</div>
+                )}
+                <div className="text-lg font-semibold text-white mb-2">What are you trying to decide?</div>
+                <div className="text-sm text-zinc-500 mb-8 leading-relaxed">
+                  Choose how you want to validate your experiment.
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <button onClick={() => { setSetupMode('TRAFFIC'); setSetupStep(1) }}
+                    className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
+                    <div className="text-xl mb-3">📊</div>
+                    <div className="text-sm font-semibold text-white mb-1">Track existing traffic</div>
+                    <div className="text-xs text-zinc-500 leading-relaxed">You have a page, campaign, or launch. Growva tracks signal and tells you when to scale or stop.</div>
+                    <div className="text-xs text-zinc-600 mt-3 font-medium">→ Get tracking link or snippet</div>
+                  </button>
+                  <button onClick={() => { setSetupMode('SPRINT'); setSetupStep(1) }}
+                    className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
+                    <div className="text-xl mb-3">⚡</div>
+                    <div className="text-sm font-semibold text-white mb-1">Run validation sprint</div>
+                    <div className="text-xs text-zinc-500 leading-relaxed">No audience yet. Growva gives you a 48-hour sprint plan, script, and tracking link to create signal fast.</div>
+                    <div className="text-xs text-zinc-600 mt-3 font-medium">→ DMs, posts, interviews, or landing page</div>
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ── TRAFFIC PATH ── */}
+            {/* ── TRAFFIC STEPS ── */}
             {setupMode === 'TRAFFIC' && setupStep === 1 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Traffic Mode · Step 1 of 4</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 1 of 4</div>
                 <div className="text-base font-semibold text-white mb-6">What are you testing, and who is it for?</div>
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div>
@@ -310,23 +312,18 @@ export default function Dashboard() {
                 </div>
                 <div className="flex gap-3">
                   <button onClick={() => { setSetupMode(''); setSetupStep(0) }} className={btnSecondary}>← Back</button>
-                  <button onClick={() => { if (setupData.name && setupData.targetUser) setSetupStep(2) }} className={btnPrimary} disabled={!setupData.name || !setupData.targetUser}>Next →</button>
+                  <button onClick={() => { if (setupData.name && setupData.targetUser) setSetupStep(2) }} disabled={!setupData.name || !setupData.targetUser} className={btnPrimary}>Next →</button>
                 </div>
               </div>
             )}
 
             {setupMode === 'TRAFFIC' && setupStep === 2 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Traffic Mode · Step 2 of 4</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 2 of 4</div>
                 <div className="text-base font-semibold text-white mb-2">What outcome matters most?</div>
                 <div className="text-xs text-zinc-500 mb-6">Growva will watch for this signal and use it in its verdict.</div>
                 <div className="flex flex-wrap gap-2 mb-8">
-                  {[
-                    { value: 'signups', label: 'Signups', desc: 'Email captures, waitlist joins' },
-                    { value: 'revenue', label: 'Revenue', desc: 'Sales, purchases, payments' },
-                    { value: 'clicks', label: 'Clicks', desc: 'Link clicks, CTA engagement' },
-                    { value: 'activation', label: 'Activation', desc: 'First meaningful action' },
-                  ].map(opt => (
+                  {[{ value: 'signups', label: 'Signups', desc: 'Email captures, waitlist joins' }, { value: 'revenue', label: 'Revenue', desc: 'Sales, purchases, payments' }, { value: 'clicks', label: 'Clicks', desc: 'Link clicks, CTA engagement' }, { value: 'activation', label: 'Activation', desc: 'First meaningful action' }].map(opt => (
                     <button key={opt.value} onClick={() => setSetupData({ ...setupData, goal: opt.value })}
                       className={`px-4 py-3 rounded-lg text-sm font-medium text-left border transition-all min-w-[130px] ${setupData.goal === opt.value ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500'}`}>
                       <div>{opt.label}</div>
@@ -343,13 +340,13 @@ export default function Dashboard() {
 
             {setupMode === 'TRAFFIC' && setupStep === 3 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Traffic Mode · Step 3 of 4</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 3 of 4</div>
                 <div className="text-base font-semibold text-white mb-2">Where is this experiment running?</div>
                 <div className="text-xs text-zinc-500 mb-6">Growva needs the URL for context and attribution.</div>
                 <div className="mb-8">
                   <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Product or page URL <span className="text-red-500 font-bold">*</span></div>
                   <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })} placeholder="https://yourproduct.com" type="url" className={inputCls} />
-                  {!setupData.url && <div className="text-xs text-red-500 mt-1.5">URL is required</div>}
+                  {!setupData.url && <div className="text-xs text-red-500 mt-1.5">URL is required to track your experiment</div>}
                 </div>
                 <div className="flex gap-3">
                   <button onClick={() => setSetupStep(2)} className={btnSecondary}>← Back</button>
@@ -360,9 +357,9 @@ export default function Dashboard() {
 
             {setupMode === 'TRAFFIC' && setupStep === 4 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Traffic Mode · Step 4 of 4</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 4 of 4</div>
                 <div className="text-base font-semibold text-white mb-2">How should Growva collect signal?</div>
-                <div className="text-xs text-zinc-500 mb-6">Choose your tracking method. You need at least one for Growva to make a reliable decision.</div>
+                <div className="text-xs text-zinc-500 mb-6">You need at least one method for Growva to make a reliable decision.</div>
                 <div className="flex flex-col gap-3 mb-8">
                   {[
                     { id: 'tracking_links', icon: '🔗', label: 'Tracking links', desc: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment.', tracks: 'Tracks: clicks, source, referrer' },
@@ -389,18 +386,18 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* ── SPRINT PATH ── */}
+            {/* ── SPRINT STEPS ── */}
             {setupMode === 'SPRINT' && setupStep === 1 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Sprint Mode · Step 1 of 3</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Validation sprint · Step 1 of 3</div>
                 <div className="text-base font-semibold text-white mb-6">What are you trying to validate?</div>
                 <div className="space-y-4 mb-6">
                   <div>
-                    <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Product name</div>
+                    <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Product or experiment name</div>
                     <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Growva, SeatX, pricing page" className={inputCls} />
                   </div>
                   <div>
-                    <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Hypothesis — what you want to validate</div>
+                    <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Hypothesis — what do you want to validate?</div>
                     <input value={setupData.hypothesis} onChange={e => setSetupData({ ...setupData, hypothesis: e.target.value })} placeholder="e.g. Will solo founders pay for a decision engine?" className={inputCls} />
                   </div>
                   <div>
@@ -417,9 +414,9 @@ export default function Dashboard() {
 
             {setupMode === 'SPRINT' && setupStep === 2 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Sprint Mode · Step 2 of 3</div>
-                <div className="text-base font-semibold text-white mb-2">How will you create traffic?</div>
-                <div className="text-xs text-zinc-500 mb-6">Growva will generate the exact action, script, and tracking link for your sprint.</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Validation sprint · Step 2 of 3</div>
+                <div className="text-base font-semibold text-white mb-2">How will you create signal?</div>
+                <div className="text-xs text-zinc-500 mb-6">Growva generates the exact action, script, and tracking link for your sprint.</div>
                 <div className="flex flex-col gap-2 mb-8">
                   {([
                     { id: 'DM', icon: '💬', label: 'DM 20 people', desc: 'Personal outreach — best for B2B and niche communities' },
@@ -448,12 +445,12 @@ export default function Dashboard() {
 
             {setupMode === 'SPRINT' && setupStep === 3 && (
               <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Sprint Mode · Step 3 of 3</div>
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Validation sprint · Step 3 of 3</div>
                 <div className="text-base font-semibold text-white mb-2">Do you have a page for this experiment?</div>
-                <div className="text-xs text-zinc-500 mb-6 leading-relaxed">If yes, paste the URL — Growva will generate a tracking link. If no, the tracking link alone is enough to start.</div>
+                <div className="text-xs text-zinc-500 mb-6 leading-relaxed">If yes, paste the URL — Growva will generate a tracking link pointing to it. If no, the tracking link alone is enough to start.</div>
                 <div className="mb-8">
                   <div className="text-[11px] text-zinc-600 mb-2 uppercase tracking-wide">Page URL <span className="normal-case text-zinc-700">(optional)</span></div>
-                  <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })} placeholder="https://yourpage.com — leave blank if you don't have one yet" type="url" className={inputCls} />
+                  <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })} placeholder="https://yourpage.com — leave blank if none yet" type="url" className={inputCls} />
                 </div>
                 <div className="flex items-center gap-3">
                   <button onClick={() => setSetupStep(2)} className={btnSecondary}>← Back</button>
@@ -464,7 +461,26 @@ export default function Dashboard() {
                 {!setupLoading && <div className="mt-4 text-xs text-zinc-600 leading-relaxed">Growva will create a 48-hour sprint plan, a tracking link, and the exact script to use.</div>}
               </div>
             )}
+          </div>
+        )}
 
+        {/* ── Compact "Start new experiment" when products exist and setup not open ── */}
+        {!isFirstRun && !showNewExp && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium text-white">Start new experiment</div>
+              <div className="text-xs text-zinc-500 mt-0.5">Track existing traffic or run a 48-hour validation sprint</div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { setShowNewExp(true); setSetupMode('TRAFFIC'); setSetupStep(1) }}
+                className="text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-lg hover:border-zinc-500 hover:text-white transition-all">
+                Track existing traffic
+              </button>
+              <button onClick={() => { setShowNewExp(true); setSetupMode('SPRINT'); setSetupStep(1) }}
+                className="text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-lg hover:border-zinc-500 hover:text-white transition-all">
+                ⚡ Run validation sprint
+              </button>
+            </div>
           </div>
         )}
 
@@ -510,7 +526,7 @@ export default function Dashboard() {
                     <span className="text-zinc-700">·</span>
                     <span className="text-xs text-zinc-500">{runningProduct.name}</span>
                   </div>
-                  <div className="text-sm font-semibold text-white mb-1">{runningExp.headline}</div>
+                  <div className="text-sm font-semibold text-white mb-0.5">{runningExp.headline}</div>
                   <div className="text-xs text-zinc-500 italic">{runningExp.angle}</div>
                 </div>
                 <div className="shrink-0">
@@ -524,12 +540,6 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-              {!isReady && (
-                <div className="mt-3 text-xs text-zinc-600">
-                  Signal: <span className="text-zinc-400">{runningExp.expectedKpi}</span>
-                  {!runningExp.trackingId && <span className="ml-3 text-amber-500/70">· No tracking link yet — open the experiment to activate</span>}
-                </div>
-              )}
             </div>
           )
         })()}
@@ -537,48 +547,9 @@ export default function Dashboard() {
         {/* ── Products table ── */}
         {productList.length > 0 && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-              <span className="text-sm font-semibold text-white">Products</span>
-              <button onClick={() => setAdding(!adding)} className={btnSecondary + ' text-xs py-1.5'}>
-                {adding ? 'Cancel' : '+ Add product'}
-              </button>
+            <div className="px-6 py-4 border-b border-zinc-800">
+              <span className="text-sm font-semibold text-white">Your experiments</span>
             </div>
-
-            {/* Add product form */}
-            {adding && (
-              <div className="p-6 bg-zinc-950 border-b border-zinc-800">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">What are you testing?</div>
-                    <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Growva, SeatX, landing page v2" className={inputCls} />
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Who is this for?</div>
-                    <input value={form.targetUser} onChange={e => setForm({ ...form, targetUser: e.target.value })} placeholder="e.g. solo founders, ops teams, cafes" className={inputCls} />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">What outcome matters most?</div>
-                  <div className="flex gap-2 flex-wrap">
-                    {[{ value: 'signups', label: 'Signups' }, { value: 'revenue', label: 'Revenue' }, { value: 'clicks', label: 'Clicks' }, { value: 'waitlist', label: 'Waitlist' }].map(opt => (
-                      <button key={opt.value} onClick={() => setForm({ ...form, goal: opt.value })}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${form.goal === opt.value ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500'}`}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Context <span className="normal-case text-zinc-700">(what's the product, what's failed, what's working)</span></div>
-                  <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Brief description — the more context, the more targeted the experiments." rows={2} className={textareaCls} />
-                </div>
-                <div className="mb-5">
-                  <div className="text-[11px] text-zinc-600 mb-2 uppercase tracking-wide">Product URL <span className="normal-case text-zinc-700">(optional)</span></div>
-                  <input value={form.url} onChange={e => setForm({ ...form, url: e.target.value })} placeholder="https://..." className={inputCls} />
-                </div>
-                <button onClick={addProduct} className={btnPrimary}>Add product →</button>
-              </div>
-            )}
 
             {/* Table header */}
             <div className="grid grid-cols-[1fr_180px_64px_80px] px-6 py-3 border-b border-zinc-800/50 gap-4">
@@ -604,8 +575,9 @@ export default function Dashboard() {
                           {state.label}
                         </span>
                       ) : (
-                        <button onClick={() => startGrowth(p.id)} disabled={startingId === p.id} className="text-xs font-medium bg-white text-black px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-all disabled:opacity-50">
-                          {startingId === p.id ? 'Starting...' : 'Start growth'}
+                        <button onClick={() => startGrowth(p.id)} disabled={startingId === p.id}
+                          className="text-xs font-medium bg-white text-black px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-all disabled:opacity-50">
+                          {startingId === p.id ? 'Starting...' : 'Generate experiments'}
                         </button>
                       )}
                     </div>
@@ -615,14 +587,13 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Expanded experiments */}
                   {isOpen && (
                     <div className="bg-zinc-950 border-t border-zinc-800/50 px-6 py-4">
                       {p.experiments.length === 0 && (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between mb-3">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
                           <div>
-                            <div className="text-sm font-medium text-white mb-1">Generate your first 3 experiments</div>
-                            <div className="text-xs text-zinc-500">Growva will structure 3 targeted experiments and open your first 48-hour decision window.</div>
+                            <div className="text-sm font-medium text-white mb-1">Generate your first experiments</div>
+                            <div className="text-xs text-zinc-500">Growva will structure targeted experiments and open your first decision window.</div>
                           </div>
                           <button onClick={() => startGrowth(p.id)} disabled={startingId === p.id} className={btnPrimary + ' ml-4 shrink-0 text-xs'}>
                             {startingId === p.id ? 'Generating...' : 'Generate experiments →'}
@@ -630,15 +601,12 @@ export default function Dashboard() {
                         </div>
                       )}
                       {p.experiments.length > 0 && p.pendingCount > 0 && p.runningCount === 0 && (
-                        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-indigo-300">Activate one experiment to start monitoring. Growva will give you a decision in 48 hours.</div>
-                      )}
-                      {p.runningCount > 0 && p.decisionReadyCount === 0 && (
-                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-emerald-300">Growva is monitoring this experiment. Check back when the decision is ready.</div>
+                        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-indigo-300">Activate one experiment to start collecting signal.</div>
                       )}
                       {p.decisionReadyCount > 0 && (
-                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-amber-300 font-medium">Decision ready — go to the product page to get Growva's recommendation.</div>
+                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-amber-300 font-medium">Decision ready — open the product page to get Growva's verdict.</div>
                       )}
-                      <div className="space-y-2">
+                      <div className="space-y-2 mt-3">
                         {p.experiments.map(exp => {
                           const isPending = exp.status === 'PENDING'
                           const isRunning = exp.status === 'RUNNING' || exp.status === 'ACTIVE'
@@ -650,8 +618,6 @@ export default function Dashboard() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1.5">
                                     <span className={`text-[10px] font-bold uppercase tracking-wide ${statusColorMap[exp.status] || 'text-zinc-500'}`}>{exp.status}</span>
-                                    <span className="text-zinc-700">·</span>
-                                    <span className="text-[10px] text-zinc-600">{exp.type.replace('_', ' ')}</span>
                                     {isReady && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">DECISION READY</span>}
                                   </div>
                                   <div className="text-sm font-medium text-white mb-0.5">{exp.headline}</div>
@@ -672,13 +638,6 @@ export default function Dashboard() {
                                   <button onClick={() => router.push(`/products/${p.id}`)} className="text-xs font-medium bg-white text-black px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-all">View →</button>
                                 </div>
                               </div>
-                              {isRunning && exp.trackingId && (
-                                <div className="mt-3 text-xs text-zinc-600 flex items-center gap-2">
-                                  <span className="text-emerald-400">🔗 Tracking link ready</span>
-                                  <span>—</span>
-                                  <a href={`/products/${p.id}`} className="text-indigo-400 hover:text-indigo-300 transition-colors">View link and monitoring →</a>
-                                </div>
-                              )}
                             </div>
                           )
                         })}
