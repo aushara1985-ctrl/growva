@@ -80,7 +80,7 @@ function hoursUntil(dateStr: string) {
 }
 
 function productStateLabel(p: Product): { label: string; color: string; ringColor: string } | null {
-  if (p.decisionReadyCount > 0) return { label: 'Decision ready', color: 'text-amber-400', ringColor: 'border-amber-500/40 bg-amber-500/10' }
+  if (p.decisionReadyCount > 0) return { label: 'Early verdict available', color: 'text-amber-400', ringColor: 'border-amber-500/40 bg-amber-500/10' }
   if (p.runningCount > 0) {
     const running = p.experiments.find(e => (e.status === 'RUNNING' || e.status === 'ACTIVE') && e.reviewDueAt)
     const hours = running?.reviewDueAt ? hoursUntil(running.reviewDueAt) : null
@@ -277,14 +277,14 @@ export default function Dashboard() {
                     className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
                     <div className="text-xl mb-3">📊</div>
                     <div className="text-sm font-semibold text-white mb-1">Track existing traffic</div>
-                    <div className="text-xs text-zinc-500 leading-relaxed">You have a page, campaign, or launch. Growva tracks signal and tells you when to scale or stop.</div>
+                    <div className="text-xs text-zinc-500 leading-relaxed">Use this if you already have a landing page, campaign, or launch. Growva tracks signal and tells you when to scale or stop.</div>
                     <div className="text-xs text-zinc-600 mt-3 font-medium">→ Get tracking link or snippet</div>
                   </button>
                   <button onClick={() => { setSetupMode('SPRINT'); setSetupStep(1) }}
                     className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
                     <div className="text-xl mb-3">⚡</div>
                     <div className="text-sm font-semibold text-white mb-1">Run validation sprint</div>
-                    <div className="text-xs text-zinc-500 leading-relaxed">No audience yet. Growva gives you a 48-hour sprint plan, script, and tracking link to create signal fast.</div>
+                    <div className="text-xs text-zinc-500 leading-relaxed">Use this if you don't have traffic yet and need Growva to create a 48-hour action plan.</div>
                     <div className="text-xs text-zinc-600 mt-3 font-medium">→ DMs, posts, interviews, or landing page</div>
                   </button>
                 </div>
@@ -300,10 +300,12 @@ export default function Dashboard() {
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">What are you testing?</div>
                     <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Pricing page headline, Beta launch" className={inputCls} />
+                    <div className="text-[10px] text-zinc-600 mt-1.5">Name the offer, page, message, or idea you want Growva to judge.</div>
                   </div>
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Who is this for?</div>
                     <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })} placeholder="e.g. Solo founders, ops teams, cafes" className={inputCls} />
+                    <div className="text-[10px] text-zinc-600 mt-1.5">Growva uses this to generate sharper experiments and scripts.</div>
                   </div>
                 </div>
                 <div className="mb-6">
@@ -395,14 +397,17 @@ export default function Dashboard() {
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Product or experiment name</div>
                     <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Growva, SeatX, pricing page" className={inputCls} />
+                    <div className="text-[10px] text-zinc-600 mt-1.5">Name the offer, page, message, or idea you want Growva to judge.</div>
                   </div>
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Hypothesis — what do you want to validate?</div>
                     <input value={setupData.hypothesis} onChange={e => setSetupData({ ...setupData, hypothesis: e.target.value })} placeholder="e.g. Will solo founders pay for a decision engine?" className={inputCls} />
+                    <div className="text-[10px] text-zinc-600 mt-1.5">What do you believe people will do if this works?</div>
                   </div>
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Who are you targeting?</div>
                     <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })} placeholder="e.g. SaaS founders under $5k MRR" className={inputCls} />
+                    <div className="text-[10px] text-zinc-600 mt-1.5">Growva uses this to generate sharper experiments and scripts.</div>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -522,16 +527,22 @@ export default function Dashboard() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-bold tracking-widest uppercase ${isReady ? 'text-amber-400' : 'text-emerald-400'}`}>{isReady ? 'Decision Ready' : 'Monitoring'}</span>
+                    <span className={`text-[10px] font-bold tracking-widest uppercase ${isReady ? 'text-amber-400' : 'text-emerald-400'}`}>{isReady ? 'Early verdict available' : 'Monitoring'}</span>
                     <span className="text-zinc-700">·</span>
                     <span className="text-xs text-zinc-500">{runningProduct.name}</span>
                   </div>
                   <div className="text-sm font-semibold text-white mb-0.5">{runningExp.headline}</div>
                   <div className="text-xs text-zinc-500 italic">{runningExp.angle}</div>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 text-right">
                   {isReady ? (
-                    <button onClick={() => router.push(`/products/${runningProduct.id}`)} className={btnPrimary}>Get verdict →</button>
+                    <div>
+                      <button onClick={() => router.push(`/products/${runningProduct.id}`)}
+                        className="text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 px-4 py-2 rounded-lg hover:bg-amber-500/30 transition-all">
+                        Get early verdict
+                      </button>
+                      <div className="text-[10px] text-amber-600 mt-1.5">Signal is weak. Verdict may be less reliable.</div>
+                    </div>
                   ) : (
                     <div className="text-right">
                       <div className="text-sm font-semibold text-white">{hoursLeft}h left</div>
@@ -618,7 +629,7 @@ export default function Dashboard() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1.5">
                                     <span className={`text-[10px] font-bold uppercase tracking-wide ${statusColorMap[exp.status] || 'text-zinc-500'}`}>{exp.status}</span>
-                                    {isReady && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">DECISION READY</span>}
+                                    {isReady && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">EARLY VERDICT</span>}
                                   </div>
                                   <div className="text-sm font-medium text-white mb-0.5">{exp.headline}</div>
                                   <div className="text-xs text-zinc-500 italic">{exp.angle}</div>

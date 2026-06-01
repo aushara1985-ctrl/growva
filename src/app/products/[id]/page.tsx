@@ -657,22 +657,32 @@ export default function ProductPage() {
                 )}
 
                 {/* ── 5. Experiment details (deemphasized) ── */}
-                {(exp.copy || exp.distributionChannel) && (
-                  <details className="group">
-                    <summary className="text-xs text-zinc-700 hover:text-zinc-500 cursor-pointer transition-colors list-none flex items-center gap-1">
-                      <span className="group-open:rotate-90 transition-transform inline-block">▸</span>
-                      Experiment details
-                    </summary>
-                    <div className="mt-3 space-y-2 pl-3 border-l border-zinc-800">
-                      {exp.copy && <p className="text-xs text-zinc-500 leading-relaxed">{exp.copy}</p>}
-                      <div className="flex gap-4 text-xs">
-                        {exp.distributionChannel && <span className="text-zinc-600">Channel: <span className="text-zinc-400">{exp.distributionChannel}</span></span>}
-                        {exp.expectedKpi && <span className="text-zinc-600">KPI: <span className="text-zinc-400">{exp.expectedKpi}</span></span>}
-                        {exp.cta && <span className="text-zinc-600">CTA: <span className="text-zinc-400">{exp.cta}</span></span>}
-                      </div>
-                    </div>
-                  </details>
-                )}
+                <details className="group">
+                  <summary className="text-xs text-zinc-700 hover:text-zinc-500 cursor-pointer transition-colors list-none flex items-center gap-1">
+                    <span className="group-open:rotate-90 transition-transform inline-block">▸</span>
+                    Experiment details
+                  </summary>
+                  <div className="mt-3 pl-3 border-l border-zinc-800 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+                    {exp.type && (
+                      <span className="text-zinc-600">Experiment type: <span className="text-zinc-400">{exp.type.replace(/_/g, ' ')}</span></span>
+                    )}
+                    {product.targetUser && (
+                      <span className="text-zinc-600">Target audience: <span className="text-zinc-400">{product.targetUser}</span></span>
+                    )}
+                    {exp.expectedKpi && (
+                      <span className="text-zinc-600">Primary signal: <span className="text-zinc-400">{exp.expectedKpi}</span></span>
+                    )}
+                    {exp.reviewDueAt && (
+                      <span className="text-zinc-600">Decision window: <span className="text-zinc-400">{new Date(exp.reviewDueAt).toLocaleDateString()}</span></span>
+                    )}
+                    {exp.distributionChannel && (
+                      <span className="text-zinc-600">Tracking method: <span className="text-zinc-400">{exp.distributionChannel}</span></span>
+                    )}
+                    {exp.startedAt && (
+                      <span className="text-zinc-600">Created: <span className="text-zinc-400">{new Date(exp.startedAt).toLocaleDateString()}</span></span>
+                    )}
+                  </div>
+                </details>
 
               </div>
             </div>
