@@ -40,15 +40,16 @@ const COPY = {
       cta_secondary: 'See how it works ↓',
     },
     card: {
-      verdict: 'CONTINUE',
-      experiment: '"Ship faster. Decide smarter."',
-      stats: '142 visits · 3 signups',
+      verdict: 'STOP',
+      experiment: '"AI meal planner — paid waitlist"',
+      stats: '312 visits · 1 signup',
       threshold_label: 'THRESHOLD',
-      threshold: '300 visits or 10 signups',
+      threshold: 'Reached — 300 visits ✓',
       reason_label: 'REASON',
-      reason: 'Signal exists, but the sample is still too small.',
+      reason: 'Enough traffic, almost no intent. 0.3% vs ~3% viable.',
       next_label: 'NEXT ACTION',
-      next: "Keep running. Don't change the headline yet.",
+      next: 'Kill it now. You just saved ~3 weeks of building.',
+      accent: '#EF4444',
     },
     paths: {
       section_label: 'Two paths into Growva',
@@ -152,15 +153,16 @@ const COPY = {
       cta_secondary: 'كيف يعمل؟ ↓',
     },
     card: {
-      verdict: 'استمر',
-      experiment: '"اشحن أسرع. قرر بذكاء."',
-      stats: '142 زيارة · 3 تسجيلات',
+      verdict: 'أوقفها',
+      experiment: '"مخطط وجبات بالذكاء — قائمة انتظار مدفوعة"',
+      stats: '312 زيارة · تسجيل واحد',
       threshold_label: 'الحد الأدنى',
-      threshold: '300 زيارة أو 10 تسجيلات',
+      threshold: 'تحقق — 300 زيارة ✓',
       reason_label: 'السبب',
-      reason: 'الإشارة موجودة، لكن العينة لا تزال صغيرة.',
+      reason: 'traffic كافٍ لكن النية شبه معدومة. 0.3% مقابل ~3% مجدية.',
       next_label: 'الخطوة التالية',
-      next: 'استمر في نفس التجربة. لا تغيّر العنوان الآن.',
+      next: 'أوقفها الآن. وفّرت للتو ~3 أسابيع بناء.',
+      accent: '#EF4444',
     },
     paths: {
       section_label: 'طريقتان للدخول إلى Growva',
@@ -265,8 +267,8 @@ function DecisionCard({ c: copy, isAr }: { c: typeof COPY['en']['card']; isAr: b
     }}>
       {/* Verdict badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.continue, flexShrink: 0 }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.continue, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: (copy as any).accent || C.continue, flexShrink: 0 }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: (copy as any).accent || C.continue, letterSpacing: 1.2, textTransform: 'uppercase' }}>
           {copy.verdict}
         </span>
       </div>

@@ -273,19 +273,20 @@ export default function Dashboard() {
                   Choose how you want to validate your experiment.
                 </div>
                 <div className="grid grid-cols-2 gap-4">
+                  <button onClick={() => { setSetupMode('SPRINT'); setSetupStep(1) }}
+                    className="relative bg-amber-500/[0.07] border-2 border-amber-500/40 hover:border-amber-400/70 rounded-xl p-6 text-left transition-all group">
+                    <span className="absolute top-3 right-3 text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 rounded-full px-2 py-0.5 uppercase tracking-wide">Most solo founders start here</span>
+                    <div className="text-xl mb-3">⚡</div>
+                    <div className="text-sm font-semibold text-white mb-1">Run validation sprint</div>
+                    <div className="text-xs text-zinc-400 leading-relaxed">No traffic yet? Growva builds a 48-hour action plan, script, and tracking link so you can create real signal fast.</div>
+                    <div className="text-xs text-amber-400/80 mt-3 font-medium">→ DMs, posts, interviews, or landing page</div>
+                  </button>
                   <button onClick={() => { setSetupMode('TRAFFIC'); setSetupStep(1) }}
                     className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
                     <div className="text-xl mb-3">📊</div>
                     <div className="text-sm font-semibold text-white mb-1">Track existing traffic</div>
-                    <div className="text-xs text-zinc-500 leading-relaxed">Use this if you already have a landing page, campaign, or launch. Growva tracks signal and tells you when to scale or stop.</div>
+                    <div className="text-xs text-zinc-500 leading-relaxed">Already have a landing page, campaign, or launch? Growva tracks signal and tells you when to scale or stop.</div>
                     <div className="text-xs text-zinc-600 mt-3 font-medium">→ Get tracking link or snippet</div>
-                  </button>
-                  <button onClick={() => { setSetupMode('SPRINT'); setSetupStep(1) }}
-                    className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
-                    <div className="text-xl mb-3">⚡</div>
-                    <div className="text-sm font-semibold text-white mb-1">Run validation sprint</div>
-                    <div className="text-xs text-zinc-500 leading-relaxed">Use this if you don't have traffic yet and need Growva to create a 48-hour action plan.</div>
-                    <div className="text-xs text-zinc-600 mt-3 font-medium">→ DMs, posts, interviews, or landing page</div>
                   </button>
                 </div>
               </div>
@@ -477,13 +478,13 @@ export default function Dashboard() {
               <div className="text-xs text-zinc-500 mt-0.5">Track existing traffic or run a 48-hour validation sprint</div>
             </div>
             <div className="flex gap-2">
+              <button onClick={() => { setShowNewExp(true); setSetupMode('SPRINT'); setSetupStep(1) }}
+                className="text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/40 px-3 py-2 rounded-lg hover:border-amber-400/70 hover:text-amber-200 transition-all">
+                ⚡ Run validation sprint
+              </button>
               <button onClick={() => { setShowNewExp(true); setSetupMode('TRAFFIC'); setSetupStep(1) }}
                 className="text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-lg hover:border-zinc-500 hover:text-white transition-all">
                 Track existing traffic
-              </button>
-              <button onClick={() => { setShowNewExp(true); setSetupMode('SPRINT'); setSetupStep(1) }}
-                className="text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-lg hover:border-zinc-500 hover:text-white transition-all">
-                ⚡ Run validation sprint
               </button>
             </div>
           </div>
