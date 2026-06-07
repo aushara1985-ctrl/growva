@@ -1,32 +1,15 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CATALOG, ADDONS } from '@/lib/stripe'
+import { CATALOG } from '@/lib/stripe'
 
 export default function PricingPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState<string | null>(null)
-  const [email, setEmail] = useState('')
-  const [showEmailFor, setShowEmailFor] = useState<string | null>(null)
 
-  const checkout = async (priceKey: string) => {
-    if (!email) { setShowEmailFor(priceKey); return }
-    setLoading(priceKey)
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceKey, email }),
-      })
-      const { url } = await res.json()
-      if (url) window.location.href = url
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(null)
-    }
-  }
+  // During the private beta, founding access is reserved via beta signup —
+  // payment opens once the core offer is validated. Add-ons are intentionally
+  // not offered yet (no upsells before the core product proves out).
+  const claimFounding = () => router.push('/login?from=/dashboard')
 
   const s = {
     page: { minHeight: '100vh', background: '#08080A', fontFamily: "'DM Sans', -apple-system, sans-serif", color: '#fff' },
@@ -76,17 +59,6 @@ export default function PricingPage() {
         <div style={s.header}>
           <h1 style={s.h1}>One tool. One decision at a time.</h1>
           <p style={s.sub}>Founding access for builders who are serious about knowing what works.</p>
-
-          <div style={s.emailWrap}>
-            <input
-              style={s.input}
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-          <p style={s.emailNote}>Enter your email once — used for all purchases below</p>
         </div>
 
         {/* PLANS */}
@@ -110,42 +82,17 @@ export default function PricingPage() {
               {plan.id === 'founding' && (
                 <p style={s.scarcity}>Only <strong style={{ color: '#fff', fontWeight: 400 }}>1,000 spots.</strong> Price goes up after.</p>
               )}
-              <button
-                style={plan.id === 'founding' ? s.btnPrimary : s.btnOutline}
-                disabled={loading === plan.priceKey}
-                onClick={() => checkout(plan.priceKey)}
-              >
-                {loading === plan.priceKey ? 'Redirecting...' : plan.id === 'founding' ? 'Get Founding Access →' : 'Start Growth plan'}
-              </button>
+              {plan.id === 'founding' ? (
+                <button style={s.btnPrimary} onClick={claimFounding}>
+                  Claim your founding spot →
+                </button>
+              ) : (
+                <button style={{ ...s.btnOutline, opacity: 0.55, cursor: 'default' }} disabled>
+                  Coming after founding round
+                </button>
+              )}
             </div>
           ))}
-        </div>
-
-        {/* ADD-ONS */}
-        <div style={s.addonsSection}>
-          <div style={s.addonsLabel}>Add-ons</div>
-          <div style={s.addonsGrid}>
-            {ADDONS.map(addon => (
-              <div key={addon.id} style={s.addon}>
-                <div style={s.addonInfo}>
-                  <div style={s.addonName}>{addon.name}</div>
-                  <div style={s.addonDesc}>{addon.description}</div>
-                </div>
-                <div style={s.addonRight}>
-                  <div style={s.addonPrice}>
-                    ${addon.price}{addon.type === 'recurring' ? '/mo' : ''}
-                  </div>
-                  <button
-                    style={s.addonBtn}
-                    disabled={loading === addon.priceKey}
-                    onClick={() => checkout(addon.priceKey)}
-                  >
-                    {loading === addon.priceKey ? '...' : 'Add →'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* FAQ */}
