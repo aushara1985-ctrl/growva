@@ -12,8 +12,11 @@ async function requireOwnership(req: NextRequest, productId: string) {
   const product = await prisma.product.findUnique({ where: { id: productId } })
   if (!product) return { error: 'Not found', status: 404 }
 
-  // Allow access if product is unowned (legacy) or belongs to this user
-  if (product.userId && product.userId !== session.userId) {
+  // Strict ownership: block unless the product belongs to this user.
+  // New products are always created with an owner; legacy unowned products are
+  // claimed for the admin via backfill on login — so an unowned product must
+  // never be readable by an arbitrary signed-in user.
+  if (product.userId !== session.userId) {
     return { error: 'Forbidden', status: 403 }
   }
 
