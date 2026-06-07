@@ -162,6 +162,11 @@ export default function Dashboard() {
 
   const resetSetup = () => { setSetupMode(''); setSetupStep(0); setShowNewExp(false); setSetupData({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '', hypothesis: '', sprintType: '' }) }
 
+  const logout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }) } catch {}
+    window.location.href = '/login'
+  }
+
   const runTrafficSetup = async () => {
     if (!setupData.name || !setupData.targetUser || !setupData.url || !setupData.trackingMethod) return
     setSetupLoading(true)
@@ -241,6 +246,10 @@ export default function Dashboard() {
           {overview.activeExperiments > 0
             ? <span className="text-emerald-400 font-medium">{overview.activeExperiments} running</span>
             : overview.products > 0 && <span className="text-zinc-600">no active experiments</span>}
+          <button onClick={logout}
+            className="text-zinc-500 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-600 rounded-lg px-2.5 py-1 transition-all">
+            Sign out
+          </button>
         </div>
       </div>
 
