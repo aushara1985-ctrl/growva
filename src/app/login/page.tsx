@@ -140,7 +140,7 @@ function LoginInner() {
 
               <h2 className="text-white font-semibold text-lg mb-2">{t.sentTitle}</h2>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                {t.sentBody('')
+                {t.sentBody(email)
                   .split(email)
                   .reduce<React.ReactNode[]>((acc, part, i, arr) => {
                     acc.push(part)
