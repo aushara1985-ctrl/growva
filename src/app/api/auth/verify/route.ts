@@ -11,13 +11,18 @@ export async function GET(req: NextRequest) {
   const token = searchParams.get('token')
   const from = searchParams.get('from') || '/dashboard'
 
+  // Behind Railway's proxy, req.url resolves to the internal host (localhost:8080).
+  // Use the public host header (same source as /api/auth/send) so redirects point
+  // at the real domain instead of localhost.
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${req.headers.get('host')}`
+
   if (!token) {
-    return NextResponse.redirect(new URL('/login?error=missing_token', req.url))
+    return NextResponse.redirect(new URL('/login?error=missing_token', baseUrl))
   }
 
   const payload = verifyMagicToken(token)
   if (!payload) {
-    return NextResponse.redirect(new URL('/login?error=invalid_or_expired', req.url))
+    return NextResponse.redirect(new URL('/login?error=invalid_or_expired', baseUrl))
   }
 
   // Upsert user — create if new, find if existing
@@ -42,7 +47,7 @@ export async function GET(req: NextRequest) {
   // Sanitize 'from' — only allow relative paths
   const safePath = from.startsWith('/') ? from : '/dashboard'
 
-  const response = NextResponse.redirect(new URL(safePath, req.url))
+  const response = NextResponse.redirect(new URL(safePath, baseUrl))
   response.cookies.set(cookieOptions.name, sessionToken, {
     httpOnly: cookieOptions.httpOnly,
     secure: cookieOptions.secure,
