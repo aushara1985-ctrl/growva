@@ -121,7 +121,11 @@ export function decide(input: DecideInput): DecisionV6 {
   let nextExperiment: string
 
   // R1 — tracking issue: an impossible funnel (downstream exceeds upstream)
-  if (signups > pageViews || clicks > pageViews) {
+  // with enough volume to be a real misconfiguration, not stray noise
+  // (a single click with no views is noise — let it fall through to weak_traffic).
+  const trackingBroken =
+    (signups > pageViews && signups >= 3) || (clicks > pageViews && clicks >= 10)
+  if (trackingBroken) {
     verdict = 'CONTINUE'
     diagnosis = 'tracking_issue'
     why = `Your numbers don't add up: ${signups} signups and ${clicks} clicks against only ${pageViews} views. Tracking is likely misconfigured.`
