@@ -51,6 +51,17 @@ const COPY = {
       next: 'Kill it now. You just saved ~3 weeks of building.',
       accent: '#EF4444',
     },
+    simple: {
+      section_label: 'Growva, explained simply',
+      title: 'Imagine you have a big idea 💡',
+      steps: [
+        { art: 'idea',   title: 'You get an exciting idea', body: 'A new app, a new feature, a new offer. You can already picture everyone loving it.' },
+        { art: 'trap',   title: 'So you build… and build…', body: 'Weeks disappear. You add feature after feature, night after night — sure that THIS is the thing people want.' },
+        { art: 'reveal', title: 'Then… crickets 🦗', body: 'You launch. Almost nobody signs up. You just spent ~3 weeks of your life building something no one asked for.' },
+        { art: 'growva', title: 'Growva flips the order', body: 'Test the idea FIRST — in 48 hours, with real people and real signals. Then Growva tells you plainly: build it, change it, or stop. Before you burn a single week.' },
+      ],
+      punch: 'You don\'t just save money — you save weeks of your life, and stop building features nobody wanted.',
+    },
     paths: {
       section_label: 'Two paths into Growva',
       title: 'Do you have traffic?',
@@ -163,6 +174,17 @@ const COPY = {
       next_label: 'الخطوة التالية',
       next: 'أوقفها الآن. وفّرت للتو ~3 أسابيع بناء.',
       accent: '#EF4444',
+    },
+    simple: {
+      section_label: 'قروفا، ببساطة',
+      title: 'تخيّل عندك فكرة كبيرة 💡',
+      steps: [
+        { art: 'idea',   title: 'تجيك فكرة تحمّسك', body: 'تطبيق جديد، فيتشر جديد، عرض جديد. وتتخيّل الناس كلها بتحبه.' },
+        { art: 'trap',   title: 'فتبدأ تبني… وتبني…', body: 'الأسابيع تروح. تضيف فيتشر ورا فيتشر، ليلة ورا ليلة — وأنت متأكد إن هذا الي الناس تبيه.' },
+        { art: 'reveal', title: 'وبعدها… سكوت تام 🦗', body: 'تطلق المنتج. تقريباً محد يسجّل. تكون صرفت ~3 أسابيع من عمرك تبني شي محد طلبه.' },
+        { art: 'growva', title: 'قروفا يقلب الترتيب', body: 'اختبر الفكرة الأول — في 48 ساعة، بناس حقيقيين وإشارات حقيقية. وبعدها قروفا يقولك بصراحة: ابنِها، غيّرها، أو أوقفها. قبل لا تحرق أسبوع واحد.' },
+      ],
+      punch: 'مو بس توفّر فلوس — توفّر أسابيع من عمرك، وتبطّل تبني فيتشرات محد يبيها.',
     },
     paths: {
       section_label: 'طريقتان للدخول إلى Growva',
@@ -318,6 +340,57 @@ function DecisionCard({ c: copy, isAr }: { c: typeof COPY['en']['card']; isAr: b
   )
 }
 
+// ─── Simple-section illustrations (on-brand, flat line art) ─────────────────────
+function SimpleArt({ kind }: { kind: string }) {
+  const svg = { width: '100%', height: 84, fill: 'none' as const }
+  if (kind === 'idea') {
+    return (
+      <svg {...svg} viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="60" cy="40" r="26" fill={C.continue} opacity="0.12" />
+        <circle cx="60" cy="40" r="16" stroke={C.text} strokeWidth="2.5" />
+        <rect x="53" y="54" width="14" height="11" rx="2" stroke={C.text} strokeWidth="2.5" />
+        <line x1="56" y1="60" x2="64" y2="60" stroke={C.text} strokeWidth="2" strokeLinecap="round" />
+        <line x1="60" y1="8" x2="60" y2="15" stroke={C.continue} strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="35" y1="18" x2="40" y2="23" stroke={C.continue} strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="85" y1="18" x2="80" y2="23" stroke={C.continue} strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+    )
+  }
+  if (kind === 'trap') {
+    return (
+      <svg {...svg} viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+        <rect x="28" y="58" width="24" height="20" rx="3" stroke={C.textSecondary} strokeWidth="2.5" />
+        <rect x="32" y="38" width="24" height="20" rx="3" stroke={C.textSecondary} strokeWidth="2.5" />
+        <rect x="28" y="18" width="24" height="20" rx="3" stroke={C.textSecondary} strokeWidth="2.5" />
+        <circle cx="84" cy="58" r="17" stroke={C.kill} strokeWidth="2.5" />
+        <line x1="84" y1="58" x2="84" y2="47" stroke={C.kill} strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="84" y1="58" x2="92" y2="63" stroke={C.kill} strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+    )
+  }
+  if (kind === 'reveal') {
+    return (
+      <svg {...svg} viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+        <line x1="22" y1="16" x2="22" y2="74" stroke={C.textDim} strokeWidth="2" strokeLinecap="round" />
+        <line x1="22" y1="74" x2="100" y2="74" stroke={C.textDim} strokeWidth="2" strokeLinecap="round" />
+        <path d="M26 67 L96 65" stroke={C.kill} strokeWidth="2.5" strokeLinecap="round" strokeDasharray="2 7" />
+        <circle cx="96" cy="65" r="3.5" fill={C.kill} />
+      </svg>
+    )
+  }
+  return (
+    <svg {...svg} viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg">
+      <rect x="36" y="14" width="48" height="68" rx="8" fill={C.surfaceRaised} stroke="rgba(255,255,255,0.14)" strokeWidth="2" />
+      <circle cx="50" cy="34" r="4.5" fill={C.kill} />
+      <circle cx="50" cy="48" r="4.5" fill={C.continue} opacity="0.45" />
+      <circle cx="50" cy="62" r="4.5" fill={C.scale} />
+      <line x1="60" y1="34" x2="74" y2="34" stroke={C.textSecondary} strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="60" y1="48" x2="74" y2="48" stroke={C.textDim} strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="60" y1="62" x2="74" y2="62" stroke={C.textSecondary} strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 // ─── Label ────────────────────────────────────────────────────────────────────
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -461,6 +534,44 @@ export default function LandingPage() {
               <DecisionCard c={c.card} isAr={isAr} />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── EXPLAINED SIMPLY ── */}
+      <section style={{ borderTop: `1px solid ${C.border}`, padding: '80px 28px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionLabel>{c.simple.section_label}</SectionLabel>
+          <h2 style={{ fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 600, letterSpacing: -0.8, margin: '0 0 40px', color: C.text }}>
+            {c.simple.title}
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 16 }}>
+            {c.simple.steps.map((step) => {
+              const isGrowva = step.art === 'growva'
+              return (
+                <div key={step.title} style={{
+                  background: isGrowva ? 'rgba(34,197,94,0.06)' : C.surface,
+                  border: `1px solid ${isGrowva ? 'rgba(34,197,94,0.35)' : C.border}`,
+                  borderRadius: 14, padding: '22px 22px',
+                }}>
+                  <div style={{ marginBottom: 16 }}>
+                    <SimpleArt kind={step.art} />
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 10, letterSpacing: -0.2, lineHeight: 1.35 }}>
+                    {step.title}
+                  </div>
+                  <div style={{ fontSize: 14, color: C.textSecondary, lineHeight: 1.7 }}>
+                    {step.body}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <p style={{
+            fontSize: 'clamp(16px, 2.5vw, 20px)', fontWeight: 600, color: C.text,
+            textAlign: 'center', margin: '40px auto 0', maxWidth: 640, lineHeight: 1.6, letterSpacing: -0.3,
+          }}>
+            {c.simple.punch}
+          </p>
         </div>
       </section>
 
