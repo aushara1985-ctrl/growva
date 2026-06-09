@@ -3,8 +3,9 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getUserFromRequest } from '@/lib/auth'
-import { getDecisionMemory, debateDecision, updateBrainMemory } from '@/lib/brain'
+import { updateBrainMemory } from '@/lib/brain'
 import { sprintVerdict, generateSprintNarrative, SprintType, SprintResult } from '@/lib/sprint'
+import { decide } from '@/lib/decide'
 
 // GET /api/decisions?productId=xxx
 export async function GET(req: NextRequest) {
@@ -101,93 +102,38 @@ export async function POST(req: NextRequest) {
   const pageViews = experiment.events.filter(e => e.type === 'PAGE_VIEW').length
   const clicks    = experiment.events.filter(e => e.type === 'CLICK').length
   const signups   = experiment.events.filter(e => e.type === 'SIGNUP').length
+  const purchases = experiment.events.filter(e => e.type === 'PURCHASE').length
   const revenue   = experiment.events.filter(e => e.type === 'PURCHASE').reduce((s, e) => s + e.value, 0)
   const conversionRate = pageViews > 0 ? signups / pageViews : 0
+  const windowClosed = experiment.reviewDueAt != null && new Date(experiment.reviewDueAt) <= new Date()
 
-  // ─── Signal quality gates ─────────────────────────────────────────────────
-  const MIN_VIEWS   = 300
-  const MIN_SIGNUPS = 10
+  // ─── 6-part Decision Engine (deterministic, rules + data only) ─────────────
+  const v6 = decide({
+    pageViews,
+    clicks,
+    signups,
+    purchases,
+    revenue,
+    goal: experiment.product.goal,
+    windowClosed,
+  })
 
-  const hasAnySignal    = clicks > 0 || pageViews > 0 || signups > 0
-  const thresholdReached = pageViews >= MIN_VIEWS || signups >= MIN_SIGNUPS
-  const windowClosed    = experiment.reviewDueAt != null && new Date(experiment.reviewDueAt) <= new Date()
-
-  // Case 1: no tracking data at all
-  if (!hasAnySignal) {
-    const saved = await prisma.decision.create({
-      data: {
-        productId: experiment.productId,
-        experimentId: experiment.id,
-        action: 'CONTINUE',
-        reason: 'No tracking data received yet. Install the site snippet on your page, or share your tracking link, so Growva can collect signal before making a decision.',
-        confidence: 0,
-        metadata: { insufficientData: true, reason: 'no_tracking', pageViews, clicks, signups } as any,
-        executedAt: new Date(),
-      },
-    })
-    return NextResponse.json({ decision: saved, noData: true })
-  }
-
-  // Case 2: below threshold and window still open — too early to decide
-  if (!thresholdReached && !windowClosed) {
-    const needed = pageViews < MIN_VIEWS
-      ? `${MIN_VIEWS - pageViews} more page views`
-      : `${MIN_SIGNUPS - signups} more signups`
-    const saved = await prisma.decision.create({
-      data: {
-        productId: experiment.productId,
-        experimentId: experiment.id,
-        action: 'CONTINUE',
-        reason: `CONTINUE — ${pageViews} page views and ${signups} signups so far. Need ${needed} to reach the minimum threshold for a reliable decision. Keep sending traffic.`,
-        confidence: 0.3,
-        metadata: { insufficientData: true, reason: 'below_threshold', pageViews, clicks, signups, revenue } as any,
-        executedAt: new Date(),
-      },
-    })
-    return NextResponse.json({ decision: saved, belowThreshold: true })
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Threshold reached OR window closed → proceed to AI debate
-  // 1. جيب الذاكرة الكاملة
-  const memory = await getDecisionMemory(experiment.productId, experiment.id)
-
-  // 2. شغّل الـ Debate Engine
-  const debate = await debateDecision(
-    {
-      name: experiment.product.name,
-      description: experiment.product.description,
-      targetUser: experiment.product.targetUser,
-      price: experiment.product.price,
-      goal: experiment.product.goal,
-    },
-    { experimentId: experiment.id, type: experiment.type, angle: experiment.angle, channel: experiment.distributionChannel, pageViews, clicks, signups, revenue, conversionRate },
-    memory
-  )
-
-  // 3. حفظ القرار
   const saved = await prisma.decision.create({
     data: {
       productId: experiment.productId,
       experimentId: experiment.id,
-      action: debate.action === 'INSUFFICIENT_DATA' ? 'CONTINUE' : debate.action as any,
-      reason: debate.reason,
-      confidence: debate.confidence,
-      metadata: {
-        proArgument: debate.proArgument,
-        conArgument: debate.conArgument,
-        finalJudgment: debate.finalJudgment,
-        dataQuality: debate.dataQuality,
-        insufficientData: debate.action === 'INSUFFICIENT_DATA',
-      } as any,
+      action: v6.action as any,
+      reason: v6.why,
+      confidence: v6.confidenceScore,
+      metadata: { v6 } as any,
       executedAt: new Date(),
     },
   })
 
-  // 4. تنفيذ القرار
-  if (debate.action === 'KILL') {
+  // Execute the verdict on experiment status
+  if (v6.verdict === 'STOP') {
     await prisma.experiment.update({ where: { id: experiment.id }, data: { status: 'KILLED', endedAt: new Date() } })
-  } else if (debate.action === 'SCALE') {
+  } else if (v6.verdict === 'SCALE') {
     await prisma.experiment.update({ where: { id: experiment.id }, data: { status: 'SCALED' } })
     await prisma.signalEvent.create({
       data: {
@@ -207,8 +153,8 @@ export async function POST(req: NextRequest) {
     }).catch(() => {})
   }
 
-  // 5. حدّث BrainMemory
+  // Keep collective memory in sync (frozen layer — write only, not used in the verdict)
   await updateBrainMemory(experiment.productId).catch(() => {})
 
-  return NextResponse.json({ decision: saved, debate })
+  return NextResponse.json({ decision: saved, v6 })
 }

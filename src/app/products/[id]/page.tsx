@@ -50,6 +50,33 @@ interface EventRecord {
   experimentId?: string | null
 }
 
+interface DecisionV6 {
+  verdict: 'STOP' | 'CONTINUE' | 'SCALE'
+  why: string
+  confidence: 'LOW' | 'MEDIUM' | 'HIGH'
+  diagnosis: string
+  nextAction: string
+  nextExperiment: string
+  signals?: {
+    pageViews: number
+    clicks: number
+    signups: number
+    purchases: number
+    conversionRate: number
+    clickThroughRate: number
+    primaryMetric: string
+  }
+}
+
+interface DecisionRecord {
+  id: string
+  experimentId: string | null
+  action: string
+  reason: string
+  createdAt: string
+  metadata?: { v6?: DecisionV6 } | null
+}
+
 interface Product {
   id: string
   name: string
@@ -59,6 +86,7 @@ interface Product {
   url: string | null
   experiments: Experiment[]
   events: EventRecord[]
+  decisions?: DecisionRecord[]
 }
 
 // ─── State machine ────────────────────────────────────────────────────────────
@@ -117,6 +145,62 @@ function SignalBar({ value, max, label, color }: { value: number; max: number; l
       </div>
       <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+      </div>
+    </div>
+  )
+}
+
+// ─── Verdict card — the 6-part decision ─────────────────────────────────────────
+const DIAGNOSIS_LABEL: Record<string, string> = {
+  no_traffic: 'No traffic',
+  weak_traffic: 'Weak traffic',
+  weak_conversion: 'Weak conversion',
+  weak_offer: 'Weak offer',
+  wrong_audience: 'Wrong audience',
+  tracking_issue: 'Tracking issue',
+  promising_under_sampled: 'Promising — under-sampled',
+  validated: 'Validated',
+}
+
+function VerdictCard({ v6 }: { v6: DecisionV6 }) {
+  const v = v6.verdict
+  const theme = v === 'SCALE'
+    ? { label: 'SCALE', text: 'text-emerald-300', dot: 'bg-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5' }
+    : v === 'STOP'
+    ? { label: 'STOP', text: 'text-red-300', dot: 'bg-red-400', border: 'border-red-500/30', bg: 'bg-red-500/5' }
+    : { label: 'CONTINUE', text: 'text-blue-300', dot: 'bg-blue-400', border: 'border-blue-500/30', bg: 'bg-blue-500/5' }
+  const conf = v6.confidence
+  const confColor = conf === 'HIGH' ? 'text-emerald-400' : conf === 'MEDIUM' ? 'text-amber-400' : 'text-zinc-500'
+
+  return (
+    <div className={`rounded-xl border ${theme.border} ${theme.bg} p-5 space-y-4`}>
+      {/* 1. Verdict + 3. Confidence */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${theme.dot}`} />
+          <span className={`text-base font-bold tracking-wide ${theme.text}`}>{theme.label}</span>
+          <span className="text-xs text-zinc-600">·</span>
+          <span className="text-xs text-zinc-500">{DIAGNOSIS_LABEL[v6.diagnosis] || v6.diagnosis}</span>
+        </div>
+        <div className="text-right shrink-0">
+          <div className={`text-xs font-semibold ${confColor}`}>{conf} confidence</div>
+          <div className="text-[10px] text-zinc-600">based on sample size</div>
+        </div>
+      </div>
+
+      {/* 2. Why */}
+      <p className="text-sm text-zinc-200 leading-relaxed">{v6.why}</p>
+
+      {/* 4 + 5. Next action / next experiment */}
+      <div className="grid sm:grid-cols-2 gap-3 pt-1">
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+          <div className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1.5">Do this now</div>
+          <div className="text-sm text-zinc-300 leading-relaxed">{v6.nextAction}</div>
+        </div>
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+          <div className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1.5">Next experiment to try</div>
+          <div className="text-sm text-zinc-300 leading-relaxed">{v6.nextExperiment}</div>
+        </div>
       </div>
     </div>
   )
@@ -202,6 +286,7 @@ export default function ProductPage() {
           const signups   = expEvents.filter(e => e.type === 'SIGNUP').length
           const revenue   = expEvents.filter(e => e.type === 'PURCHASE').reduce((s, e) => s + e.value, 0)
           const convRate  = pageViews > 0 ? ((signups / pageViews) * 100).toFixed(1) : '0.0'
+          const latestV6  = product.decisions?.find(d => d.experimentId === exp.id && d.metadata?.v6)?.metadata?.v6 ?? null
           const trackingUrl = exp.trackingId ? `${BASE_URL}/api/track/${exp.trackingId}` : null
           const snippetCode = `<script src="${BASE_URL}/api/g.js"\n  data-key="${product.apiKey}"\n  data-experiment="${exp.trackingId || ''}"></script>`
 
@@ -474,6 +559,14 @@ export default function ProductPage() {
                     )}
                   </div>
                 </div>
+
+                {/* ── Growva's verdict (6-part decision) ── */}
+                {latestV6 && (
+                  <div className="space-y-2">
+                    <div className="text-xs text-zinc-600 uppercase tracking-widest">Growva's verdict</div>
+                    <VerdictCard v6={latestV6} />
+                  </div>
+                )}
 
                 {/* ── 2. What to do now ── */}
                 {uxState === 'pending' && (
