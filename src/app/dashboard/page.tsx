@@ -53,7 +53,13 @@ interface Decision {
   experiment: { angle: string } | null
 }
 
+interface Roi {
+  decisionsMade: number; stop: number; continue: number; scale: number
+  weeksPerStop: number; weeksSaved: number
+  views: number; clicks: number; signups: number
+}
 interface DashData {
+  roi: Roi
   overview: { products: number; activeExperiments: number; totalRevenue: number; totalConversions: number; scaledTotal: number; killedTotal: number }
   productList: Product[]
   recentDecisions: Decision[]
@@ -198,7 +204,7 @@ export default function Dashboard() {
     </div>
   )
 
-  const { overview, productList, recentDecisions, dailyData, hasAnyEvents, todayBrief } = data
+  const { roi, overview, productList, recentDecisions, dailyData, hasAnyEvents, todayBrief } = data
 
   // Whether to show the full setup card (first run or user clicked "start new experiment")
   const isFirstRun = productList.length === 0
@@ -564,6 +570,60 @@ export default function Dashboard() {
             </div>
           )
         })()}
+
+        {/* ── Your impact with Growva (ROI) ── */}
+        {productList.length > 0 && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">Your impact with Growva</span>
+              <span className="text-[10px] text-zinc-600 uppercase tracking-widest">Real data</span>
+            </div>
+
+            {roi.decisionsMade === 0 ? (
+              <div className="px-6 py-8 text-center">
+                <div className="text-sm text-zinc-400 mb-1">Your first decision unlocks this report.</div>
+                <div className="text-xs text-zinc-600">Once Growva judges an experiment, you&apos;ll see how much time it saved you here.</div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-zinc-800">
+                  {/* Decisions made */}
+                  <div className="bg-zinc-900 px-6 py-5">
+                    <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1.5">Decisions made</div>
+                    <div className="text-2xl font-semibold text-white">{roi.decisionsMade}</div>
+                  </div>
+                  {/* Distribution */}
+                  <div className="bg-zinc-900 px-6 py-5">
+                    <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1.5">Breakdown</div>
+                    <div className="flex items-center gap-3 text-sm font-medium pt-1">
+                      <span className="text-red-400">{roi.stop} stop</span>
+                      <span className="text-blue-400">{roi.continue} continue</span>
+                      <span className="text-emerald-400">{roi.scale} scale</span>
+                    </div>
+                  </div>
+                  {/* Time saved — the hero stat */}
+                  <div className="bg-zinc-900 px-6 py-5 col-span-2 md:col-span-1">
+                    <div className="text-[10px] font-semibold text-amber-500/80 uppercase tracking-widest mb-1.5">⭐ Time saved</div>
+                    <div className="text-2xl font-semibold text-amber-300">
+                      ~{roi.weeksSaved} {roi.weeksSaved === 1 ? 'week' : 'weeks'}
+                    </div>
+                    <div className="text-[10px] text-zinc-600 mt-1">
+                      {roi.stop} early stop{roi.stop === 1 ? '' : 's'} × ~{roi.weeksPerStop} weeks of building avoided
+                    </div>
+                  </div>
+                </div>
+
+                {/* Signal collected */}
+                <div className="px-6 py-4 border-t border-zinc-800 flex items-center gap-6 text-xs text-zinc-500">
+                  <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Real signal collected</span>
+                  <span><span className="text-zinc-300 font-medium">{roi.views.toLocaleString()}</span> views</span>
+                  <span><span className="text-zinc-300 font-medium">{roi.clicks.toLocaleString()}</span> clicks</span>
+                  <span><span className="text-zinc-300 font-medium">{roi.signups.toLocaleString()}</span> signups</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* ── Products table ── */}
         {productList.length > 0 && (

@@ -70,7 +70,39 @@ export async function GET(req: NextRequest) {
 
   const hasAnyEvents = dailyData.some(d => d.events > 0)
 
+  // ── ROI / impact card — real data only (no fabricated numbers) ──────────────
+  const [decisionsByAction, eventsByType] = await Promise.all([
+    prisma.decision.groupBy({
+      by: ['action'],
+      where: { product: { userId } },
+      _count: { _all: true },
+    }),
+    prisma.event.groupBy({
+      by: ['type'],
+      where: { productId: { in: productIds } },
+      _count: { _all: true },
+    }),
+  ])
+  const actionCount = (a: string) => decisionsByAction.find(d => d.action === a)?._count._all || 0
+  const eventTypeCount = (t: string) => eventsByType.find(e => e.type === t)?._count._all || 0
+  const roiStop = actionCount('KILL')
+  const roiScale = actionCount('SCALE')
+  const roiContinue = actionCount('CONTINUE') + actionCount('ITERATE') + actionCount('RESTART')
+  const WEEKS_PER_STOP = 3 // transparent, conservative assumption shown to the user
+  const roi = {
+    decisionsMade: roiStop + roiScale + roiContinue,
+    stop: roiStop,
+    continue: roiContinue,
+    scale: roiScale,
+    weeksPerStop: WEEKS_PER_STOP,
+    weeksSaved: roiStop * WEEKS_PER_STOP,
+    views: eventTypeCount('PAGE_VIEW'),
+    clicks: eventTypeCount('CLICK'),
+    signups: eventTypeCount('SIGNUP'),
+  }
+
   return NextResponse.json({
+    roi,
     overview: { products: products.length, activeExperiments, totalRevenue, totalConversions, scaledTotal, killedTotal },
     productList: products.map(p => {
       const stats = productStats.find(s => s.id === p.id)
