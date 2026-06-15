@@ -259,27 +259,36 @@ export default function ProductPage() {
     </div>
   )
 
+  // Partition: active/decided experiments render full; PENDING render compact.
+  const pendingExps = product.experiments.filter(e => e.status === 'PENDING')
+  const activeExps = product.experiments
+    .filter(e => e.status !== 'PENDING')
+    .sort((a, b) => {
+      const rank = (s: string) => (['RUNNING', 'ACTIVE'].includes(s) ? 0 : 1)
+      return rank(a.status) - rank(b.status)
+    })
+
   return (
     <div className="min-h-screen bg-[#09090B] text-white" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
 
       {/* Header */}
-      <div className="border-b border-zinc-800 px-6 py-4 flex items-center gap-4">
-        <a href="/dashboard" className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors">← Back</a>
-        <div className="w-px h-4 bg-zinc-800" />
-        <span className="font-semibold text-white">{product.name}</span>
-        <span className="text-xs text-zinc-600">{product.targetUser}</span>
+      <div className="border-b border-zinc-800 px-4 sm:px-6 py-4 flex items-center gap-3 sm:gap-4">
+        <a href="/dashboard" className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors shrink-0">← Back</a>
+        <div className="w-px h-4 bg-zinc-800 shrink-0" />
+        <span className="font-semibold text-white truncate">{product.name}</span>
+        <span className="text-xs text-zinc-600 truncate hidden sm:inline">{product.targetUser}</span>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-8 space-y-5">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-5">
 
         {product.experiments.length === 0 && (
           <div className="border border-dashed border-zinc-800 rounded-2xl p-16 text-center">
             <p className="text-zinc-600 text-sm">No experiments yet.</p>
-            <p className="text-zinc-700 text-xs mt-1">Go back to dashboard → Generate experiments.</p>
+            <p className="text-zinc-700 text-xs mt-1">Go back to the dashboard → Start your first decision.</p>
           </div>
         )}
 
-        {product.experiments.map(exp => {
+        {activeExps.map(exp => {
           const expEvents = product.events?.filter(e => (e as any).experimentId === exp.id) ?? []
           const clicks    = expEvents.filter(e => e.type === 'CLICK').length
           const pageViews = expEvents.filter(e => e.type === 'PAGE_VIEW').length
@@ -314,7 +323,7 @@ export default function ProductPage() {
               <div key={exp.id} className="bg-zinc-900 border border-amber-500/20 rounded-2xl overflow-hidden">
 
                 {/* Sprint status bar */}
-                <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between gap-4">
+                <div className="px-6 py-4 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-0.5">⚡ SPRINT</span>
                     {!isDecided && !windowClosed && isRunning && (
@@ -333,7 +342,7 @@ export default function ProductPage() {
                     <button
                       onClick={() => triggerDecision(exp.id, true)}
                       disabled={deciding === exp.id || !canDecide}
-                      className={`text-xs font-semibold px-4 py-2 rounded-lg border transition-all ${
+                      className={`w-full sm:w-auto text-xs font-semibold px-4 py-2 rounded-lg border transition-all ${
                         deciding === exp.id ? 'opacity-50 cursor-not-allowed bg-zinc-800 border-zinc-700 text-zinc-500'
                         : canDecide ? 'bg-white text-black border-white hover:bg-zinc-100'
                         : 'bg-zinc-800 border-zinc-700 text-zinc-500 cursor-not-allowed'
@@ -592,7 +601,7 @@ export default function ProductPage() {
                       Growva needs signals before giving a reliable decision. Share the tracking link in posts, DMs, or emails — or install the site snippet on your page.
                     </p>
                     {trackingUrl && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <CopyButton text={trackingUrl} label="Copy tracking link" />
                         <button onClick={() => setTrackingTab('snippet')} className="text-xs px-3 py-1.5 rounded-lg border bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white transition-all">
                           Install snippet
@@ -609,7 +618,7 @@ export default function ProductPage() {
                       Keep sharing the tracking link to collect more signal. Growva will decide when you reach 300 visits or 10 signups — or when the window closes.
                     </p>
                     {trackingUrl && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <CopyButton text={trackingUrl} label="Copy tracking link" />
                         <button
                           onClick={() => triggerDecision(exp.id)}
@@ -632,7 +641,7 @@ export default function ProductPage() {
                     <button
                       onClick={() => triggerDecision(exp.id)}
                       disabled={deciding === exp.id}
-                      className="text-sm font-semibold bg-white text-black px-5 py-2.5 rounded-lg hover:bg-zinc-100 active:scale-[.99] transition-all disabled:opacity-50"
+                      className="w-full sm:w-auto text-sm font-semibold bg-white text-black px-5 py-2.5 rounded-lg hover:bg-zinc-100 active:scale-[.99] transition-all disabled:opacity-50"
                     >
                       {deciding === exp.id ? 'Getting verdict...' : 'Get verdict →'}
                     </button>
@@ -650,7 +659,7 @@ export default function ProductPage() {
                     <button
                       onClick={() => triggerDecision(exp.id)}
                       disabled={deciding === exp.id}
-                      className="text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 px-5 py-2.5 rounded-lg hover:bg-amber-500/30 transition-all disabled:opacity-50"
+                      className="w-full sm:w-auto text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 px-5 py-2.5 rounded-lg hover:bg-amber-500/30 transition-all disabled:opacity-50"
                     >
                       {deciding === exp.id ? 'Getting verdict...' : 'Get early verdict'}
                     </button>
@@ -781,6 +790,51 @@ export default function ProductPage() {
             </div>
           )
         })}
+
+        {/* ── Suggested experiments — compact only ── */}
+        {pendingExps.length > 0 && (
+          <div className="space-y-3">
+            <div className="text-xs text-zinc-600 uppercase tracking-widest pt-2">
+              Suggested experiments
+            </div>
+            {pendingExps.map(exp => (
+              <div key={exp.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 rounded px-2 py-0.5">
+                        {exp.mode === 'SPRINT' || exp.metadata?.mode === 'SPRINT' ? '⚡ Sprint' : 'Suggested'}
+                      </span>
+                      <span className="text-[10px] text-zinc-600 uppercase tracking-widest">Not started</span>
+                    </div>
+                    <div className="text-sm font-semibold text-white leading-snug">{exp.headline}</div>
+                    {exp.angle && <div className="text-xs text-zinc-500 italic mt-0.5">{exp.angle}</div>}
+                  </div>
+                  <button
+                    onClick={() => activate(exp.id)}
+                    disabled={activating === exp.id}
+                    className="w-full sm:w-auto shrink-0 text-sm font-semibold bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-400 transition-all disabled:opacity-50"
+                  >
+                    {activating === exp.id ? 'Activating...' : 'Activate'}
+                  </button>
+                </div>
+                <details className="group mt-3">
+                  <summary className="text-xs text-zinc-600 hover:text-zinc-400 cursor-pointer transition-colors list-none flex items-center gap-1">
+                    <span className="group-open:rotate-90 transition-transform inline-block">▸</span>
+                    View details
+                  </summary>
+                  <div className="mt-3 pl-3 border-l border-zinc-800 space-y-2 text-xs">
+                    {exp.copy && <p className="text-zinc-400 leading-relaxed">{exp.copy}</p>}
+                    {exp.cta && <div className="text-zinc-600">CTA: <span className="text-zinc-400">{exp.cta}</span></div>}
+                    {exp.distributionChannel && <div className="text-zinc-600">Channel: <span className="text-zinc-400">{exp.distributionChannel}</span></div>}
+                    {exp.expectedKpi && <div className="text-zinc-600">Primary signal: <span className="text-zinc-400">{exp.expectedKpi}</span></div>}
+                    {exp.type && <div className="text-zinc-600">Type: <span className="text-zinc-400">{exp.type.replace(/_/g, ' ')}</span></div>}
+                  </div>
+                </details>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

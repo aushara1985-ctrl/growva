@@ -43,14 +43,25 @@ interface Product {
   _count: { events: number }
 }
 
+interface DecisionV6 {
+  verdict: 'STOP' | 'CONTINUE' | 'SCALE'
+  why: string
+  confidence: 'LOW' | 'MEDIUM' | 'HIGH'
+  diagnosis: string
+  nextAction: string
+  nextExperiment: string
+}
+
 interface Decision {
   id: string
+  productId: string
   action: string
   reason: string
   confidence: number
   createdAt: string
-  product: { name: string }
-  experiment: { angle: string } | null
+  product: { id: string; name: string }
+  experiment: { id: string; angle: string } | null
+  metadata?: { v6?: DecisionV6 } | null
 }
 
 interface Roi {
@@ -66,69 +77,64 @@ interface DashData {
   dailyData: Array<{ date: string; events: number }>
   hasAnyEvents: boolean
   todayBrief: Brief | null
-  brainStats?: { collectiveDatapoints: number; topPatterns: any[] }
 }
 
-const ACTION_COLOR: Record<string, string> = { KILL: '#ef4444', SCALE: '#22c55e', ITERATE: '#f59e0b', CONTINUE: '#3b82f6' }
-const ACTION_ICON: Record<string, string> = { KILL: '—', SCALE: '↑', ITERATE: '↻', CONTINUE: '→' }
+const ACTION_COLOR: Record<string, string> = { KILL: '#ef4444', SCALE: '#22c55e', ITERATE: '#f59e0b', CONTINUE: '#3b82f6', RESTART: '#f59e0b' }
+const ACTION_ICON: Record<string, string> = { KILL: '—', SCALE: '↑', ITERATE: '↻', CONTINUE: '→', RESTART: '↻' }
 
-const TRACKING_OPTIONS = [
-  { id: 'tracking_links', label: 'Use Growva tracking links', description: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment.', status: 'available' as const, icon: '🔗' },
-  { id: 'analytics', label: 'Connect analytics', description: 'Google Analytics, Plausible — helps Growva understand visits.', status: 'coming_soon' as const, icon: '📊' },
-  { id: 'payments', label: 'Connect payments', description: 'Stripe, Lemon Squeezy, Gumroad — helps Growva see which experiments drive revenue.', status: 'coming_soon' as const, icon: '💳' },
-  { id: 'forms', label: 'Connect forms / waitlists', description: 'Tally, Typeform — helps Growva measure leads and signups.', status: 'coming_soon' as const, icon: '📋' },
-  { id: 'social', label: 'Track posts and campaigns', description: 'Use tracking links for X, LinkedIn, Reddit posts.', status: 'available' as const, icon: '📣' },
-  { id: 'skip', label: "I don't track results yet", description: 'Growva will still guide you with tracking links and check-ins.', status: 'available' as const, icon: '→' },
-]
+const DIAGNOSIS_LABEL: Record<string, string> = {
+  no_traffic: 'No traffic', weak_traffic: 'Weak traffic', weak_conversion: 'Weak conversion',
+  weak_offer: 'Weak offer', wrong_audience: 'Wrong audience', tracking_issue: 'Tracking issue',
+  promising_under_sampled: 'Promising — under-sampled', validated: 'Validated',
+}
+
+// Verdict → human decision question + theme
+function verdictTheme(verdict: string) {
+  const v = verdict === 'KILL' ? 'STOP' : verdict
+  if (v === 'SCALE') return { label: 'SCALE', text: 'text-emerald-300', dot: 'bg-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/[0.06]' }
+  if (v === 'STOP') return { label: 'STOP', text: 'text-red-300', dot: 'bg-red-400', border: 'border-red-500/30', bg: 'bg-red-500/[0.06]' }
+  return { label: 'CONTINUE', text: 'text-blue-300', dot: 'bg-blue-400', border: 'border-blue-500/30', bg: 'bg-blue-500/[0.06]' }
+}
 
 function hoursUntil(dateStr: string) {
   return Math.max(0, Math.round((new Date(dateStr).getTime() - Date.now()) / 36e5))
 }
 
-function productStateLabel(p: Product): { label: string; color: string; ringColor: string } | null {
-  if (p.decisionReadyCount > 0) return { label: 'Early verdict available', color: 'text-amber-400', ringColor: 'border-amber-500/40 bg-amber-500/10' }
+function productStateLabel(p: Product): { label: string; color: string; ringColor: string } {
+  if (p.decisionReadyCount > 0) return { label: 'Verdict ready', color: 'text-amber-400', ringColor: 'border-amber-500/40 bg-amber-500/10' }
   if (p.runningCount > 0) {
     const running = p.experiments.find(e => (e.status === 'RUNNING' || e.status === 'ACTIVE') && e.reviewDueAt)
     const hours = running?.reviewDueAt ? hoursUntil(running.reviewDueAt) : null
-    return { label: hours != null ? `Monitoring · ${hours}h left` : 'Monitoring', color: 'text-emerald-400', ringColor: 'border-emerald-500/40 bg-emerald-500/10' }
+    return { label: hours != null ? `Collecting · ${hours}h` : 'Collecting', color: 'text-emerald-400', ringColor: 'border-emerald-500/40 bg-emerald-500/10' }
   }
-  if (p.pendingCount > 0) return { label: 'Activate an experiment', color: 'text-indigo-400', ringColor: 'border-indigo-500/40 bg-indigo-500/10' }
-  if (p.experiments.length === 0) return { label: 'Start growth', color: 'text-zinc-400', ringColor: 'border-zinc-700 bg-zinc-800' }
-  return null
+  if (p.pendingCount > 0) return { label: 'Ready to activate', color: 'text-indigo-400', ringColor: 'border-indigo-500/40 bg-indigo-500/10' }
+  if (p.experiments.length === 0) return { label: 'No experiment yet', color: 'text-zinc-400', ringColor: 'border-zinc-700 bg-zinc-800' }
+  return { label: 'Decided', color: 'text-zinc-400', ringColor: 'border-zinc-700 bg-zinc-800' }
 }
 
 const inputCls = 'w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/10 transition-all'
 const textareaCls = 'w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/10 resize-none transition-all'
-const btnPrimary = 'bg-white text-black text-sm font-semibold px-4 py-2 rounded-lg hover:bg-zinc-100 active:scale-[.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed'
-const btnSecondary = 'bg-transparent text-zinc-400 text-sm border border-zinc-700 px-4 py-2 rounded-lg hover:bg-zinc-800 hover:text-zinc-200 transition-all'
+const btnPrimary = 'w-full sm:w-auto bg-white text-black text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-zinc-100 active:scale-[.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed text-center'
+const btnSecondary = 'w-full sm:w-auto bg-transparent text-zinc-400 text-sm border border-zinc-700 px-4 py-2.5 rounded-lg hover:bg-zinc-800 hover:text-zinc-200 transition-all text-center'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashData | null>(null)
   const [briefLoading, setBriefLoading] = useState(false)
   const [startingId, setStartingId] = useState<string | null>(null)
   const [activatingId, setActivatingId] = useState<string | null>(null)
-  const [decidingId, setDecidingId] = useState<string | null>(null)
-  const [openProducts, setOpenProducts] = useState<Set<string>>(new Set())
   const [onboardingProductId, setOnboardingProductId] = useState<string | null>(null)
   const router = useRouter()
 
-  // New experiment flow
-  // showNewExp: whether the "start new experiment" card is expanded
+  // New decision wizard
   const [showNewExp, setShowNewExp] = useState(false)
   const [setupMode, setSetupMode] = useState<'' | 'TRAFFIC' | 'SPRINT'>('')
   const [setupStep, setSetupStep] = useState(0)
   const [setupData, setSetupData] = useState({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '', hypothesis: '', sprintType: '' })
   const [setupLoading, setSetupLoading] = useState(false)
 
-  // Add product (legacy inline form - still used for "add another")
-  const [form, setForm] = useState({ name: '', description: '', url: '', targetUser: '', goal: 'signups' })
-
   const load = useCallback(async () => {
-    const [dash, brain] = await Promise.all([
-      fetch('/api/dashboard').then(r => r.json()),
-      fetch('/api/brain').then(r => r.json()).catch(() => null),
-    ])
-    setData({ ...dash, brainStats: brain })
+    const dash = await fetch('/api/dashboard').then(r => r.json())
+    setData(dash)
   }, [])
 
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t) }, [load])
@@ -154,16 +160,6 @@ export default function Dashboard() {
     setBriefLoading(true)
     await fetch('/api/brief', { method: 'POST' })
     setBriefLoading(false); load()
-  }
-
-  const triggerDecision = async (experimentId: string) => {
-    setDecidingId(experimentId)
-    await fetch('/api/decisions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ experimentId }) })
-    setDecidingId(null); load()
-  }
-
-  const toggleProduct = (id: string) => {
-    setOpenProducts(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
   }
 
   const resetSetup = () => { setSetupMode(''); setSetupStep(0); setShowNewExp(false); setSetupData({ name: '', targetUser: '', goal: 'signups', url: '', context: '', trackingMethod: '', hypothesis: '', sprintType: '' }) }
@@ -206,21 +202,30 @@ export default function Dashboard() {
 
   const { roi, overview, productList, recentDecisions, dailyData, hasAnyEvents, todayBrief } = data
 
-  // Whether to show the full setup card (first run or user clicked "start new experiment")
   const isFirstRun = productList.length === 0
   const showSetupCard = isFirstRun || showNewExp
+
+  // ── Decision Room state machine ───────────────────────────────────────────
+  const verdictReadyProduct = productList.find(p => p.decisionReadyCount > 0)
+  const runningProduct = productList.find(p => p.runningCount > 0)
+  const latestDecision = recentDecisions[0] || null
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
 
       {/* ── Tracking method modal ── */}
       {onboardingProductId && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="text-base font-semibold text-white mb-1">How should Growva measure your results?</div>
-            <div className="text-xs text-zinc-500 mb-6">Choose how you'll track experiment performance. You can change this later.</div>
+            <div className="text-xs text-zinc-500 mb-6">Choose how you&apos;ll track experiment performance. You can change this later.</div>
             <div className="flex flex-col gap-3">
-              {TRACKING_OPTIONS.map(opt => (
+              {[
+                { id: 'tracking_links', label: 'Use Growva tracking links', description: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment.', status: 'available' as const, icon: '🔗' },
+                { id: 'analytics', label: 'Connect analytics', description: 'Google Analytics, Plausible — helps Growva understand visits.', status: 'coming_soon' as const, icon: '📊' },
+                { id: 'payments', label: 'Connect payments', description: 'Stripe, Lemon Squeezy, Gumroad — helps Growva see which experiments drive revenue.', status: 'coming_soon' as const, icon: '💳' },
+                { id: 'skip', label: "I don't track results yet", description: 'Growva will still guide you with tracking links and check-ins.', status: 'available' as const, icon: '→' },
+              ].map(opt => (
                 <button key={opt.id} onClick={() => saveTrackingMethod(onboardingProductId, opt.id)} disabled={opt.status === 'coming_soon'}
                   className={`text-left border rounded-xl p-4 flex items-start gap-3 transition-all ${opt.status === 'available' ? 'bg-zinc-800 border-zinc-700 hover:border-zinc-500 cursor-pointer' : 'bg-zinc-900 border-zinc-800 opacity-50 cursor-default'}`}>
                   <span className="text-lg shrink-0 mt-0.5">{opt.icon}</span>
@@ -228,7 +233,6 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-sm font-medium text-white">{opt.label}</span>
                       {opt.status === 'coming_soon' && <span className="text-[10px] font-semibold text-zinc-500 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 uppercase tracking-wide">Soon</span>}
-                      {opt.status === 'available' && opt.id !== 'skip' && <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded px-1.5 py-0.5 uppercase tracking-wide">Available</span>}
                     </div>
                     <div className="text-xs text-zinc-500 leading-relaxed">{opt.description}</div>
                   </div>
@@ -240,18 +244,16 @@ export default function Dashboard() {
       )}
 
       {/* ── Nav ── */}
-      <div className="bg-zinc-950 border-b border-zinc-800 px-6 h-14 flex items-center justify-between sticky top-0 z-40">
+      <div className="bg-zinc-950 border-b border-zinc-800 px-4 sm:px-6 h-14 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-white rounded-md flex items-center justify-center">
             <div className="w-2 h-2 rounded-sm bg-black" />
           </div>
           <span className="text-sm font-semibold text-white tracking-tight">Growva</span>
+          <span className="hidden sm:inline text-xs text-zinc-600 ml-1">Decision Room</span>
         </div>
-        <div className="flex items-center gap-5 text-xs text-zinc-500">
-          <span>{overview.products} {overview.products === 1 ? 'product' : 'products'}</span>
-          {overview.activeExperiments > 0
-            ? <span className="text-emerald-400 font-medium">{overview.activeExperiments} running</span>
-            : overview.products > 0 && <span className="text-zinc-600">no active experiments</span>}
+        <div className="flex items-center gap-3 sm:gap-5 text-xs text-zinc-500">
+          {overview.activeExperiments > 0 && <span className="text-emerald-400 font-medium">{overview.activeExperiments} running</span>}
           <button onClick={logout}
             className="text-zinc-500 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-600 rounded-lg px-2.5 py-1 transition-all">
             Sign out
@@ -259,24 +261,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
 
         {/* ══════════════════════════════════════════════════════════════
-            ACTION PANEL — always at top
-            First run: full two-card layout
-            Returning user: compact entry → expands on click
+            WIZARD — Start a new decision (shown alone when open)
         ══════════════════════════════════════════════════════════════ */}
-
-        {/* ── First run / expanded setup ── */}
         {showSetupCard && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
 
             {/* Path selection — step 0 */}
             {setupStep === 0 && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 {!isFirstRun && (
                   <div className="flex items-center justify-between mb-6">
-                    <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Start new experiment</div>
+                    <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Start a new decision</div>
                     <button onClick={resetSetup} className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors">✕ Cancel</button>
                   </div>
                 )}
@@ -284,24 +282,22 @@ export default function Dashboard() {
                   <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Welcome to Growva</div>
                 )}
                 <div className="text-lg font-semibold text-white mb-2">What are you trying to decide?</div>
-                <div className="text-sm text-zinc-500 mb-8 leading-relaxed">
-                  Choose how you want to validate your experiment.
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="text-sm text-zinc-500 mb-8 leading-relaxed">Choose how you want to validate this experiment.</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button onClick={() => { setSetupMode('SPRINT'); setSetupStep(1) }}
-                    className="relative bg-amber-500/[0.07] border-2 border-amber-500/40 hover:border-amber-400/70 rounded-xl p-6 text-left transition-all group">
-                    <span className="absolute top-3 right-3 text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 rounded-full px-2 py-0.5 uppercase tracking-wide">Most solo founders start here</span>
+                    className="relative bg-amber-500/[0.07] border-2 border-amber-500/40 hover:border-amber-400/70 rounded-xl p-6 text-left transition-all">
+                    <span className="absolute top-3 right-3 text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 rounded-full px-2 py-0.5 uppercase tracking-wide">Start here</span>
                     <div className="text-xl mb-3">⚡</div>
-                    <div className="text-sm font-semibold text-white mb-1">Run validation sprint</div>
-                    <div className="text-xs text-zinc-400 leading-relaxed">No traffic yet? Growva builds a 48-hour action plan, script, and tracking link so you can create real signal fast.</div>
-                    <div className="text-xs text-amber-400/80 mt-3 font-medium">→ DMs, posts, interviews, or landing page</div>
+                    <div className="text-sm font-semibold text-white mb-1">I need traffic</div>
+                    <div className="text-xs text-zinc-400 leading-relaxed">No traffic yet? Growva builds a 48-hour action plan, script, and tracking link to create real signal fast.</div>
+                    <div className="text-xs text-amber-400/80 mt-3 font-medium">→ Validation sprint</div>
                   </button>
                   <button onClick={() => { setSetupMode('TRAFFIC'); setSetupStep(1) }}
-                    className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all group">
+                    className="bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 rounded-xl p-6 text-left transition-all">
                     <div className="text-xl mb-3">📊</div>
-                    <div className="text-sm font-semibold text-white mb-1">Track existing traffic</div>
+                    <div className="text-sm font-semibold text-white mb-1">I have traffic</div>
                     <div className="text-xs text-zinc-500 leading-relaxed">Already have a landing page, campaign, or launch? Growva tracks signal and tells you when to scale or stop.</div>
-                    <div className="text-xs text-zinc-600 mt-3 font-medium">→ Get tracking link or snippet</div>
+                    <div className="text-xs text-zinc-600 mt-3 font-medium">→ Track existing traffic</div>
                   </button>
                 </div>
               </div>
@@ -309,47 +305,45 @@ export default function Dashboard() {
 
             {/* ── TRAFFIC STEPS ── */}
             {setupMode === 'TRAFFIC' && setupStep === 1 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 1 of 4</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I have traffic · Step 1 of 4</div>
                 <div className="text-base font-semibold text-white mb-6">What are you testing, and who is it for?</div>
-                <div className="grid grid-cols-2 gap-4 mb-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">What are you testing?</div>
-                    <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Pricing page headline, Beta launch" className={inputCls} />
-                    <div className="text-[10px] text-zinc-600 mt-1.5">Name the offer, page, message, or idea you want Growva to judge.</div>
+                    <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Pricing page headline" className={inputCls} />
                   </div>
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Who is this for?</div>
-                    <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })} placeholder="e.g. Solo founders, ops teams, cafes" className={inputCls} />
-                    <div className="text-[10px] text-zinc-600 mt-1.5">Growva uses this to generate sharper experiments and scripts.</div>
+                    <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })} placeholder="e.g. Solo founders, ops teams" className={inputCls} />
                   </div>
                 </div>
                 <div className="mb-6">
                   <div className="text-[11px] text-zinc-600 mb-2 uppercase tracking-wide">Context for Growva <span className="normal-case text-zinc-700">(optional)</span></div>
                   <textarea value={setupData.context} onChange={e => setSetupData({ ...setupData, context: e.target.value })} placeholder="What has been tried, what is working, what is the product." rows={2} className={textareaCls} />
                 </div>
-                <div className="flex gap-3">
-                  <button onClick={() => { setSetupMode(''); setSetupStep(0) }} className={btnSecondary}>← Back</button>
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
+                  <button onClick={resetSetup} className={btnSecondary}>Cancel</button>
                   <button onClick={() => { if (setupData.name && setupData.targetUser) setSetupStep(2) }} disabled={!setupData.name || !setupData.targetUser} className={btnPrimary}>Next →</button>
                 </div>
               </div>
             )}
 
             {setupMode === 'TRAFFIC' && setupStep === 2 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 2 of 4</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I have traffic · Step 2 of 4</div>
                 <div className="text-base font-semibold text-white mb-2">What outcome matters most?</div>
                 <div className="text-xs text-zinc-500 mb-6">Growva will watch for this signal and use it in its verdict.</div>
                 <div className="flex flex-wrap gap-2 mb-8">
                   {[{ value: 'signups', label: 'Signups', desc: 'Email captures, waitlist joins' }, { value: 'revenue', label: 'Revenue', desc: 'Sales, purchases, payments' }, { value: 'clicks', label: 'Clicks', desc: 'Link clicks, CTA engagement' }, { value: 'activation', label: 'Activation', desc: 'First meaningful action' }].map(opt => (
                     <button key={opt.value} onClick={() => setSetupData({ ...setupData, goal: opt.value })}
-                      className={`px-4 py-3 rounded-lg text-sm font-medium text-left border transition-all min-w-[130px] ${setupData.goal === opt.value ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500'}`}>
+                      className={`px-4 py-3 rounded-lg text-sm font-medium text-left border transition-all flex-1 min-w-[140px] ${setupData.goal === opt.value ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500'}`}>
                       <div>{opt.label}</div>
                       <div className="text-[11px] mt-0.5 opacity-60">{opt.desc}</div>
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
                   <button onClick={() => setSetupStep(1)} className={btnSecondary}>← Back</button>
                   <button onClick={() => setSetupStep(3)} className={btnPrimary}>Next →</button>
                 </div>
@@ -357,8 +351,8 @@ export default function Dashboard() {
             )}
 
             {setupMode === 'TRAFFIC' && setupStep === 3 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 3 of 4</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I have traffic · Step 3 of 4</div>
                 <div className="text-base font-semibold text-white mb-2">Where is this experiment running?</div>
                 <div className="text-xs text-zinc-500 mb-6">Growva needs the URL for context and attribution.</div>
                 <div className="mb-8">
@@ -366,7 +360,7 @@ export default function Dashboard() {
                   <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })} placeholder="https://yourproduct.com" type="url" className={inputCls} />
                   {!setupData.url && <div className="text-xs text-red-500 mt-1.5">URL is required to track your experiment</div>}
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
                   <button onClick={() => setSetupStep(2)} className={btnSecondary}>← Back</button>
                   <button onClick={() => { if (setupData.url) setSetupStep(4) }} disabled={!setupData.url} className={btnPrimary}>Next →</button>
                 </div>
@@ -374,14 +368,14 @@ export default function Dashboard() {
             )}
 
             {setupMode === 'TRAFFIC' && setupStep === 4 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Track existing traffic · Step 4 of 4</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I have traffic · Step 4 of 4</div>
                 <div className="text-base font-semibold text-white mb-2">How should Growva collect signal?</div>
                 <div className="text-xs text-zinc-500 mb-6">You need at least one method for Growva to make a reliable decision.</div>
                 <div className="flex flex-col gap-3 mb-8">
                   {[
-                    { id: 'tracking_links', icon: '🔗', label: 'Tracking links', desc: 'Best for posts, DMs, emails, and campaigns. Growva generates a unique link per experiment.', tracks: 'Tracks: clicks, source, referrer' },
-                    { id: 'site_snippet', icon: '</>', label: 'Site snippet', desc: 'Paste a small script on your page. Auto-tracks page views. Call growva.track() for signups and purchases.', tracks: 'Tracks: page views, signups, purchases' },
+                    { id: 'tracking_links', icon: '🔗', label: 'Tracking links', desc: 'Best for posts, DMs, emails, and campaigns.', tracks: 'Tracks: clicks, source, referrer' },
+                    { id: 'site_snippet', icon: '</>', label: 'Site snippet', desc: 'Paste a small script on your page. Auto-tracks page views.', tracks: 'Tracks: page views, signups, purchases' },
                   ].map(opt => (
                     <button key={opt.id} onClick={() => setSetupData({ ...setupData, trackingMethod: opt.id })}
                       className={`text-left border-2 rounded-xl p-4 flex items-start gap-4 transition-all ${setupData.trackingMethod === opt.id ? 'bg-zinc-800 border-white' : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'}`}>
@@ -394,48 +388,44 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 items-stretch sm:items-center">
                   <button onClick={() => setSetupStep(3)} className={btnSecondary}>← Back</button>
                   <button onClick={runTrafficSetup} disabled={!setupData.trackingMethod || setupLoading} className={btnPrimary}>
-                    {setupLoading ? 'Setting up...' : 'Generate experiments →'}
+                    {setupLoading ? 'Setting up...' : 'Start experiment →'}
                   </button>
-                  {!setupData.trackingMethod && <span className="text-xs text-red-400">Select a tracking method</span>}
                 </div>
               </div>
             )}
 
             {/* ── SPRINT STEPS ── */}
             {setupMode === 'SPRINT' && setupStep === 1 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Validation sprint · Step 1 of 3</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I need traffic · Step 1 of 3</div>
                 <div className="text-base font-semibold text-white mb-6">What are you trying to validate?</div>
                 <div className="space-y-4 mb-6">
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Product or experiment name</div>
-                    <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Growva, SeatX, pricing page" className={inputCls} />
-                    <div className="text-[10px] text-zinc-600 mt-1.5">Name the offer, page, message, or idea you want Growva to judge.</div>
+                    <input value={setupData.name} onChange={e => setSetupData({ ...setupData, name: e.target.value })} placeholder="e.g. Growva, pricing page" className={inputCls} />
                   </div>
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Hypothesis — what do you want to validate?</div>
                     <input value={setupData.hypothesis} onChange={e => setSetupData({ ...setupData, hypothesis: e.target.value })} placeholder="e.g. Will solo founders pay for a decision engine?" className={inputCls} />
-                    <div className="text-[10px] text-zinc-600 mt-1.5">What do you believe people will do if this works?</div>
                   </div>
                   <div>
                     <div className="text-[11px] text-zinc-500 mb-2 uppercase tracking-wide">Who are you targeting?</div>
                     <input value={setupData.targetUser} onChange={e => setSetupData({ ...setupData, targetUser: e.target.value })} placeholder="e.g. SaaS founders under $5k MRR" className={inputCls} />
-                    <div className="text-[10px] text-zinc-600 mt-1.5">Growva uses this to generate sharper experiments and scripts.</div>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <button onClick={() => { setSetupMode(''); setSetupStep(0) }} className={btnSecondary}>← Back</button>
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
+                  <button onClick={resetSetup} className={btnSecondary}>Cancel</button>
                   <button onClick={() => { if (setupData.name && setupData.hypothesis && setupData.targetUser) setSetupStep(2) }} disabled={!setupData.name || !setupData.hypothesis || !setupData.targetUser} className={btnPrimary}>Next →</button>
                 </div>
               </div>
             )}
 
             {setupMode === 'SPRINT' && setupStep === 2 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Validation sprint · Step 2 of 3</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I need traffic · Step 2 of 3</div>
                 <div className="text-base font-semibold text-white mb-2">How will you create signal?</div>
                 <div className="text-xs text-zinc-500 mb-6">Growva generates the exact action, script, and tracking link for your sprint.</div>
                 <div className="flex flex-col gap-2 mb-8">
@@ -457,7 +447,7 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
                   <button onClick={() => setSetupStep(1)} className={btnSecondary}>← Back</button>
                   <button onClick={() => { if (setupData.sprintType) setSetupStep(3) }} disabled={!setupData.sprintType} className={btnPrimary}>Next →</button>
                 </div>
@@ -465,120 +455,161 @@ export default function Dashboard() {
             )}
 
             {setupMode === 'SPRINT' && setupStep === 3 && (
-              <div className="p-8">
-                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">Validation sprint · Step 3 of 3</div>
+              <div className="p-6 sm:p-8">
+                <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-5">I need traffic · Step 3 of 3</div>
                 <div className="text-base font-semibold text-white mb-2">Do you have a page for this experiment?</div>
                 <div className="text-xs text-zinc-500 mb-6 leading-relaxed">If yes, paste the URL — Growva will generate a tracking link pointing to it. If no, the tracking link alone is enough to start.</div>
                 <div className="mb-8">
                   <div className="text-[11px] text-zinc-600 mb-2 uppercase tracking-wide">Page URL <span className="normal-case text-zinc-700">(optional)</span></div>
                   <input value={setupData.url} onChange={e => setSetupData({ ...setupData, url: e.target.value })} placeholder="https://yourpage.com — leave blank if none yet" type="url" className={inputCls} />
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
                   <button onClick={() => setSetupStep(2)} className={btnSecondary}>← Back</button>
                   <button onClick={runSprintSetup} disabled={setupLoading} className={btnPrimary}>
-                    {setupLoading ? 'Generating sprint...' : '⚡ Generate sprint →'}
+                    {setupLoading ? 'Generating sprint...' : '⚡ Start sprint →'}
                   </button>
                 </div>
-                {!setupLoading && <div className="mt-4 text-xs text-zinc-600 leading-relaxed">Growva will create a 48-hour sprint plan, a tracking link, and the exact script to use.</div>}
               </div>
             )}
           </div>
         )}
 
-        {/* ── Compact "Start new experiment" when products exist and setup not open ── */}
-        {!isFirstRun && !showNewExp && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-white">Start new experiment</div>
-              <div className="text-xs text-zinc-500 mt-0.5">Track existing traffic or run a 48-hour validation sprint</div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { setShowNewExp(true); setSetupMode('SPRINT'); setSetupStep(1) }}
-                className="text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/40 px-3 py-2 rounded-lg hover:border-amber-400/70 hover:text-amber-200 transition-all">
-                ⚡ Run validation sprint
-              </button>
-              <button onClick={() => { setShowNewExp(true); setSetupMode('TRAFFIC'); setSetupStep(1) }}
-                className="text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-lg hover:border-zinc-500 hover:text-white transition-all">
-                Track existing traffic
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Daily Brief ── */}
-        {todayBrief && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Today's Brief</div>
-                <p className="text-sm text-zinc-300 leading-relaxed mb-3">{todayBrief.content}</p>
-                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 mb-4">
-                  <span className="text-xs text-emerald-400 font-medium">Focus today →</span>
-                  <span className="text-xs text-emerald-300">{todayBrief.topFocus}</span>
+        {/* ══════════════════════════════════════════════════════════════
+            ① CURRENT DECISION — the hero. Only when wizard is closed.
+        ══════════════════════════════════════════════════════════════ */}
+        {!showSetupCard && (() => {
+          // Priority: verdict ready > collecting > latest decision > empty
+          if (verdictReadyProduct) {
+            const exp = verdictReadyProduct.experiments.find(e => (e.status === 'RUNNING' || e.status === 'ACTIVE'))
+            return (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-5 sm:p-6">
+                <div className="text-[11px] text-zinc-500 uppercase tracking-widest mb-3">Current decision</div>
+                <div className="text-lg font-semibold text-white mb-1">Is it time to scale, continue, or stop?</div>
+                <div className="text-sm text-zinc-400 mb-1">{verdictReadyProduct.name} — {exp?.headline}</div>
+                <div className="inline-flex items-center gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5 my-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Verdict ready — enough signal collected
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {todayBrief.actions?.map((a, i) => (
-                    <div key={i} className={`px-3 py-1.5 rounded-lg border text-xs ${a.priority === 'high' ? 'bg-red-500/10 border-red-500/30 text-red-300' : a.priority === 'medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-zinc-800 border-zinc-700 text-zinc-400'}`}>
-                      <span className="font-medium">{a.product}: </span>{a.action}
-                    </div>
-                  ))}
+                <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                  <button onClick={() => router.push(`/products/${verdictReadyProduct.id}`)} className={btnPrimary}>Get verdict →</button>
                 </div>
               </div>
-              <button onClick={generateBrief} disabled={briefLoading} className={btnSecondary + ' shrink-0 text-xs'}>
-                {briefLoading ? 'Generating...' : 'Refresh brief'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Running experiment banner ── */}
-        {productList.some(p => p.runningCount > 0) && (() => {
-          const runningProduct = productList.find(p => p.runningCount > 0)
-          const runningExp = runningProduct?.experiments.find(e => e.status === 'RUNNING' || e.status === 'ACTIVE')
-          if (!runningProduct || !runningExp) return null
-          const isReady = runningProduct.decisionReadyCount > 0
-          const hoursLeft = runningExp.reviewDueAt && !isReady ? hoursUntil(runningExp.reviewDueAt) : 0
-          return (
-            <div className={`border rounded-2xl p-5 ${isReady ? 'bg-amber-500/5 border-amber-500/30' : 'bg-zinc-900 border-zinc-800'}`} key={runningExp.id}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-bold tracking-widest uppercase ${isReady ? 'text-amber-400' : 'text-emerald-400'}`}>{isReady ? 'Early verdict available' : 'Monitoring'}</span>
-                    <span className="text-zinc-700">·</span>
-                    <span className="text-xs text-zinc-500">{runningProduct.name}</span>
+            )
+          }
+          if (runningProduct) {
+            const exp = runningProduct.experiments.find(e => (e.status === 'RUNNING' || e.status === 'ACTIVE') && e.reviewDueAt)
+            const hours = exp?.reviewDueAt ? hoursUntil(exp.reviewDueAt) : null
+            return (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+                <div className="text-[11px] text-zinc-500 uppercase tracking-widest mb-3">Current decision</div>
+                <div className="text-lg font-semibold text-white mb-1">Should we keep pushing this experiment?</div>
+                <div className="text-sm text-zinc-400 mb-3">{runningProduct.name} — {runningProduct.experiments.find(e => e.status === 'RUNNING' || e.status === 'ACTIVE')?.headline}</div>
+                <div className="inline-flex items-center gap-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-1.5 mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Collecting signal{hours != null ? ` · ${hours}h left in window` : ''}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button onClick={() => router.push(`/products/${runningProduct.id}`)} className={btnPrimary}>Continue current experiment →</button>
+                </div>
+              </div>
+            )
+          }
+          if (latestDecision) {
+            const v6 = latestDecision.metadata?.v6
+            const theme = verdictTheme(v6?.verdict || latestDecision.action)
+            return (
+              <div className={`rounded-2xl border ${theme.border} ${theme.bg} p-5 sm:p-6`}>
+                <div className="text-[11px] text-zinc-500 uppercase tracking-widest mb-3">Current decision</div>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${theme.dot}`} />
+                    <span className={`text-base font-bold tracking-wide ${theme.text}`}>{theme.label}</span>
+                    {v6 && <><span className="text-xs text-zinc-600">·</span><span className="text-xs text-zinc-500">{DIAGNOSIS_LABEL[v6.diagnosis] || v6.diagnosis}</span></>}
                   </div>
-                  <div className="text-sm font-semibold text-white mb-0.5">{runningExp.headline}</div>
-                  <div className="text-xs text-zinc-500 italic">{runningExp.angle}</div>
+                  {v6 && <span className={`text-xs font-semibold ${v6.confidence === 'HIGH' ? 'text-emerald-400' : v6.confidence === 'MEDIUM' ? 'text-amber-400' : 'text-zinc-500'}`}>{v6.confidence}</span>}
                 </div>
-                <div className="shrink-0 text-right">
-                  {isReady ? (
-                    <div>
-                      <button onClick={() => router.push(`/products/${runningProduct.id}`)}
-                        className="text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 px-4 py-2 rounded-lg hover:bg-amber-500/30 transition-all">
-                        Get early verdict
-                      </button>
-                      <div className="text-[10px] text-amber-600 mt-1.5">Signal is weak. Verdict may be less reliable.</div>
-                    </div>
-                  ) : (
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-white">{hoursLeft}h left</div>
-                      <div className="text-xs text-zinc-600 mt-0.5">in decision window</div>
-                    </div>
-                  )}
+                <div className="text-sm text-zinc-300 mb-1">{latestDecision.product.name}</div>
+                <p className="text-sm text-zinc-200 leading-relaxed mb-3">{v6?.why || latestDecision.reason}</p>
+                {v6?.nextAction && (
+                  <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3 mb-4">
+                    <div className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Next action</div>
+                    <div className="text-sm text-zinc-300 leading-relaxed">{v6.nextAction}</div>
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button onClick={() => { setShowNewExp(true); setSetupStep(0) }} className={btnPrimary}>Start next experiment →</button>
+                  <button onClick={() => router.push(`/products/${latestDecision.productId}`)} className={btnSecondary}>View verdict</button>
                 </div>
               </div>
+            )
+          }
+          // Empty state
+          return (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 sm:p-8 text-center">
+              <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-3">Current decision</div>
+              <div className="text-lg font-semibold text-white mb-1">No decision yet</div>
+              <div className="text-sm text-zinc-500 mb-5">Start your first decision and Growva will tell you what to test, stop, continue, or scale.</div>
+              <button onClick={() => { setShowNewExp(true); setSetupStep(0) }} className={`${btnPrimary} sm:!w-auto sm:inline-block mx-auto`}>Start your first decision →</button>
             </div>
           )
         })()}
 
-        {/* ── Your impact with Growva (ROI) ── */}
-        {productList.length > 0 && (
+        {/* ② START NEW DECISION (compact entry) — hidden when wizard open */}
+        {!showSetupCard && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="text-sm font-medium text-white">Start a new decision</div>
+              <div className="text-xs text-zinc-500 mt-0.5">Track existing traffic, or run a 48-hour validation sprint</div>
+            </div>
+            <button onClick={() => { setShowNewExp(true); setSetupStep(0) }}
+              className="w-full sm:w-auto text-sm font-medium bg-zinc-800 text-zinc-200 border border-zinc-700 px-4 py-2.5 rounded-lg hover:border-zinc-500 hover:text-white transition-all text-center">
+              New decision
+            </button>
+          </div>
+        )}
+
+        {/* ③ RECENT EXPERIMENTS — compact cards, not a products table */}
+        {!showSetupCard && productList.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-[11px] text-zinc-600 uppercase tracking-widest px-1">Recent experiments</div>
+            {productList.map(p => {
+              const state = productStateLabel(p)
+              const headExp = p.experiments[0]
+              return (
+                <div key={p.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-sm font-medium text-white truncate">{headExp?.headline || p.name}</span>
+                        <span className={`text-[10px] font-semibold border rounded px-1.5 py-0.5 whitespace-nowrap ${state.color} ${state.ringColor}`}>{state.label}</span>
+                      </div>
+                      <div className="text-xs text-zinc-500 truncate">{p.name} · {p.targetUser}</div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      {p.experiments.length === 0 ? (
+                        <button onClick={() => startGrowth(p.id)} disabled={startingId === p.id}
+                          className="flex-1 sm:flex-none text-xs font-medium bg-white text-black px-3 py-2 rounded-lg hover:bg-zinc-100 transition-all disabled:opacity-50 text-center">
+                          {startingId === p.id ? 'Starting...' : 'Start experiment'}
+                        </button>
+                      ) : (
+                        <button onClick={() => router.push(`/products/${p.id}`)}
+                          className="flex-1 sm:flex-none text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-lg hover:border-zinc-500 hover:text-white transition-all text-center">
+                          Open →
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ④ IMPACT — moved below the decision, never above it */}
+        {!showSetupCard && productList.length > 0 && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-              <span className="text-sm font-semibold text-white">Your impact with Growva</span>
+            <div className="px-5 sm:px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">Impact with Growva</span>
               <span className="text-[10px] text-zinc-600 uppercase tracking-widest">Real data</span>
             </div>
-
             {roi.decisionsMade === 0 ? (
               <div className="px-6 py-8 text-center">
                 <div className="text-sm text-zinc-400 mb-1">Your first decision unlocks this report.</div>
@@ -586,14 +617,12 @@ export default function Dashboard() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-zinc-800">
-                  {/* Decisions made */}
-                  <div className="bg-zinc-900 px-6 py-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-zinc-800">
+                  <div className="bg-zinc-900 px-5 sm:px-6 py-5">
                     <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1.5">Decisions made</div>
                     <div className="text-2xl font-semibold text-white">{roi.decisionsMade}</div>
                   </div>
-                  {/* Distribution */}
-                  <div className="bg-zinc-900 px-6 py-5">
+                  <div className="bg-zinc-900 px-5 sm:px-6 py-5">
                     <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1.5">Breakdown</div>
                     <div className="flex items-center gap-3 text-sm font-medium pt-1">
                       <span className="text-red-400">{roi.stop} stop</span>
@@ -601,20 +630,13 @@ export default function Dashboard() {
                       <span className="text-emerald-400">{roi.scale} scale</span>
                     </div>
                   </div>
-                  {/* Time saved — the hero stat */}
-                  <div className="bg-zinc-900 px-6 py-5 col-span-2 md:col-span-1">
+                  <div className="bg-zinc-900 px-5 sm:px-6 py-5">
                     <div className="text-[10px] font-semibold text-amber-500/80 uppercase tracking-widest mb-1.5">⭐ Time saved</div>
-                    <div className="text-2xl font-semibold text-amber-300">
-                      ~{roi.weeksSaved} {roi.weeksSaved === 1 ? 'week' : 'weeks'}
-                    </div>
-                    <div className="text-[10px] text-zinc-600 mt-1">
-                      {roi.stop} early stop{roi.stop === 1 ? '' : 's'} × ~{roi.weeksPerStop} weeks of building avoided
-                    </div>
+                    <div className="text-2xl font-semibold text-amber-300">~{roi.weeksSaved} {roi.weeksSaved === 1 ? 'week' : 'weeks'}</div>
+                    <div className="text-[10px] text-zinc-600 mt-1">{roi.stop} early stop{roi.stop === 1 ? '' : 's'} × ~{roi.weeksPerStop} weeks of building avoided</div>
                   </div>
                 </div>
-
-                {/* Signal collected */}
-                <div className="px-6 py-4 border-t border-zinc-800 flex items-center gap-6 text-xs text-zinc-500">
+                <div className="px-5 sm:px-6 py-4 border-t border-zinc-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-500">
                   <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Real signal collected</span>
                   <span><span className="text-zinc-300 font-medium">{roi.views.toLocaleString()}</span> views</span>
                   <span><span className="text-zinc-300 font-medium">{roi.clicks.toLocaleString()}</span> clicks</span>
@@ -625,131 +647,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── Products table ── */}
-        {productList.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-800">
-              <span className="text-sm font-semibold text-white">Your experiments</span>
-            </div>
-
-            {/* Table header */}
-            <div className="grid grid-cols-[1fr_180px_64px_80px] px-6 py-3 border-b border-zinc-800/50 gap-4">
-              {['Product', 'Status', 'Tests', ''].map(h => (
-                <div key={h} className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">{h}</div>
-              ))}
-            </div>
-
-            {productList.map(p => {
-              const state = productStateLabel(p)
-              const isOpen = openProducts.has(p.id)
-              return (
-                <div key={p.id} className="border-b border-zinc-800/50 last:border-b-0">
-                  <div onClick={() => toggleProduct(p.id)}
-                    className="grid grid-cols-[1fr_180px_64px_80px] px-6 py-4 gap-4 items-center cursor-pointer hover:bg-zinc-800/40 transition-colors">
-                    <div>
-                      <div className="text-sm font-medium text-white mb-0.5">{p.name}</div>
-                      <div className="text-xs text-zinc-500">{p.targetUser}</div>
-                    </div>
-                    <div onClick={e => e.stopPropagation()}>
-                      {state ? (
-                        <span className={`text-[11px] font-semibold border rounded-md px-2.5 py-1 inline-block whitespace-nowrap ${state.color} ${state.ringColor}`}>
-                          {state.label}
-                        </span>
-                      ) : (
-                        <button onClick={() => startGrowth(p.id)} disabled={startingId === p.id}
-                          className="text-xs font-medium bg-white text-black px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-all disabled:opacity-50">
-                          {startingId === p.id ? 'Starting...' : 'Generate experiments'}
-                        </button>
-                      )}
-                    </div>
-                    <div className="text-sm text-zinc-600">{p.experiments.length > 0 ? p.experiments.length : '—'}</div>
-                    <div onClick={e => e.stopPropagation()}>
-                      <button onClick={() => router.push(`/products/${p.id}`)} className={btnSecondary + ' text-xs py-1.5 px-3'}>Open →</button>
-                    </div>
-                  </div>
-
-                  {isOpen && (
-                    <div className="bg-zinc-950 border-t border-zinc-800/50 px-6 py-4">
-                      {p.experiments.length === 0 && (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-medium text-white mb-1">Generate your first experiments</div>
-                            <div className="text-xs text-zinc-500">Growva will structure targeted experiments and open your first decision window.</div>
-                          </div>
-                          <button onClick={() => startGrowth(p.id)} disabled={startingId === p.id} className={btnPrimary + ' ml-4 shrink-0 text-xs'}>
-                            {startingId === p.id ? 'Generating...' : 'Generate experiments →'}
-                          </button>
-                        </div>
-                      )}
-                      {p.experiments.length > 0 && p.pendingCount > 0 && p.runningCount === 0 && (
-                        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-indigo-300">Activate one experiment to start collecting signal.</div>
-                      )}
-                      {p.decisionReadyCount > 0 && (
-                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2.5 mb-3 text-xs text-amber-300 font-medium">Decision ready — open the product page to get Growva's verdict.</div>
-                      )}
-                      <div className="space-y-2 mt-3">
-                        {p.experiments.map(exp => {
-                          const isPending = exp.status === 'PENDING'
-                          const isRunning = exp.status === 'RUNNING' || exp.status === 'ACTIVE'
-                          const isReady = isRunning && exp.reviewDueAt != null && new Date(exp.reviewDueAt) <= new Date()
-                          const statusColorMap: Record<string, string> = { PENDING: 'text-indigo-400', RUNNING: 'text-emerald-400', ACTIVE: 'text-amber-400', SCALED: 'text-emerald-400', KILLED: 'text-red-400', COMPLETED: 'text-zinc-500' }
-                          return (
-                            <div key={exp.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1.5">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wide ${statusColorMap[exp.status] || 'text-zinc-500'}`}>{exp.status}</span>
-                                    {isReady && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">EARLY VERDICT</span>}
-                                  </div>
-                                  <div className="text-sm font-medium text-white mb-0.5">{exp.headline}</div>
-                                  <div className="text-xs text-zinc-500 italic">{exp.angle}</div>
-                                </div>
-                                <div className="flex gap-2 shrink-0">
-                                  {isPending && (
-                                    <button onClick={() => activateExperiment(exp.id)} disabled={activatingId === exp.id}
-                                      className="text-xs font-medium bg-indigo-500 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-400 transition-all disabled:opacity-50">
-                                      {activatingId === exp.id ? 'Activating...' : 'I activated this'}
-                                    </button>
-                                  )}
-                                  {isRunning && (
-                                    <button onClick={() => triggerDecision(exp.id)} disabled={decidingId === exp.id} className={btnSecondary + ' text-xs py-1.5 px-3'}>
-                                      {decidingId === exp.id ? 'Deciding...' : 'Decide'}
-                                    </button>
-                                  )}
-                                  <button onClick={() => router.push(`/products/${p.id}`)} className="text-xs font-medium bg-white text-black px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-all">View →</button>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* ── Chart + Decision log ── */}
-        {(hasAnyEvents || recentDecisions.length > 0) && (
-          <div className={`grid gap-4 ${hasAnyEvents && recentDecisions.length > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {hasAnyEvents && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-                <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-4">Activity — 7 days</div>
-                <ResponsiveContainer width="100%" height={140}>
-                  <LineChart data={dailyData}>
-                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={d => d.slice(5)} />
-                    <YAxis tick={{ fill: '#52525b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8, fontSize: 12, color: '#fafafa' }} labelStyle={{ color: '#a1a1aa' }} />
-                    <Line type="monotone" dataKey="events" stroke="#ffffff" strokeWidth={1.5} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+        {/* ── Secondary: history + brief (bottom, collapsed feel) ── */}
+        {!showSetupCard && (hasAnyEvents || recentDecisions.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recentDecisions.length > 0 && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-                <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-4">Decision log</div>
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6">
+                <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-4">Decision history</div>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {recentDecisions.map(d => (
                     <div key={d.id} className="flex items-start gap-3 py-2 border-b border-zinc-800/50 last:border-0">
@@ -761,39 +664,45 @@ export default function Dashboard() {
                         <div className="text-xs font-medium" style={{ color: ACTION_COLOR[d.action] }}>
                           {d.action} <span className="text-zinc-500 font-normal">· {d.product.name}</span>
                         </div>
-                        <div className="text-[11px] text-zinc-600 truncate">{d.reason}</div>
+                        <div className="text-[11px] text-zinc-600 truncate">{d.metadata?.v6?.why || d.reason}</div>
                       </div>
-                      <span className="text-[10px] text-zinc-700 shrink-0">{Math.round(d.confidence * 100)}%</span>
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {hasAnyEvents && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6">
+                <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-4">Activity — 7 days</div>
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={dailyData}>
+                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={d => d.slice(5)} />
+                    <YAxis tick={{ fill: '#52525b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8, fontSize: 12, color: '#fafafa' }} labelStyle={{ color: '#a1a1aa' }} />
+                    <Line type="monotone" dataKey="events" stroke="#ffffff" strokeWidth={1.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             )}
           </div>
         )}
 
-        {/* ── Brain ── */}
-        {data.brainStats && (data.brainStats.collectiveDatapoints > 0 || data.brainStats.topPatterns?.length > 0) && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-zinc-800 flex items-center gap-3">
-              <span className="text-sm font-medium text-white">Brain</span>
-              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-2 py-0.5">Active</span>
-              <span className="ml-auto text-xs text-zinc-600">{data.brainStats.collectiveDatapoints} collective datapoints</span>
-            </div>
-            {data.brainStats.topPatterns?.length > 0 && (
-              <div className="p-5">
-                <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Top Collective Patterns</div>
-                <div className="space-y-2">
-                  {data.brainStats.topPatterns.slice(0, 3).map((p: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 text-xs">
-                      <span className="text-emerald-400 font-semibold w-10">{(p.avgConversionRate * 100).toFixed(1)}%</span>
-                      <span className="text-zinc-300 flex-1">{p.angle}</span>
-                      <span className="text-zinc-600">{p.channel} · {p.sampleSize} experiments</span>
-                    </div>
-                  ))}
+        {/* ── Today's brief (lowest priority, optional) ── */}
+        {!showSetupCard && todayBrief && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Today&apos;s brief</div>
+                <p className="text-sm text-zinc-300 leading-relaxed mb-3">{todayBrief.content}</p>
+                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
+                  <span className="text-xs text-emerald-400 font-medium">Focus today →</span>
+                  <span className="text-xs text-emerald-300">{todayBrief.topFocus}</span>
                 </div>
               </div>
-            )}
+              <button onClick={generateBrief} disabled={briefLoading} className="shrink-0 text-xs text-zinc-500 border border-zinc-700 rounded-lg px-3 py-1.5 hover:text-zinc-300 hover:border-zinc-500 transition-all">
+                {briefLoading ? '...' : 'Refresh'}
+              </button>
+            </div>
           </div>
         )}
 
