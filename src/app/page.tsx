@@ -51,6 +51,66 @@ const COPY = {
       next: 'Kill it now. You just saved ~3 weeks of building.',
       accent: '#EF4444',
     },
+    demo: {
+      section_label: 'Sample founder scenario',
+      title: 'See how Growva decides.',
+      subtitle: 'Walk through a real solo-founder growth test in under 60 seconds.',
+      steps: ['Pick scenario', 'Read signals', 'Get verdict', 'Take next action'],
+      experiment_label: 'Experiment',
+      views_label: 'Views',
+      signups_label: 'Signups',
+      threshold_views: 300,
+      threshold_signups: 10,
+      why_label: 'Why',
+      action_label: 'Next action',
+      next_label: 'Next experiment',
+      cta_primary: 'Start your first decision',
+      cta_secondary: 'See how it works',
+      scenarios: [
+        {
+          tone: 'continue',
+          tab: 'No traffic yet',
+          scenario: 'You launched a landing page but nobody is reaching it.',
+          experiment: 'Landing page — paid waitlist',
+          views: 0,
+          signups: 0,
+          signal_summary: '0 views · 1 click · 0 signups',
+          verdict: 'CONTINUE',
+          diagnosis: 'Weak distribution',
+          why: 'Not enough traffic arrived to judge the offer.',
+          action: 'Run one focused distribution sprint.',
+          next: 'Test one channel with one audience and one message for 48 hours.',
+        },
+        {
+          tone: 'stop',
+          tab: 'Traffic but no signups',
+          scenario: 'Your page gets visitors, but almost nobody signs up.',
+          experiment: 'Landing page — free trial',
+          views: 400,
+          signups: 2,
+          signal_summary: '400 views · 2 signups · 0 purchases',
+          verdict: 'STOP',
+          diagnosis: 'Weak conversion',
+          why: 'Signup rate is far below the target threshold.',
+          action: 'Do not send more traffic yet. Rewrite the offer around the customer pain.',
+          next: 'Run a pain-led headline and CTA test.',
+        },
+        {
+          tone: 'amber',
+          tab: 'Promising but too early',
+          scenario: 'Early visitors are converting, but the sample is still small.',
+          experiment: 'Landing page — early access',
+          views: 55,
+          signups: 8,
+          signal_summary: '55 views · 8 signups · 0 purchases',
+          verdict: 'CONTINUE',
+          diagnosis: 'Promising but under-sampled',
+          why: 'The signal is strong, but the sample is too small to scale confidently.',
+          action: 'Increase sample before changing the offer.',
+          next: 'Repeat the same test until 300 visits or 10+ signups.',
+        },
+      ],
+    },
     simple: {
       section_label: 'Growva, explained simply',
       title: 'Imagine you have a big idea 💡',
@@ -174,6 +234,66 @@ const COPY = {
       next_label: 'الخطوة التالية',
       next: 'أوقفها الآن. وفّرت للتو ~3 أسابيع بناء.',
       accent: '#EF4444',
+    },
+    demo: {
+      section_label: 'سيناريو مؤسس — مثال',
+      title: 'شوف كيف يقرّر Growva.',
+      subtitle: 'مُرّ على تجربة نمو حقيقية لمؤسس فردي في أقل من 60 ثانية.',
+      steps: ['اختر السيناريو', 'اقرأ الإشارات', 'خذ القرار', 'نفّذ الخطوة التالية'],
+      experiment_label: 'التجربة',
+      views_label: 'الزيارات',
+      signups_label: 'التسجيلات',
+      threshold_views: 300,
+      threshold_signups: 10,
+      why_label: 'السبب',
+      action_label: 'الخطوة التالية',
+      next_label: 'التجربة التالية',
+      cta_primary: 'ابدأ أول قرار',
+      cta_secondary: 'كيف يعمل',
+      scenarios: [
+        {
+          tone: 'continue',
+          tab: 'ما فيه زيارات بعد',
+          scenario: 'أطلقت صفحة هبوط لكن محد يوصلها.',
+          experiment: 'صفحة هبوط — قائمة انتظار مدفوعة',
+          views: 0,
+          signups: 0,
+          signal_summary: '0 زيارة · كليك واحد · 0 تسجيل',
+          verdict: 'استمر',
+          diagnosis: 'توزيع ضعيف',
+          why: 'ما وصل traffic كافٍ للحكم على العرض.',
+          action: 'شغّل sprint توزيع واحد مركّز.',
+          next: 'اختبر قناة واحدة، جمهور واحد، رسالة واحدة، لمدة 48 ساعة.',
+        },
+        {
+          tone: 'stop',
+          tab: 'زيارات بدون تسجيلات',
+          scenario: 'صفحتك تجيها زيارات، لكن تقريبًا محد يسجّل.',
+          experiment: 'صفحة هبوط — تجربة مجانية',
+          views: 400,
+          signups: 2,
+          signal_summary: '400 زيارة · تسجيلان · 0 شراء',
+          verdict: 'أوقف',
+          diagnosis: 'تحويل ضعيف',
+          why: 'نسبة التسجيل أقل بكثير من الحد المطلوب.',
+          action: 'لا ترسل traffic أكثر الآن. أعد صياغة العرض حول ألم العميل.',
+          next: 'اختبر عنوانًا و CTA مبنيين على الألم.',
+        },
+        {
+          tone: 'amber',
+          tab: 'واعد لكن مبكر',
+          scenario: 'الزوار الأوائل يتحولون، لكن العينة لسه صغيرة.',
+          experiment: 'صفحة هبوط — وصول مبكر',
+          views: 55,
+          signups: 8,
+          signal_summary: '55 زيارة · 8 تسجيلات · 0 شراء',
+          verdict: 'استمر',
+          diagnosis: 'واعد لكن العينة صغيرة',
+          why: 'الإشارة قوية، لكن العينة أصغر من أن تُكبَّر بثقة.',
+          action: 'كبّر العينة قبل تغيير العرض.',
+          next: 'كرّر نفس الاختبار حتى 300 زيارة أو 10+ تسجيلات.',
+        },
+      ],
     },
     simple: {
       section_label: 'قروفا، ببساطة',
@@ -400,6 +520,163 @@ function SectionLabel({ children }: { children: string }) {
   )
 }
 
+// ─── Interactive demo — mini Decision Room ──────────────────────────────────────
+const DEMO_TONE: Record<string, string> = {
+  continue: C.continue,
+  stop: C.kill,
+  scale: C.scale,
+  amber: '#F59E0B',
+}
+
+function DemoSection({ c, ctaHref }: { c: typeof COPY['en']['demo']; ctaHref: string }) {
+  const [idx, setIdx] = useState(0)
+  const s = c.scenarios[idx]
+  const accent = DEMO_TONE[s.tone] || C.continue
+  const viewsPct = Math.min(100, (s.views / c.threshold_views) * 100)
+  const signupsPct = Math.min(100, (s.signups / c.threshold_signups) * 100)
+
+  const labelStyle = {
+    fontSize: 10, fontWeight: 700, color: C.textDim,
+    letterSpacing: 1.5, textTransform: 'uppercase' as const, marginBottom: 4,
+  }
+
+  return (
+    <section style={{ borderTop: `1px solid ${C.border}`, padding: '80px 28px' }}>
+      <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+        <SectionLabel>{c.section_label}</SectionLabel>
+        <h2 style={{ fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 600, letterSpacing: -0.8, margin: '0 0 10px', color: C.text }}>
+          {c.title}
+        </h2>
+        <p style={{ fontSize: 16, color: C.textSecondary, lineHeight: 1.6, margin: '0 0 28px', maxWidth: 560 }}>
+          {c.subtitle}
+        </p>
+
+        {/* Step indicator */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
+          {c.steps.map((step, i) => (
+            <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{
+                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                background: C.surfaceRaised, border: `1px solid ${C.border}`,
+                color: C.textMuted, fontSize: 11, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>{i + 1}</span>
+              <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 500 }}>{step}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Selector + decision panel */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, alignItems: 'start' }}>
+
+          {/* Scenario selector */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {c.scenarios.map((sc, i) => {
+              const selected = i === idx
+              const scAccent = DEMO_TONE[sc.tone] || C.continue
+              return (
+                <button
+                  key={sc.tab}
+                  onClick={() => setIdx(i)}
+                  style={{
+                    width: '100%', textAlign: 'start', cursor: 'pointer', fontFamily: 'inherit',
+                    background: selected ? C.surfaceRaised : C.surface,
+                    border: `1px solid ${selected ? scAccent : C.border}`,
+                    borderRadius: 12, padding: '14px 16px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: scAccent, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{sc.tab}</span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.5 }}>{sc.scenario}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Decision panel */}
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: '24px 24px' }}>
+            <div style={labelStyle}>{c.experiment_label}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 20, letterSpacing: -0.3 }}>
+              {s.experiment}
+            </div>
+
+            {/* Signals + progress bars */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
+              <span style={{ color: C.textMuted }}>{c.views_label}</span>
+              <span style={{ color: C.text, fontWeight: 600 }}>{s.views} <span style={{ color: C.textDim }}>/ {c.threshold_views}</span></span>
+            </div>
+            <div style={{ height: 6, background: C.surfaceRaised, borderRadius: 99, overflow: 'hidden', marginBottom: 14 }}>
+              <div style={{ height: '100%', width: `${viewsPct}%`, background: C.continue, borderRadius: 99, transition: 'width .3s ease' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
+              <span style={{ color: C.textMuted }}>{c.signups_label}</span>
+              <span style={{ color: C.text, fontWeight: 600 }}>{s.signups} <span style={{ color: C.textDim }}>/ {c.threshold_signups}</span></span>
+            </div>
+            <div style={{ height: 6, background: C.surfaceRaised, borderRadius: 99, overflow: 'hidden', marginBottom: 12 }}>
+              <div style={{ height: '100%', width: `${signupsPct}%`, background: C.scale, borderRadius: 99, transition: 'width .3s ease' }} />
+            </div>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 18 }}>{s.signal_summary}</div>
+
+            <div style={{ height: 1, background: C.border, marginBottom: 18 }} />
+
+            {/* Verdict + diagnosis */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: accent, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: accent, letterSpacing: 1, textTransform: 'uppercase' }}>{s.verdict}</span>
+              <span style={{ fontSize: 12, color: C.textDim }}>·</span>
+              <span style={{ fontSize: 12.5, color: C.textSecondary }}>{s.diagnosis}</span>
+            </div>
+
+            {/* Why */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={labelStyle}>{c.why_label}</div>
+              <div style={{ fontSize: 13.5, color: C.textSecondary, lineHeight: 1.6 }}>{s.why}</div>
+            </div>
+
+            {/* Next action */}
+            <div style={{ background: C.surfaceRaised, borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
+              <div style={labelStyle}>{c.action_label}</div>
+              <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6, fontWeight: 500 }}>{s.action}</div>
+            </div>
+
+            {/* Next experiment */}
+            <div style={{ background: C.surfaceRaised, borderRadius: 10, padding: '12px 14px' }}>
+              <div style={labelStyle}>{c.next_label}</div>
+              <div style={{ fontSize: 13.5, color: C.textSecondary, lineHeight: 1.6 }}>{s.next}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 28 }}>
+          <Link
+            href={ctaHref}
+            style={{
+              flex: '1 1 200px', textAlign: 'center', padding: '13px 28px',
+              background: C.text, color: C.bg, fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', borderRadius: 10,
+            }}
+          >
+            {c.cta_primary}
+          </Link>
+          <a
+            href="#how"
+            style={{
+              flex: '1 1 200px', textAlign: 'center', padding: '13px 24px',
+              background: 'transparent', border: `1px solid ${C.border}`,
+              color: C.textSecondary, fontSize: 14, textDecoration: 'none', borderRadius: 10,
+            }}
+          >
+            {c.cta_secondary}
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const [lang, setLang] = useState<Lang>('en')
@@ -536,6 +813,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── INTERACTIVE DEMO ── */}
+      <DemoSection c={c.demo} ctaHref={heroCtaHref} />
 
       {/* ── EXPLAINED SIMPLY ── */}
       <section style={{ borderTop: `1px solid ${C.border}`, padding: '80px 28px' }}>
