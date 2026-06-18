@@ -703,7 +703,7 @@ export default function LandingPage() {
         minHeight: '100vh',
         background: C.bg,
         fontFamily: isAr
-          ? "'Segoe UI', 'Arial', sans-serif"
+          ? "'Tajawal', 'Segoe UI', 'Arial', sans-serif"
           : "'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', sans-serif",
         color: C.text,
         overflowX: 'hidden',

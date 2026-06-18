@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+/* Arabic surfaces use Tajawal (free stand-in for the stc Arabic typeface). */
+[dir='rtl'] {
+  font-family: 'Tajawal', 'Segoe UI', 'Arial', sans-serif;
+}
+
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
