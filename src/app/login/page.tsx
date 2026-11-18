@@ -17,6 +17,7 @@ const COPY = {
     sentTitle: 'Check your email.',
     sentBody: (email: string) => `We sent a secure login link to ${email}. It expires in 15 minutes.`,
     diffEmail: 'Use a different email',
+    unavailable: 'Login emails are temporarily unavailable. Please try again later.',
     devBoxTitle: 'Development login link',
     devBoxBody: 'Email sending is not configured yet. For beta testing, use this temporary login link.',
     devBtn: 'Open magic link',
@@ -39,6 +40,7 @@ const COPY = {
     sentTitle: 'تحقق من بريدك.',
     sentBody: (email: string) => `أرسلنا رابط دخول آمن إلى ${email}. ينتهي خلال 15 دقيقة.`,
     diffEmail: 'استخدم بريدًا آخر',
+    unavailable: 'رسائل تسجيل الدخول متوقفة مؤقتًا. حاول لاحقًا.',
     devBoxTitle: 'رابط دخول للتطوير',
     devBoxBody: 'إرسال البريد غير مُهيأ بعد. للاختبار، استخدم هذا الرابط المؤقت.',
     devBtn: 'فتح الرابط',
@@ -87,11 +89,18 @@ function LoginInner() {
       const data = await res.json()
 
       if (!res.ok) {
-        setErrorMsg(data.error || 'Something went wrong.')
+        setErrorMsg(data.error === 'email_unavailable' ? t.unavailable : (data.error || 'Something went wrong.'))
         setState('error')
         return
       }
 
+      // Only a real "sent: true" shows the check-your-email screen.
+      // (data.link exists only on a local dev server with an explicit flag.)
+      if (data.sent !== true && !data.link) {
+        setErrorMsg(t.unavailable)
+        setState('error')
+        return
+      }
       setState('sent')
       if (data.link) setDevLink(data.link)
     } catch {

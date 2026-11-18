@@ -201,6 +201,12 @@ enum DecisionAction {
 
 // --- BILLING -----------------------------------------------------------------
 
+// Burned magic-link tokens (single use). jti = JWT id of the login token.
+model MagicTokenUse {
+  jti    String   @id
+  usedAt DateTime @default(now())
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique

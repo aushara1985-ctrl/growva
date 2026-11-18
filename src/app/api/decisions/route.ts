@@ -6,6 +6,7 @@ import { getUserFromRequest } from '@/lib/auth'
 import { updateBrainMemory } from '@/lib/brain'
 import { sprintVerdict, generateSprintNarrative, SprintType, SprintResult } from '@/lib/sprint'
 import { decide } from '@/lib/decide'
+import { sprintReadiness, INSUFFICIENT_MSG_AR, INSUFFICIENT_MSG_EN } from '@/lib/sprint-rules'
 
 // GET /api/decisions?productId=xxx
 export async function GET(req: NextRequest) {
@@ -43,8 +44,8 @@ export async function POST(req: NextRequest) {
 
   if (!experiment) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Ownership check — allow unowned legacy products
-  if (experiment.product.userId && experiment.product.userId !== session.userId) {
+  // Strict ownership check (unowned products are NOT writable by arbitrary users)
+  if (experiment.product.userId !== session.userId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -63,10 +64,25 @@ export async function POST(req: NextRequest) {
       revenue:   experiment.events.filter(e => e.type === 'PURCHASE').reduce((s, e) => s + e.value, 0),
     }
 
-    const verdict = sprintVerdict(sprintType, auto, manualResult)
-    const reason  = await generateSprintNarrative(verdict, auto, manualResult, sprintType, hypothesis, plan)
+    // Real-signal gate: no verdict before 300 views / 10 signups, unless the window has closed
+    // (then only a clearly-labelled early verdict). Nothing is saved when data is insufficient.
+    const sprintWindowClosed = experiment.reviewDueAt != null && new Date(experiment.reviewDueAt) <= new Date()
+    const readiness = sprintReadiness({ pageViews: auto.pageViews, signups: auto.signups, windowClosed: sprintWindowClosed })
+    if (readiness === 'insufficient') {
+      return NextResponse.json({
+        insufficient: true,
+        message: INSUFFICIENT_MSG_AR,
+        messageEn: INSUFFICIENT_MSG_EN,
+        signals: { pageViews: auto.pageViews, signups: auto.signups },
+      })
+    }
 
-    const confidenceMap = { SCALE: 0.85, CONTINUE: 0.55, KILL: 0.8 }
+    const verdict = sprintVerdict(sprintType, auto, manualResult, readiness)
+    const reason  = await generateSprintNarrative(verdict, auto, manualResult, sprintType, hypothesis, plan, readiness === 'early')
+
+    const confidenceMap = readiness === 'early'
+      ? { SCALE: 0.3, CONTINUE: 0.3, KILL: 0.3 }
+      : { SCALE: 0.85, CONTINUE: 0.55, KILL: 0.8 }
 
     const saved = await prisma.decision.create({
       data: {
@@ -77,6 +93,7 @@ export async function POST(req: NextRequest) {
         confidence: confidenceMap[verdict],
         metadata: {
           mode: 'SPRINT',
+          early: readiness === 'early',
           sprintType,
           autoSignals: auto,
           manualSignals: manualResult,

@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { earlyVerdict, realSignalCount, SprintReadiness } from './sprint-rules'
 
 export type SprintType = 'DM' | 'X_POST' | 'REDDIT' | 'INTERVIEW' | 'LANDING_SEND' | 'PAID_ACCESS'
 
@@ -133,6 +134,7 @@ export async function generateSprintNarrative(
   sprintType: SprintType,
   hypothesis: string,
   plan: SprintPlan,
+  early = false,
 ): Promise<string> {
   const openaiKey = process.env.OPENAI_API_KEY
 
@@ -143,7 +145,10 @@ export async function generateSprintNarrative(
   if (manual.paidInterest && manual.paidInterest > 0) parts.push(`${manual.paidInterest} paid interest`)
   const signalStr = parts.length > 0 ? parts.join(', ') : 'no signal yet'
 
-  if (!openaiKey) return fallbackNarrative(verdict, signalStr, plan)
+  const earlyNote = early
+    ? 'Early verdict: the window closed before the 300-view / 10-signup bar, so this is less reliable.'
+    : ''
+  if (!openaiKey) return fallbackNarrative(verdict, signalStr, plan, earlyNote)
 
   try {
     const client = new OpenAI({ apiKey: openaiKey })
@@ -157,6 +162,9 @@ Success threshold: ${plan.successThreshold}
 Weak threshold: ${plan.weakThreshold}
 Kill signal: ${plan.killSignal}
 Verdict: ${verdict}
+${earlyNote}
+
+Rules: use ONLY the numbers listed under "Signals collected". Never mention any other number (no outreach counts, no totals, no "out of N"). If the signal is weak or early, say the verdict is less reliable.
 
 Write a direct decision narrative. Structure it exactly like this:
 ${verdict === 'KILL' ? 'STOP' : verdict}
@@ -177,14 +185,14 @@ Be blunt. No fluff. Maximum 80 words total.`
       temperature: 0.6,
     })
 
-    return response.choices[0].message.content?.trim() || fallbackNarrative(verdict, signalStr, plan)
+    return response.choices[0].message.content?.trim() || fallbackNarrative(verdict, signalStr, plan, earlyNote)
   } catch {
-    return fallbackNarrative(verdict, signalStr, plan)
+    return fallbackNarrative(verdict, signalStr, plan, earlyNote)
   }
 }
 
-function fallbackNarrative(verdict: 'SCALE' | 'CONTINUE' | 'KILL', signalStr: string, plan: SprintPlan): string {
-  const label = verdict === 'KILL' ? 'STOP' : verdict
+function fallbackNarrative(verdict: 'SCALE' | 'CONTINUE' | 'KILL', signalStr: string, plan: SprintPlan, earlyNote = ''): string {
+  const label = (verdict === 'KILL' ? 'STOP' : verdict) + (earlyNote ? ' (early — less reliable)' : '')
 
   if (verdict === 'SCALE') {
     return `${label}\n\nSignal: ${signalStr}.\n\nThis matches strong demand at validation stage.\n\nNext action: Double down. Run a larger sprint or move to the next stage.`
@@ -199,7 +207,12 @@ export function sprintVerdict(
   sprintType: SprintType,
   auto: { clicks: number; signups: number; pageViews: number; revenue: number },
   manual: Partial<SprintResult>,
+  readiness: SprintReadiness = 'ready',
 ): 'SCALE' | 'CONTINUE' | 'KILL' {
+  // Window closed but thresholds (300 views / 10 signups) not reached: early verdict only.
+  if (readiness === 'early') {
+    return earlyVerdict(realSignalCount(auto.signups, manual.replies, manual.paidInterest))
+  }
   const replies = manual.replies ?? 0
   const paid    = manual.paidInterest ?? 0
   const { clicks, signups } = auto

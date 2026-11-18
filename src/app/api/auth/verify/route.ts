@@ -25,6 +25,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=invalid_or_expired', baseUrl))
   }
 
+  // Single use: burn the token id. A replay hits the primary-key constraint and
+  // is rejected. If the table is unavailable we fail closed (no login).
+  try {
+    await prisma.magicTokenUse.create({ data: { jti: payload.jti } })
+  } catch {
+    return NextResponse.redirect(new URL('/login?error=invalid_or_expired', baseUrl))
+  }
+
   // Upsert user — create if new, find if existing
   const user = await prisma.user.upsert({
     where: { email: payload.email },

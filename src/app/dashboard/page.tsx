@@ -66,7 +66,7 @@ interface Decision {
 
 interface Roi {
   decisionsMade: number; stop: number; continue: number; scale: number
-  weeksPerStop: number; weeksSaved: number
+  
   views: number; clicks: number; signups: number
 }
 interface DashData {
@@ -613,11 +613,11 @@ export default function Dashboard() {
             {roi.decisionsMade === 0 ? (
               <div className="px-6 py-8 text-center">
                 <div className="text-sm text-zinc-400 mb-1">Your first decision unlocks this report.</div>
-                <div className="text-xs text-zinc-600">Once Growva judges an experiment, you&apos;ll see how much time it saved you here.</div>
+                <div className="text-xs text-zinc-600">Once Growva judges an experiment, you&apos;ll see your decisions and real signals here.</div>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-zinc-800">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-zinc-800">
                   <div className="bg-zinc-900 px-5 sm:px-6 py-5">
                     <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1.5">Decisions made</div>
                     <div className="text-2xl font-semibold text-white">{roi.decisionsMade}</div>
@@ -629,11 +629,6 @@ export default function Dashboard() {
                       <span className="text-blue-400">{roi.continue} continue</span>
                       <span className="text-emerald-400">{roi.scale} scale</span>
                     </div>
-                  </div>
-                  <div className="bg-zinc-900 px-5 sm:px-6 py-5">
-                    <div className="text-[10px] font-semibold text-amber-500/80 uppercase tracking-widest mb-1.5">⭐ Time saved</div>
-                    <div className="text-2xl font-semibold text-amber-300">~{roi.weeksSaved} {roi.weeksSaved === 1 ? 'week' : 'weeks'}</div>
-                    <div className="text-[10px] text-zinc-600 mt-1">{roi.stop} early stop{roi.stop === 1 ? '' : 's'} × ~{roi.weeksPerStop} weeks of building avoided</div>
                   </div>
                 </div>
                 <div className="px-5 sm:px-6 py-4 border-t border-zinc-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-500">

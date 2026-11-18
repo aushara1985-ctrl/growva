@@ -88,14 +88,11 @@ export async function GET(req: NextRequest) {
   const roiStop = actionCount('KILL')
   const roiScale = actionCount('SCALE')
   const roiContinue = actionCount('CONTINUE') + actionCount('ITERATE') + actionCount('RESTART')
-  const WEEKS_PER_STOP = 3 // transparent, conservative assumption shown to the user
   const roi = {
     decisionsMade: roiStop + roiScale + roiContinue,
     stop: roiStop,
     continue: roiContinue,
     scale: roiScale,
-    weeksPerStop: WEEKS_PER_STOP,
-    weeksSaved: roiStop * WEEKS_PER_STOP,
     views: eventTypeCount('PAGE_VIEW'),
     clicks: eventTypeCount('CLICK'),
     signups: eventTypeCount('SIGNUP'),

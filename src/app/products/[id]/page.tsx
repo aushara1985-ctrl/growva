@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { sprintReadiness, INSUFFICIENT_MSG_AR, INSUFFICIENT_MSG_EN } from '@/lib/sprint-rules'
 
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://growva-production.up.railway.app'
 
@@ -217,6 +218,7 @@ export default function ProductPage() {
   const [sprintResult, setSprintResult] = useState({ replies: 0, paidInterest: 0, objections: '', notes: '' })
   const [sprintEvidenceOpen, setSprintEvidenceOpen] = useState(false)
   const [savingEvidence, setSavingEvidence] = useState(false)
+  const [insufficientMsg, setInsufficientMsg] = useState<string | null>(null)
 
   const fetchProduct = async () => {
     const res = await fetch(`/api/products/${params.id}`)
@@ -243,7 +245,12 @@ export default function ProductPage() {
     if (isSprint && (sprintResult.replies > 0 || sprintResult.paidInterest > 0 || sprintResult.objections || sprintResult.notes)) {
       await saveSprintEvidence(experimentId)
     }
-    await fetch('/api/decisions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ experimentId }) })
+    setInsufficientMsg(null)
+    const r = await fetch('/api/decisions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ experimentId }) })
+    try {
+      const j = await r.json()
+      if (j?.insufficient) setInsufficientMsg(`${INSUFFICIENT_MSG_AR} (${INSUFFICIENT_MSG_EN})`)
+    } catch {}
     setDeciding(null); fetchProduct()
   }
 
@@ -309,14 +316,18 @@ export default function ProductPage() {
             const isRunning  = exp.status === 'RUNNING' || exp.status === 'ACTIVE'
             const isDecided  = ['KILLED', 'SCALED'].includes(exp.status)
             const hasData    = clicks > 0 || signups > 0 || pageViews > 0
-            const canDecide  = isRunning && (windowClosed || clicks >= 3 || signups >= 1)
+            // Real-signal gate (same rules as the API): no verdict before 300 views / 10 signups,
+            // unless the window has closed (then an early, less-reliable verdict).
+            const sprintReady = sprintReadiness({ pageViews, signups, windowClosed })
+            const canDecide  = isRunning && sprintReady !== 'insufficient'
             const scriptWithLink = plan?.script?.replace('{trackingLink}', trackingUrl || '[tracking link]') ?? ''
 
             // Sprint UX state
             const sprintUXState: ExpUXState = isDecided ? 'decided'
               : !isRunning ? 'pending'
               : !hasData ? 'no_data'
-              : canDecide ? 'ready'
+              : sprintReady === 'ready' ? 'ready'
+              : sprintReady === 'early' ? 'early'
               : 'collecting'
 
             return (
@@ -348,7 +359,7 @@ export default function ProductPage() {
                         : 'bg-zinc-800 border-zinc-700 text-zinc-500 cursor-not-allowed'
                       }`}
                     >
-                      {deciding === exp.id ? 'Deciding...' : canDecide ? 'Get verdict' : 'Not enough signal yet'}
+                      {deciding === exp.id ? 'Deciding...' : canDecide ? (sprintReady === 'early' ? 'Get early verdict' : 'Get verdict') : 'بيانات غير كافية — كمّل'}
                     </button>
                   )}
                 </div>
@@ -380,11 +391,15 @@ export default function ProductPage() {
                       </div>
                       <div className="text-xs text-zinc-500">
                         {sprintUXState === 'no_data' ? 'Share the tracking link to start measuring responses.'
-                          : sprintUXState === 'collecting' ? `${clicks} clicks, ${signups} signups so far. Keep sharing.`
+                          : sprintUXState === 'collecting' ? `بيانات غير كافية — كمّل. ${pageViews} views, ${signups} signups so far (verdict needs ${MIN_VIEWS} views or ${MIN_SIGNUPS} signups, or the window to close).`
                           : sprintUXState === 'ready' ? 'Growva has enough signal to give a reliable recommendation.'
                           : 'Window closed. Signal is weak — verdict may be less reliable.'}
                       </div>
                     </div>
+                  )}
+
+                  {insufficientMsg && !isDecided && (
+                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-300">{insufficientMsg}</div>
                   )}
 
                   {/* Sprint plan */}
