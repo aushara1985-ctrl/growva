@@ -72,6 +72,9 @@ function LoginInner() {
   const isRTL = lang === 'ar'
 
   useEffect(() => () => { if (copyTimer.current) clearTimeout(copyTimer.current) }, [])
+  // Remember the visitor's language between landing and login (2026-11-21: Arabic reset to English on page change)
+  useEffect(() => { try { const s = localStorage.getItem('growva_lang'); if (s === 'ar' || s === 'en') setLang(s) } catch {} }, [])
+  useEffect(() => { try { localStorage.setItem('growva_lang', lang) } catch {} }, [lang])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
