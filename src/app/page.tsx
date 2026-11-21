@@ -683,6 +683,9 @@ export default function LandingPage() {
   const [auth, setAuth] = useState<AuthState>('loading')
   const isAr = lang === 'ar'
   const c = COPY[lang]
+  // Remember the visitor's language between landing and login (2026-11-21)
+  useEffect(() => { try { const s = localStorage.getItem('growva_lang'); if (s === 'ar' || s === 'en') setLang(s) } catch {} }, [])
+  useEffect(() => { try { localStorage.setItem('growva_lang', lang) } catch {} }, [lang])
   const isLoggedIn = auth === 'user'
 
   useEffect(() => {
