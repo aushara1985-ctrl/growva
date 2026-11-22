@@ -101,6 +101,10 @@ export default function PricingPage() {
             Questions? Email us at <span style={{ color: '#8A8A9A' }}>hello@growva.co</span>
             &nbsp;·&nbsp; All payments secured by Stripe
           </p>
+          <p style={s.faqText}>
+            <a href="/terms" style={{ color: '#8A8A9A' }}>Terms</a> · <a href="/privacy" style={{ color: '#8A8A9A' }}>Privacy</a> · <a href="/terms#refund" style={{ color: '#8A8A9A' }}>Refund &amp; Cancellation</a> · <a href="/terms#contact" style={{ color: '#8A8A9A' }}>Contact</a>
+          </p>
+          <p style={s.faqText}>Operated by inventive gaze, LLC · يُشغّل هذا المنتج من قبل inventive gaze, LLC</p>
         </div>
       </div>
     </div>
