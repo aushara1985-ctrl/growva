@@ -214,6 +214,7 @@ model User {
   stripeCustomerId String? @unique
   plan          Plan     @default(FREE)
   productSlots  Int      @default(1)
+  welcomeSentAt DateTime?  // one-time welcome email flag (NULL = not sent)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

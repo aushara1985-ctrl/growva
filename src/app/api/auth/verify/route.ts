@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyMagicToken, createSessionToken, getSessionCookieOptions } from '@/lib/auth'
+import { sendWelcomeOnce } from '@/lib/welcome'
 
 const ADMIN_EMAIL = 'aushara1985@gmail.com'
 
@@ -34,11 +35,17 @@ export async function GET(req: NextRequest) {
   }
 
   // Upsert user — create if new, find if existing
+  const existedBefore = !!(await prisma.user.findUnique({ where: { email: payload.email }, select: { id: true } }))
   const user = await prisma.user.upsert({
     where: { email: payload.email },
     update: {},
     create: { email: payload.email },
   })
+
+  // Welcome email only for a brand-new account (never for existing users).
+  if (!existedBefore) {
+    await sendWelcomeOnce(user.id, user.email, baseUrl).catch(() => {})
+  }
 
   // Backfill: assign all unowned products to admin on first/every login
   if (payload.email === ADMIN_EMAIL) {
