@@ -1140,6 +1140,18 @@ export default function LandingPage() {
             {c.footer.email}
           </a>
         </p>
+        <p style={{ fontSize: 12, color: C.textDim, margin: '8px 0 0' }}>
+          <Link href="/terms" style={{ color: C.textDim, textDecoration: 'none' }}>{isAr ? 'الشروط' : 'Terms'}</Link>
+          {' · '}
+          <Link href="/privacy" style={{ color: C.textDim, textDecoration: 'none' }}>{isAr ? 'الخصوصية' : 'Privacy'}</Link>
+          {' · '}
+          <Link href="/terms#refund" style={{ color: C.textDim, textDecoration: 'none' }}>{isAr ? 'الاسترداد والإلغاء' : 'Refund & Cancellation'}</Link>
+          {' · '}
+          <Link href="/terms#contact" style={{ color: C.textDim, textDecoration: 'none' }}>{isAr ? 'تواصل' : 'Contact'}</Link>
+        </p>
+        <p style={{ fontSize: 12, color: C.textDim, margin: '6px 0 0' }}>
+          {isAr ? 'يُشغّل هذا المنتج من قبل inventive gaze, LLC' : 'Operated by inventive gaze, LLC'} · {c.footer.email}
+        </p>
       </footer>
     </div>
   )
