@@ -1,0 +1,11 @@
+name = "rafiq-clinics"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-11-01"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rafiq-demo"
+database_id = "d1684864-6c3b-4b63-820e-708c8906fefe"

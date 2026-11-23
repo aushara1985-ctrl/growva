@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>رفيق — كل استشارة تتحول مريض يرجع</title>
+<meta name="description" content="رفيق يسمع زيارة الطبيب بالعربي والإنجليزي، يكتب الملف والوصفة والأكواد، ويحوّل كل خطة علاج إلى متابعة ومريض يرجع. للعيادات والمجمعات والمستشفيات في السعودية.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+header.top{position:fixed;top:0;left:0;right:0;z-index:20;transition:.3s}
+header.top.solid{background:rgba(6,25,29,.82);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:70px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font:700 24px var(--h);color:#fff}
+.logo i{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#46c9b8,#0b4f5c);display:grid;place-items:center;color:#fff;font-style:normal;font-size:18px;box-shadow:0 0 24px rgba(70,201,184,.45)}
+nav.links{display:flex;gap:26px;font-weight:500;color:#b5c9c6;font-size:15px}
+nav.links a:hover{color:#fff}
+.hero{position:relative;overflow:hidden;background:var(--night);color:#eaf3f1;padding:150px 0 110px}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;pointer-events:none}
+.hero:before{width:620px;height:620px;background:#1f9e95;top:-260px;left:-120px;animation:drift 16s ease-in-out infinite alternate}
+.hero:after{width:520px;height:520px;background:#b88a45;bottom:-300px;right:-120px;opacity:.28;animation:drift 20s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(80px,40px) scale(1.1)}}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+.hero .hook{color:#e2c08a;font-size:17px}
+.hero h1{font-size:clamp(34px,4.8vw,58px);color:#fff;letter-spacing:-.6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,#7fe3d4,#46c9b8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:19px;color:#b5c9c6;max-width:560px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0 20px}
+.hero .btn-g{background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.18)}
+.trust{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:#9fb5b1}
+.trust span:before{content:"✓";color:var(--aqua);font-weight:700;margin-left:6px}
+.dev{padding:18px;position:relative;background:rgba(255,255,255,.96);border-color:rgba(255,255,255,.4);box-shadow:0 30px 80px rgba(0,0,0,.35);color:var(--ink)}
+.dev-h{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+.pt{display:flex;gap:10px;align-items:center}.pt b{display:block;font-size:15px}.pt small{color:var(--muted);font-size:12.5px}
+.av{width:40px;height:40px;border-radius:50%;background:var(--sand);display:grid;place-items:center;font-weight:700;color:var(--gold)}
+.rec{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--red);font-weight:600}
+.rec:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.wave{display:flex;gap:3px;align-items:center;height:28px;margin:4px 0 10px}
+.wave i{width:4px;border-radius:3px;background:var(--teal2);animation:w 1s ease-in-out infinite}
+@keyframes w{0%,100%{height:6px}50%{height:26px}}
+.lines p{margin:0 0 8px;font-size:14px;padding:8px 12px;border-radius:12px;opacity:0;animation:in .5s forwards}
+.lines .d{background:var(--mint)}.lines .p{background:#f4f2ec;margin-right:28px}
+.lines p b{font-size:12px;color:var(--muted);display:block}
+@keyframes in{to{opacity:1}}
+.outs{display:grid;gap:8px;margin-top:12px}
+.out{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;opacity:0;transform:translateY(8px);animation:up .5s forwards;background:#fff}
+.out i{font-style:normal;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--mint);flex:none}
+.out small{color:var(--muted);display:block;font-size:12px}
+@keyframes up{to{opacity:1;transform:none}}
+.float{position:absolute;left:-18px;bottom:-24px;padding:12px 16px;font-size:13px}
+.float b{font:700 17px var(--h);color:var(--green);display:block}
+section{padding:90px 0}
+.sec-h{text-align:center;max-width:760px;margin:0 auto 48px}
+.sec-h h2{font-size:clamp(28px,3.4vw,42px)}
+.sec-h p{color:var(--muted);font-size:18px}
+.pain{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pain .card{padding:28px;position:relative;overflow:hidden}
+.pain .card:after{content:"";position:absolute;inset:auto -40px -40px auto;width:120px;height:120px;border-radius:50%;background:var(--sand);opacity:.6}
+.pain .q{font:700 20px var(--h);margin-bottom:8px;position:relative;z-index:1}
+.pain p{position:relative;z-index:1;margin:0}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:s}
+.step{padding:26px 22px 22px;position:relative}
+.step:before{counter-increment:s;content:counter(s);position:absolute;top:-15px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font:700 15px var(--h);box-shadow:0 6px 14px rgba(11,79,92,.3)}
+.step h3{font-size:19px;margin-top:6px}
+.step p{color:var(--muted);font-size:15px;margin:0}
+.spec{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.sp{padding:20px;transition:.25s;display:flex;flex-direction:column}
+.sp:hover{border-color:var(--teal2);transform:translateY(-3px)}
+.sp .top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sp .ic{width:40px;height:40px;border-radius:12px;background:var(--mint);display:grid;place-items:center;font-size:20px}
+.sp h3{font-size:17px;margin:0}
+.sp .o{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;background:#faf9f5;border:1px solid var(--line);border-radius:12px;padding:9px 10px;margin-bottom:7px}
+.sp .o i{font-style:normal}
+.sp .o b{display:block;font-size:13.5px}
+.sp .o small{color:var(--muted);font-size:12px}
+.sp .m{margin-top:auto;font-size:13px;color:var(--gold);font-weight:600;padding-top:6px}
+.qr{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.phone{width:290px;margin:0 auto;border-radius:38px;padding:12px;background:var(--night);box-shadow:0 30px 70px rgba(6,25,29,.35)}
+.scr{border-radius:28px;overflow:hidden;background:#f3f5f3;height:540px}
+.scr .hd{background:var(--grad);color:#fff;padding:22px 16px 40px}
+.scr .hd small{opacity:.8;font-size:11px}.scr .hd b{display:block;font:700 19px var(--h)}
+.scr .cc{background:#fff;border-radius:16px;margin:-26px 12px 10px;padding:12px;font-size:12.5px;box-shadow:var(--sh)}
+.scr .cc h5{margin:0 0 6px;font:600 13px var(--h)}
+.scr .row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #f0f2f0;font-size:12px}
+.scr .row:last-child{border:0}
+.scr .bx{width:16px;height:16px;border-radius:5px;border:2px solid var(--teal2);flex:none}
+.scr .bx.on{background:var(--teal2)}
+.scr .c2{margin:0 12px 10px}
+.report{display:grid;grid-template-columns:1fr 1.25fr;gap:40px;align-items:center}
+.rep{padding:26px}
+.rep-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.kpi{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+.kpi small{color:var(--muted);font-size:13px;display:block}
+.kpi b{font:700 26px var(--h)}
+.kpi .up{color:var(--green);font-size:13px;font-weight:600}
+.bar{height:8px;background:#eeece6;border-radius:9px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grad);border-radius:9px}
+.note-ex{font-size:12.5px;color:var(--muted);margin-top:12px}
+ul.chk{list-style:none;padding:0;margin:18px 0}
+ul.chk li{padding:8px 30px 8px 0;position:relative}
+ul.chk li:before{content:"✓";position:absolute;right:0;top:9px;width:20px;height:20px;border-radius:50%;background:var(--mint);color:var(--teal);font-size:12px;display:grid;place-items:center;font-weight:700}
+.who{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.who .card{padding:26px}
+.who h3{font-size:20px}
+.dark{background:var(--night);color:#e9f1ef;position:relative;overflow:hidden}
+.dark:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:#1f9e95;filter:blur(110px);opacity:.25;top:-200px;right:-100px}
+.dark .wrap{position:relative}
+.dark .sec-h p,.dark .muted{color:#a9bdba}
+.priv{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.priv div{border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:22px;background:rgba(255,255,255,.04);backdrop-filter:blur(6px)}
+.priv h3{font-size:17px;color:#fff}
+.priv p{font-size:14.5px;color:#a9bdba;margin:0}
+.cta-box{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;padding:40px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form .full{grid-column:1/-1}
+.ok{display:none;background:var(--mint);color:var(--teal);border-radius:12px;padding:14px;font-weight:600}
+footer{padding:30px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media(max-width:960px){
+  nav.links{display:none}
+  .hero{padding:120px 0 90px}
+  .hero .wrap,.report,.cta-box,.qr{grid-template-columns:1fr}
+  .steps,.spec,.priv{grid-template-columns:repeat(2,1fr)}
+  .pain,.who{grid-template-columns:1fr}
+  .float{left:10px}
+}
+@media(max-width:560px){
+  body{font-size:16px}
+  .wrap{padding:0 16px}
+  section{padding:60px 0}
+  .steps,.spec,.priv,.form{grid-template-columns:1fr}
+  .cta-box{padding:22px}
+  header.top .btn{padding:10px 16px;font-size:14px}
+}
+</style>
+</head>
+<body data-page="landing">
+<header class="top" id="top"><div class="wrap">
+  <a class="logo" href="/"><i>ر</i>رفيق</a>
+  <nav class="links"><a href="#how">كيف يشتغل</a><a href="#spec">التخصصات</a><a href="#qr">المريض</a><a href="#report">تقرير الإدارة</a><a href="#privacy">الخصوصية</a></nav>
+  <a class="btn btn-p" href="/demo" data-cta="header_try">جرّب بنفسك</a>
+</div></header>
+
+<section class="hero" data-sec="hero"><div class="wrap">
+  <div>
+    <span class="hook">كم مريض قال لكم هالشهر «برجع لكم»… وما رجع؟</span>
+    <h1>كل استشارة تتحول <em>ملف مكتمل</em>… ومريض <em>يرجع</em>.</h1>
+    <p class="lead">رفيق يسمع زيارة الطبيب بالعربي والإنجليزي، يكتب الملف والوصفة والأكواد، ويحوّل خطة العلاج إلى متابعات ترسل من واتساب العيادة بضغطة. والإدارة تشوف كل شهر كم ريال رجع.</p>
+    <div class="ctas">
+      <a class="btn btn-p" href="/demo" data-cta="hero_try">جرّب على زيارة الحين ←</a>
+      <a class="btn btn-g" href="#contact" data-cta="hero_pilot">اطلب تجربة لعيادتك</a>
+    </div>
+    <div class="trust"><span>بدون تسجيل</span><span>الطبيب يعتمد كل شيء</span><span>يركب فوق نظامكم الحالي</span></div>
+  </div>
+  <div class="card dev" aria-label="مثال زيارة">
+    <div class="dev-h">
+      <div class="pt"><div class="av">س</div><div><b>سارة — حامل، الأسبوع ٢٤</b><small>عيادة النساء والولادة · زيارة متابعة</small></div></div>
+      <div class="rec">يسجّل</div>
+    </div>
+    <div class="wave" aria-hidden="true"></div>
+    <div class="lines">
+      <p class="d" style="animation-delay:.3s"><b>الدكتورة</b>كيف الحركة؟ تحسين فيها زين؟ والدوخة اللي كانت تجيك؟</p>
+      <p class="p" style="animation-delay:1.3s"><b>المريضة</b>الحركة زينة الحمدلله، بس الدوخة للحين تجيني الصبح.</p>
+      <p class="d" style="animation-delay:2.3s"><b>الدكتورة</b>الضغط ممتاز. نسوي اختبار السكر الأسبوع الجاي، ونكمل الحديد والفوليك.</p>
+    </div>
+    <div class="outs">
+      <div class="out" style="animation-delay:3.4s"><i>📝</i><div>ملف الزيارة جاهز للاعتماد<small>SOAP · ICD-10 · الأدوية · الفحوصات</small></div></div>
+      <div class="out" style="animation-delay:3.9s"><i>🧪</i><div>متابعة: اختبار السكر بعد أسبوع<small>نزلت في قائمة متابعات الاستقبال</small></div></div>
+      <div class="out" style="animation-delay:4.4s"><i>📱</i><div>المريضة مسحت الكود… وملفها في جوالها<small>الملخص، الأدوية، والموعد الجاي</small></div></div>
+    </div>
+    <div class="card float"><span class="muted">الملف جاهز</span><b>قبل ما تطلع المريضة</b></div>
+  </div>
+</div></section>
+
+<section data-sec="pain"><div class="wrap">
+  <div class="sec-h"><span class="hook">الفلوس ما تضيع داخل العيادة…</span><h2>تضيع بعد ما يطلع المريض من الباب</h2></div>
+  <div class="pain">
+    <div class="card"><div class="q">الطبيب يكتب… بدل ما يكشف</div><p class="muted">الملف والوصفة والتقرير ياكلون وقته، تتأخر لآخر الدوام، والملف يطلع ناقص.</p></div>
+    <div class="card"><div class="q">«برجع لكم»… وما يرجع</div><p class="muted">تنظيف، جلسات علاج طبيعي، تحليل في الحمل، باقة ليزر. الخطة تنقال، وما أحد يتابعها.</p></div>
+    <div class="card"><div class="q">التأمين يرجّع المطالبة</div><p class="muted">توثيق ناقص أو ترميز غلط، والنتيجة مطالبة مرفوضة وفلوس متأخرة أو ضايعة.</p></div>
+  </div>
+</div></section>
+
+<section id="how" data-sec="how" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
+  <div class="sec-h"><span class="hook">الطبيب يتكلم مع مريضه… بس.</span><h2>والباقي على رفيق</h2></div>
+  <div class="steps">
+    <div class="card step"><h3>يسمع</h3><p>الجوال على الطاولة بعد موافقة المريض. يفهم اللهجة السعودية مع المصطلحات الإنجليزية.</p></div>
+    <div class="card step"><h3>يكتب</h3><p>ملف SOAP، الأدوية، الفحوصات، أكواد ICD-10، ملخص للمريض بالعربي، وخطاب تحويل لو انذكر.</p></div>
+    <div class="card step"><h3>الطبيب يعتمد</h3><p>يراجع ويعدّل بضغطة. رفيق ما يشخّص ولا يقترح علاج، يوثّق اللي قاله الطبيب وينبهه على اللي نسيه.</p></div>
+    <div class="card step"><h3>يتابع لين يرجع</h3><p>كل متابعة تنزل لقائمة الاستقبال، وترسل من واتساب العيادة، ولما يحجز المريض تنحسب في تقرير الإدارة.</p></div>
+  </div>
+</div></section>
+
+<section id="spec" data-sec="specialties"><div class="wrap">
+  <div class="sec-h"><span class="hook">كل عيادة عندها فلوس ضايعة…</span><h2>ورفيق يعرف وينها في كل تخصص</h2><p>هذا اللي يطلع من الزيارة نفسها، بدون ما الطبيب يكتب حرف.</p></div>
+  <div class="spec">
+    <div class="card sp"><div class="top"><div class="ic">🤰</div><h3>نساء وولادة</h3></div>
+      <div class="o"><i>📅</i><div><b>الأسبوع ٢٤ · الموعد المتوقع</b><small>محسوب من آخر دورة</small></div></div>
+      <div class="o"><i>🧪</i><div><b>اختبار السكر بين ٢٤–٢٨</b><small>تذكير ينرسل للمريضة</small></div></div>
+      <div class="m">ولا موعد يفوت طول الحمل ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">🦷</div><h3>أسنان</h3></div>
+      <div class="o"><i>🦷</i><div><b>سن ٣٦ · حشوة عميقة · ٤٠٠ ر.س</b><small>مقبول · انعمل اليوم</small></div></div>
+      <div class="o"><i>⏳</i><div><b>سن ٤٧ · حشوة · ٣٥٠ ر.س</b><small>انقبل وما انحجز ← متابعة</small></div></div>
+      <div class="m">العلاج المقبول يتحول موعد ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">🦴</div><h3>عظام</h3></div>
+      <div class="o"><i>🩻</i><div><b>ركبة يمين · خشونة بسيطة</b><small>M17.11 · أشعة مرفقة</small></div></div>
+      <div class="o"><i>↪️</i><div><b>تحويل علاج طبيعي · ١٢ جلسة</b><small>التحويل يوصل القسم مباشرة</small></div></div>
+      <div class="m">التحويل الداخلي ما يضيع ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">🏃</div><h3>علاج طبيعي وتأهيل</h3></div>
+      <div class="o"><i>📈</i><div><b>الألم من ٨ إلى ٦</b><small>الجلسة ٤ من ١٠</small></div></div>
+      <div class="o"><i>🏠</i><div><b>٣ تمارين منزلية</b><small>توصل المريضة في جوالها</small></div></div>
+      <div class="m">المريض يكمّل باقته ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">🩺</div><h3>باطنة وطب أسرة</h3></div>
+      <div class="o"><i>🩸</i><div><b>التراكمي ٨٫٢ (كان ٧٫٥)</b><small>تحاليل قبل الموعد الجاي</small></div></div>
+      <div class="o"><i>👁️</i><div><b>فحص العين السنوي ناقص</b><small>تنبيه للطبيب</small></div></div>
+      <div class="m">المزمنين يرجعون في وقتهم ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">👶</div><h3>أطفال</h3></div>
+      <div class="o"><i>💉</i><div><b>تطعيم ١٨ شهر متأخر</b><small>ينحجز بعد ما تروح الحرارة</small></div></div>
+      <div class="o"><i>⚖️</i><div><b>الوزن ١٠٫٣ كجم</b><small>محفوظ في منحنى النمو</small></div></div>
+      <div class="m">التطعيمات ما تفوت ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">✨</div><h3>جلدية وتجميل</h3></div>
+      <div class="o"><i>💎</i><div><b>باقة ليزر ٦ جلسات · ١٬٨٠٠ ر.س</b><small>الجلسة الجاية بعد ٥ أسابيع</small></div></div>
+      <div class="o"><i>📸</i><div><b>صور قبل · إقرار موقّع</b><small>محفوظة في ملف الجلسة</small></div></div>
+      <div class="m">الباقة تكتمل ←</div></div>
+    <div class="card sp"><div class="top"><div class="ic">🧠</div><h3>نفسية</h3></div>
+      <div class="o"><i>📉</i><div><b>مقياس القلق ١٥ ← ١٢</b><small>من الجلسة الأولى للثالثة</small></div></div>
+      <div class="o"><i>🎯</i><div><b>واجبات الأسبوع</b><small>توصل المريضة بخصوصية</small></div></div>
+      <div class="m">المريض ما ينقطع ←</div></div>
+  </div>
+</div></section>
+
+<section id="qr" data-sec="qr" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap qr">
+  <div>
+    <span class="hook">المريض نسى كلام الطبيب قبل ما يوصل السيارة؟</span>
+    <h2 style="font-size:clamp(28px,3.4vw,42px)">يمسح الكود… وملفه في جيبه</h2>
+    <p class="muted" style="font-size:18px">آخر الزيارة يطلع كود على الشاشة. المريض يمسحه بكاميرا جواله، بدون تطبيق وبدون تسجيل، ويحصل:</p>
+    <ul class="chk">
+      <li>ملخص الزيارة بكلام بسيط بالعربي</li>
+      <li>خطواته الجاية بتواريخها: تحليل، جلسة، موعد</li>
+      <li>أدويته مع تأشير يومي «أخذتها»</li>
+      <li>واجباته وتمارينه، والعلاج النفسي بخصوصية أعلى</li>
+    </ul>
+    <a class="btn btn-p" href="/demo" data-cta="qr_try">جرّبه وامسح الكود بنفسك</a>
+  </div>
+  <div class="phone" aria-hidden="true"><div class="scr">
+    <div class="hd"><small>عيادة النساء والولادة</small><b>هلا سارة 👋</b><small>ملخص زيارتك، محفوظ في جوالك</small></div>
+    <div class="cc"><h5>📝 وش صار في الزيارة</h5>الحمل ماشي زين في الأسبوع ٢٤، والدوخة غالباً من نقص الحديد. كملي الحديد والفوليك، ونسوي اختبار السكر الأسبوع الجاي.</div>
+    <div class="cc c2" style="margin-top:0"><h5>📅 خطواتك الجاية</h5><div class="row">🧪 اختبار السكر صائمة · بعد أسبوع</div><div class="row">🩺 موعد المتابعة · بعد ٤ أسابيع</div></div>
+    <div class="cc c2"><h5>💊 أدويتك اليوم</h5><div class="row"><span class="bx on"></span>حديد · حبة بعد الأكل</div><div class="row"><span class="bx"></span>فوليك أسيد · ٥ ملغ</div></div>
+  </div></div>
+</div></section>
+
+<section id="report" data-sec="report" style="background:var(--sand)"><div class="wrap report">
+  <div>
+    <span class="hook">مديرك ما يبي يعرف كم ساعة وفّرت…</span>
+    <h2 style="font-size:clamp(28px,3.4vw,42px)">يبي يعرف كم ريال رجع</h2>
+    <p class="muted" style="font-size:18px">كل شهر صفحة وحدة: كم استشارة تحولت حجز، كم خطة علاج انفتحت وكم رجع منها، كم مريض رجع بسبب المتابعة، ومين من الأطباء ملفاته ناقصة.</p>
+    <ul class="chk">
+      <li>الإيراد اللي رجع من المتابعات، لكل عيادة ولكل طبيب</li>
+      <li>خطط العلاج المفتوحة بقيمتها: مين قبل وما حجز</li>
+      <li>المطالبات المرفوضة قبل رفيق وبعده</li>
+      <li>اكتمال التوثيق لكل طبيب</li>
+    </ul>
+    <a class="btn btn-p" href="/demo#report" data-cta="report_try">شوف التقرير في التجربة</a>
+  </div>
+  <div class="card rep">
+    <div class="rep-h"><b>مجمع طبي — أكتوبر</b><span class="tag">مثال توضيحي</span></div>
+    <div class="kpis">
+      <div class="kpi"><small>استشارات تحولت حجز</small><b class="num">٦١٪</b> <span class="up">▲ ١٤ نقطة</span><div class="bar"><i style="width:61%"></i></div></div>
+      <div class="kpi"><small>رجع من خطط العلاج</small><b class="num">٧٢٬٤٠٠ ر.س</b><div class="bar"><i style="width:39%"></i></div><small>من ١٨٤٬٠٠٠ ر.س مفتوحة</small></div>
+      <div class="kpi"><small>مرضى رجعوا بسبب المتابعة</small><b class="num">٤٨</b> <span class="up">▲</span></div>
+      <div class="kpi"><small>مطالبات مرفوضة</small><b class="num">٥٪</b> <span class="up">من ١٢٪</span></div>
+    </div>
+    <p class="note-ex">الأرقام مثال يوضح شكل التقرير، مو نتائج عميل.</p>
+  </div>
+</div></section>
+
+<section data-sec="who"><div class="wrap">
+  <div class="sec-h"><span class="hook">ما نطلب منكم تغيرون نظامكم.</span><h2>رفيق يركب فوقه من أول يوم</h2></div>
+  <div class="who">
+    <div class="card"><h3>العيادات</h3><p class="muted">أسنان، جلدية وتجميل، نفسية، نساء وولادة. تبدأ بطبيب واحد وتكبر.</p></div>
+    <div class="card"><h3>المجمعات والمستوصفات</h3><p class="muted">كل التخصصات تحت سقف واحد: قائمة متابعة وحدة للاستقبال، وتقرير واحد للإدارة.</p></div>
+    <div class="card"><h3>المستشفيات الخاصة والمتخصصة</h3><p class="muted">نبدأ بتجربة على قسم أو عدد من الأطباء، نقيس الأرقام، وبعدها نتوسع.</p></div>
+  </div>
+</div></section>
+
+<section id="privacy" class="dark" data-sec="privacy"><div class="wrap">
+  <div class="sec-h"><span class="hook" style="color:#e2c08a">بيانات مرضاكم أمانة…</span><h2 style="color:#fff">وما تطلع من السعودية</h2></div>
+  <div class="priv">
+    <div><h3>موافقة المريض</h3><p>التسجيل ما يبدأ إلا بعد موافقة المريض، وتنحفظ الموافقة مع الزيارة.</p></div>
+    <div><h3>الطبيب صاحب القرار</h3><p>رفيق يوثّق، ولا يشخّص ولا يقترح علاج. ولا شيء يدخل الملف قبل اعتماد الطبيب.</p></div>
+    <div><h3>داخل المملكة</h3><p>في تشغيل العيادات نستضيف البيانات داخل السعودية، ونلتزم بنظام حماية البيانات الشخصية.</p></div>
+    <div><h3>بياناتكم لكم</h3><p>ما نبيع بيانات، وتقدرون تصدّرون كل شيء متى ما بغيتوا.</p></div>
+  </div>
+</div></section>
+
+<section id="contact" data-sec="contact"><div class="wrap">
+  <div class="card cta-box">
+    <div>
+      <span class="hook">جرّبوه على زيارة وحدة… والحكم لكم.</span>
+      <h2 style="font-size:clamp(26px,3vw,38px)">تجربة على عيادتكم، والقرار بالأرقام</h2>
+      <p class="muted" style="font-size:18px">نبدأ بعدد من الأطباء، ونقيس قبل وبعد: وقت التوثيق، الاستشارات اللي تحولت حجز، والمرضى اللي رجعوا.</p>
+      <a class="btn btn-g" href="/demo" data-cta="contact_try">أو جرّب الديمو الحين بنفسك</a>
+    </div>
+    <form id="lead" class="form" onsubmit="return sendLead(event)">
+      <div><label for="n">الاسم</label><input id="n" name="name" required autocomplete="name"></div>
+      <div><label for="ph">جوال / واتساب</label><input id="ph" name="phone" required inputmode="tel" dir="ltr" placeholder="05xxxxxxxx"></div>
+      <div><label for="cl">العيادة / المنشأة</label><input id="cl" name="clinic"></div>
+      <div><label for="ci">المدينة</label><input id="ci" name="city"></div>
+      <div><label for="spx">التخصص</label><select id="spx" name="specialty"><option>مجمع / مستوصف</option><option>نساء وولادة</option><option>أسنان</option><option>عظام</option><option>علاج طبيعي وتأهيل</option><option>باطنة / أسرة</option><option>أطفال</option><option>جلدية وتجميل</option><option>نفسية</option><option>مستشفى</option></select></div>
+      <div><label for="dc">عدد الأطباء</label><input id="dc" name="doctors" inputmode="numeric"></div>
+      <div class="full"><button class="btn btn-p" type="submit" style="width:100%;justify-content:center">اطلب التجربة</button></div>
+      <div class="full ok" id="ok">وصلنا طلبك. بنتواصل معك على واتساب قريب.</div>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="wrap"><span>رفيق © ٢٠٢٦</span><span>نسخة تجريبية. لا تدخل بيانات مرضى حقيقيين في الديمو.</span></div></footer>
+
+<script src="/assets/track.js"></script>
+<script>
+(function(){var w=document.querySelector('.wave');for(var i=0;i<34;i++){var b=document.createElement('i');b.style.animationDelay=(i%9)*0.09+'s';w.appendChild(b);}
+var t=document.getElementById('top');function s(){t.classList.toggle('solid',scrollY>40)}addEventListener('scroll',s,{passive:true});s();})();
+async function sendLead(e){
+  e.preventDefault();
+  var f=new FormData(e.target),o={};f.forEach(function(v,k){o[k]=v;});o.sid=RQ.sid;o.ref=RQ.ref;
+  track('lead_submit',{specialty:o.specialty,doctors:o.doctors});
+  try{var r=await fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(o)});
+    if(r.ok){e.target.querySelector('button').style.display='none';document.getElementById('ok').style.display='block';}
+    else alert('صار خطأ، جرّب مرة ثانية');}catch(x){alert('صار خطأ في الاتصال');}
+  return false;
+}
+</script>
+</body>
+</html>

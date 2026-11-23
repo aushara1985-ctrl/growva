@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>ملخص زيارتك</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/font.css">
+<style>
+body{background:linear-gradient(180deg,#14211b 0,#14211b 220px,#f4efe5 220px);color:#14211b}
+h1,h2{font-family:'Markazi Text',serif}
+.hd h1{font-size:34px}
+.c h2{font-size:22px;color:#14211b}
+.c{border:1px solid #e6dfd0;box-shadow:none;border-radius:18px;background:#fffdf9}
+.tl:before{background:#e2e7da}.st:before{background:#b4552f;box-shadow:0 0 0 4px #fffdf9}
+.med input{accent-color:#2f5a47}
+.hw{background:#e2e7da}
+.w{max-width:520px;margin:0 auto;padding:22px 16px 40px}
+.hd{color:#fff;margin-bottom:18px}
+.hd small{opacity:.8}
+.hd h1{font-size:26px;margin:4px 0 0;color:#fff}
+.c{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.c h2{font-size:17px;display:flex;gap:8px;align-items:center}
+.sum{white-space:pre-wrap;font-size:16.5px}
+.tl{position:relative;padding-right:22px}
+.tl:before{content:"";position:absolute;right:6px;top:6px;bottom:6px;width:2px;background:var(--mint)}
+.st{position:relative;padding:4px 0 14px}
+.st:before{content:"";position:absolute;right:-21px;top:9px;width:12px;height:12px;border-radius:50%;background:var(--teal2);box-shadow:0 0 0 4px #fff}
+.st b{display:block}.st small{color:var(--muted)}
+.med{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f2f0}
+.med input{width:24px;height:24px;flex:none;accent-color:var(--teal)}
+.med div{flex:1}.med small{color:var(--muted);display:block}
+.med.on div{opacity:.5;text-decoration:line-through}
+.hw{background:var(--sand);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.ft{text-align:center;color:var(--muted);font-size:13px;margin-top:18px}
+.empty{text-align:center;padding:60px 10px;color:var(--muted)}
+</style>
+</head>
+<body data-page="patient">
+<div class="w" id="app"><div class="empty">جاري التحميل…</div></div>
+<script src="/assets/track.js"></script>
+<script>
+(function(){
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var id=new URLSearchParams(location.search).get('id')||'';
+var key='rq_med_'+id+'_'+new Date().toISOString().slice(0,10);
+var done={};try{done=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+fetch('/api/share?id='+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(d){
+  if(d.error){document.getElementById('app').innerHTML='<div class="empty">الرابط منتهي أو غير صحيح.</div>';track('patient_page_missing');return}
+  track('patient_page_open',{sp:d.specialty});
+  var h='<div class="hd"><small>'+esc(d.clinic||'العيادة')+' · '+esc(d.specialty||'')+'</small><h1>هلا '+esc(d.patient||'')+'</h1><small>هذا ملخص زيارتك، محفوظ في جوالك</small></div>';
+  h+='<div class="c"><h2>وش صار في الزيارة</h2><div class="sum">'+esc(d.summary)+'</div></div>';
+  if((d.steps||[]).length)h+='<div class="c"><h2>خطواتك الجاية</h2><div class="tl">'+d.steps.map(function(s){return '<div class="st"><b>'+esc(s.what)+'</b><small>'+esc(s.when)+'</small></div>'}).join('')+'</div></div>';
+  if((d.meds||[]).length)h+='<div class="c"><h2>أدويتك اليوم</h2><small class="muted">أشّر إذا أخذتها</small>'+d.meds.map(function(m,i){return '<label class="med'+(done[i]?' on':'')+'"><input type="checkbox" data-m="'+i+'"'+(done[i]?' checked':'')+'><div><b dir="ltr" style="display:block;text-align:right">'+esc(m.name)+'</b>'+(m.how_ar?'<small>'+esc(m.how_ar)+'</small>':'<small dir="ltr" style="text-align:right">'+esc([m.dose,m.frequency,m.duration].filter(Boolean).join(' · '))+'</small>')+'</div></label>'}).join('')+'</div>';
+  if((d.homework||[]).length)h+='<div class="c"><h2>مطلوب منك</h2>'+d.homework.map(function(x){return '<div class="hw">'+esc(x)+'</div>'}).join('')+'</div>';
+  h+='<p class="ft">مثال من نسخة رفيق التجريبية · لا يغني عن تعليمات طبيبك</p>';
+  document.getElementById('app').innerHTML=h;
+  document.querySelectorAll('[data-m]').forEach(function(c){c.onchange=function(){var i=c.getAttribute('data-m');done[i]=c.checked;c.parentNode.classList.toggle('on',c.checked);try{localStorage.setItem(key,JSON.stringify(done))}catch(e){}track('patient_med_check',{v:c.checked})}});
+}).catch(function(){document.getElementById('app').innerHTML='<div class="empty">ما قدرنا نحمل الملخص. جرّب مرة ثانية.</div>'});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>رفيق — مجمع رفيق الطبي (تجريبي)</title>
+<link rel="stylesheet" href="/assets/font.css">
+<link rel="stylesheet" href="/assets/team.css">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f4efe5">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14211b; --ink2:#1c2c25; --ink3:#27392f;
+  --paper:#f4efe5; --paper2:#fbf8f2; --sheet:#fffdf9;
+  --line:#d9d1c1; --line2:#e8e1d3;
+  --mute:#636c63; --sage:#e2e7da; --forest:#2f5a47;
+  --clay:#b4552f; --clay-d:#8e3d1e; --clay-l:#dc9774; --clay-bg:#f5e6dc;
+  --on-ink:#ece6d8; --on-ink-m:#a3aea3;
+  --d:"Markazi Text","Noto Naskh Arabic",serif;
+  --b:'Markazi Body','Markazi Text',serif;
+  --m:'Markazi Body','Markazi Text',serif;
+}
+*,*:before,*:after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 15.5px/1.75 var(--b);overflow-x:clip;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{font-family:var(--d);font-weight:600;line-height:1.15}
+h1{font-size:clamp(34px,4.4vw,46px)}
+h2{font-size:26px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+.ltr{direction:ltr;unicode-bidi:isolate;font-family:var(--m);font-size:.88em}
+.lab{font:500 12px/1.4 var(--b);color:var(--mute)}
+small{font-size:12.5px;color:var(--mute)}
+
+/* top */
+.top{position:sticky;top:0;z-index:30;background:rgba(244,239,229,.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1160px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;gap:14px}
+.logo{font:700 31px/1 var(--d);display:flex;align-items:baseline;gap:7px;flex:none}
+.logo i{width:7px;height:7px;border-radius:50%;background:var(--clay);display:inline-block}
+.org{font-size:13.5px;color:var(--mute);border-right:1px solid var(--line);padding-right:14px;line-height:1.3;min-width:0}
+.org b{color:var(--ink);font-weight:500}
+.roles{margin-right:auto;display:flex;border:1px solid var(--ink);border-radius:6px;overflow:hidden;flex:none}
+.roles button{border:0;background:transparent;padding:8px 18px;font:500 14px/1.4 var(--b);position:relative}
+.roles button+button{border-right:1px solid var(--ink)}
+.roles button[aria-pressed=true]{background:var(--ink);color:var(--paper2)}
+.roles svg{display:none}
+.badge{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:var(--clay);color:#fff;font:500 11px/18px var(--b);text-align:center;padding:0 5px;margin-right:6px}
+.warn{background:var(--ink);color:var(--on-ink);font-size:12.5px;line-height:1.5;text-align:center;padding:5px 16px}
+.warn b{font-weight:500;color:#fff}
+
+.page{max-width:1160px;margin:0 auto;padding:30px 24px 90px}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.ph .eyebrow{font-size:13px;color:var(--clay-d);display:block;margin-bottom:2px}
+.ph p{color:var(--mute);margin-top:4px}
+.dept{display:block;min-width:250px}
+.dept span{display:block;font-size:12px;color:var(--mute);margin-bottom:3px}
+select{appearance:none;-webkit-appearance:none;width:100%;border:1px solid var(--ink);border-radius:6px;background:var(--sheet) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%2314211b' stroke-width='1.5'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat left 12px center;padding:10px 14px 10px 34px;font-weight:500}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:500 15px/1.3 var(--b);padding:13px 20px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:var(--paper2);transition:background .2s,color .2s}
+.btn:hover{background:var(--ink3)}
+.btn.ghost{background:var(--sheet);color:var(--ink)}
+.btn.ghost:hover{background:var(--sage)}
+.btn.sm{padding:9px 14px;font-size:13.5px}
+.btn.ok,.btn.ok:hover{background:var(--forest);border-color:var(--forest);color:#fff;cursor:default}
+.btn:disabled{cursor:default}
+.back{border:0;background:none;padding:0;margin-bottom:14px;font-size:13.5px;color:var(--mute);border-bottom:1px solid var(--line)}
+.back:hover{color:var(--ink)}
+.lnkb{border:0;background:none;padding:0;font-size:13.5px;color:var(--mute);border-bottom:1px solid var(--line)}
+.lnkb:hover{color:var(--ink)}
+
+/* window */
+.win{background:var(--sheet);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 0 #fff inset,0 30px 60px -44px rgba(20,33,27,.4);overflow:hidden}
+.win+.win{margin-top:16px}
+.win-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line2)}
+.win-b{padding:16px 18px}
+.who-p{min-width:0}
+.who-p b{display:block;font-weight:600;font-size:15.5px;line-height:1.5}
+.stat{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mute);white-space:nowrap}
+.stat .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.stat.rec .dot{background:var(--clay);animation:blink 1.4s ease-in-out infinite}
+.stat.done .dot{background:var(--forest)}
+.stat.bad .dot{background:var(--clay)}
+@keyframes blink{50%{opacity:.25}}
+.desk-f{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--line2);background:var(--paper2)}
+.drop{font-size:13px;color:var(--mute)}
+.hint{font-size:12.5px;color:var(--mute);margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+.err{background:var(--clay-bg);border:1px solid #ecd2c2;color:var(--clay-d);border-radius:8px;padding:11px 14px;font-size:14px;font-weight:500;margin-top:14px}
+.err.soft{background:var(--sage);border-color:var(--sage);color:var(--ink)}
+.never{font:500 21px/1.4 var(--d);border-right:2px solid var(--clay);padding-right:14px}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--paper2)}
+.card+.card{margin-top:14px}
+.card h3{font-size:22px;margin-bottom:6px}
+.card p{color:var(--mute);font-size:14px}
+.card .btn{margin-top:12px}
+
+/* pills */
+.pill{display:inline-block;font:500 12px/1 var(--b);padding:6px 9px;border-radius:4px;white-space:nowrap;background:var(--line2);color:var(--mute)}
+.pill.in{background:var(--clay-bg);color:var(--clay-d)}
+.pill.done{background:var(--sage);color:var(--forest)}
+.mine{display:inline-block;font:500 11px/1 var(--b);background:var(--ink);color:var(--paper2);border-radius:3px;padding:4px 6px;margin-right:6px;vertical-align:middle}
+
+/* doctor home */
+.home-g{display:grid;grid-template-columns:7fr 4fr;gap:22px;align-items:start}
+.home-g>*{min-width:0}
+.cnt{display:flex;gap:16px;font-size:13px;color:var(--mute);flex-wrap:wrap}
+.cnt b{color:var(--ink);font-weight:600}
+.sch-r{display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;width:100%;text-align:right;border:0;border-bottom:1px solid var(--line2);background:none;padding:12px 18px;transition:background .15s}
+.sch-r:last-child{border-bottom:0}
+.sch-r:hover{background:var(--paper2)}
+.sch-r .tm{font:500 13px var(--m);color:var(--mute);direction:ltr}
+.sch-r b{font-weight:600;display:block;line-height:1.5}
+.sch-r.s-in{background:#fbf3ec}
+.sch-r.s-in .tm{color:var(--clay-d)}
+.sch-r.s-done b{color:var(--mute);font-weight:500}
+
+/* patient file */
+.pf-h{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.pf-h .meta{display:flex;flex-wrap:wrap;gap:4px 16px;color:var(--mute);font-size:13.5px;margin-top:6px}
+.pf-g{display:grid;grid-template-columns:4fr 7fr;gap:22px;align-items:start}
+.pf-g>*{min-width:0}
+.kv{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.kv:last-child{border:0}
+.kv>span:first-child{color:var(--mute);font-size:13px}
+.kv.al b{color:var(--clay-d);font-weight:600}
+.tl{position:relative;padding-right:18px}
+.tl:before{content:"";position:absolute;right:4px;top:8px;bottom:8px;width:1px;background:var(--line)}
+.tl div{position:relative;padding:6px 0 12px}
+.tl div:before{content:"";position:absolute;right:-18px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--sheet);border:1.5px solid var(--clay)}
+.tl div.now:before{background:var(--forest);border-color:var(--forest)}
+.tl b{font-weight:600;display:block;line-height:1.5}
+.tl span{font-size:13.5px;color:var(--mute);display:block}
+.pl{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line2)}
+.pl:last-child{border:0}
+.pl em{font-style:normal;font-weight:600;white-space:nowrap}
+.pl small{display:block}
+.none{color:var(--mute);font-size:14px}
+
+/* visit capture */
+.vis-g{display:grid;grid-template-columns:7fr 4fr;gap:22px;align-items:start}
+.vis-g>*{min-width:0}
+.pin{flex:1;min-width:0;display:grid;gap:2px}
+.pin input{width:100%;border:0;border-bottom:1px dashed var(--line);background:transparent;padding:2px 0;font-weight:600;font-size:15.5px;border-radius:0}
+.pin input.sub{font-weight:400;font-size:13px;color:var(--mute)}
+.pin input:focus{outline:0;border-bottom-color:var(--clay)}
+.cap{padding:34px 18px 26px;text-align:center}
+.recbtn{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--ink);background:var(--ink);color:var(--paper2);border-radius:8px;padding:19px 30px;font:500 18px/1 var(--b)}
+.recbtn:hover{background:var(--ink3)}
+.recbtn i{width:12px;height:12px;border-radius:50%;background:var(--clay-l)}
+.cap p{color:var(--mute);font-size:14px;margin-top:14px}
+.ask{max-width:420px;margin:0 auto;border:1px solid var(--ink);border-radius:10px;padding:20px;background:var(--paper2)}
+.ask b{font:600 26px/1.25 var(--d);display:block}
+.ask p{margin-top:6px}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.timer{font:500 40px/1 var(--m);direction:ltr;letter-spacing:1px}
+canvas#lvl{width:100%;max-width:300px;height:44px;display:block;margin:14px auto 18px}
+.cap .lnkb{display:block;margin:16px auto 0}
+.alt{border-top:1px solid var(--line2);background:var(--paper2);padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.alt .lab{width:100%}
+#typeBox{width:100%}
+textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--sheet);padding:12px;line-height:1.8;min-height:150px;resize:vertical}
+textarea:focus{outline:0;border-color:var(--ink)}
+#typeBox .btn{margin-top:10px}
+ul.plain{list-style:none;margin:10px 0 0;padding:0;font-size:14px}
+ul.plain li{padding:8px 0;border-top:1px solid var(--line2);display:flex;justify-content:space-between;gap:10px}
+ul.plain li span{color:var(--mute);font-size:13px;text-align:left}
+ul.plain li b{font:600 22px/1.2 var(--d)}
+
+/* processing */
+.proc{max-width:560px;margin:20px auto 0}
+.pis{padding:22px 18px 6px}
+.pi{display:flex;gap:12px;align-items:center;padding:9px 0;color:var(--mute);font-weight:500}
+.pi .dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+.pi.on{color:var(--ink)}
+.pi.on .dot{border-color:var(--clay);border-top-color:transparent;animation:spin .9s linear infinite}
+.pi.ok{color:var(--forest)}
+.pi.ok .dot{background:var(--forest);border-color:var(--forest)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc .foot{padding:0 18px 20px}
+.proc .hint{margin-top:6px}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* note */
+.note-g{display:grid;grid-template-columns:7fr 5fr;gap:22px;align-items:start}
+.note-g>*{min-width:0}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;padding:8px 10px 0;border-bottom:1px solid var(--line2)}
+.tabs button{font:500 13.5px/1 var(--b);background:none;border:0;border-bottom:2px solid transparent;padding:10px 9px 11px;color:var(--mute)}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--clay)}
+.tabs .c{font:500 11px var(--m);color:var(--clay-d);margin-right:4px}
+.pane{padding:16px 18px;min-height:250px}
+.nr{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.nr:last-of-type{border-bottom:0}
+.nr .k{font:500 13px/2.3 var(--m);color:var(--clay)}
+.nr small{display:block;font-size:11.5px;line-height:1.4}
+.ed{border:1px solid transparent;border-radius:6px;padding:4px 8px;margin:0 -8px;white-space:pre-wrap;min-height:28px;overflow-wrap:anywhere}
+.ed:hover{border-color:var(--line2)}
+.ed:focus{outline:0;border-color:var(--ink);background:#fff}
+.ed[dir=ltr]{text-align:left;font-size:14.5px;line-height:1.65}
+.fld{margin-bottom:14px}
+.fld>.lab{display:block;margin-bottom:4px}
+.med{padding:11px 0;border-bottom:1px solid var(--line2)}
+.med:last-child{border:0}
+.med b{font-weight:600;display:block;direction:ltr;text-align:right}
+.med span{display:block;font:400 12.5px/1.6 var(--m);color:var(--mute);direction:ltr;text-align:right}
+.med em{font-style:normal;font-size:13.5px;display:block}
+.sec{font:500 12px/1 var(--b);color:var(--clay-d);margin:18px 0 4px;display:block}
+.sec:first-child{margin-top:0}
+.code{display:inline-block;font:500 13px var(--m);background:var(--sage);border-radius:4px;padding:2px 8px;direction:ltr;unicode-bidi:isolate}
+.dx{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:11px 0;border-bottom:1px solid var(--line2);align-items:center}
+.dx:last-of-type{border:0}
+.dx div{direction:ltr;text-align:right;font-size:14.5px}
+.dx small{grid-column:1/-1}
+.bub{background:var(--sage);border-radius:12px 12px 12px 2px;padding:12px 14px;max-width:440px;margin:0}
+.pr{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;padding:11px 0;border-bottom:1px solid var(--line2);align-items:baseline}
+.pr:last-of-type{border:0}
+.pr em{font-style:normal;font-weight:600;white-space:nowrap}
+.gaps{border:1px solid #ecd2c2;background:var(--clay-bg);border-radius:8px;padding:12px 14px;color:var(--clay-d);font-size:14px}
+.gaps span{display:block;padding:3px 14px 3px 0;position:relative}
+.gaps span:before{content:"";position:absolute;right:0;top:1em;width:6px;height:1px;background:currentColor}
+.spt{font-size:13.5px}
+.spt div{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line2)}
+.spt div>span:first-child{color:var(--mute);direction:ltr;text-align:right;font-family:var(--m);font-size:12px}
+.spt div>span:last-child{white-space:pre-wrap;overflow-wrap:anywhere}
+.fb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;font-size:13.5px;color:var(--mute)}
+.fb button{border:1px solid var(--line);background:var(--sheet);border-radius:5px;padding:7px 12px;font-size:13px}
+.fb button.on{border-color:var(--ink);background:var(--ink);color:var(--paper2)}
+.qr-b{padding:18px;text-align:center}
+#qrBox{display:inline-block;background:#fff;padding:8px;border:1px solid var(--line);border-radius:8px;line-height:0}
+#qrOk .btn{display:flex;margin:12px auto 0;width:max-content}
+.phone{width:250px;max-width:100%;margin:18px auto 0;background:var(--ink);border-radius:34px;padding:9px;text-align:right}
+.scr{background:var(--paper);border-radius:26px;overflow:hidden;font-size:12.5px;line-height:1.7}
+.scr .hd{padding:22px 16px 12px}
+.scr .hd small{font-size:11px;display:block}
+.scr .hd b{font:600 26px/1.15 var(--d);display:block}
+.blk{background:var(--sheet);border-top:1px solid var(--line2);padding:12px 16px;white-space:pre-wrap}
+.blk h5{margin:0 0 4px;font:500 11px var(--b);color:var(--clay-d);white-space:normal}
+.blk .r{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line2);white-space:normal}
+.blk .r:last-child{border:0}
+.blk .r span:last-child{color:var(--mute);white-space:nowrap}
+.blk .mm{padding:5px 0;white-space:normal}
+.blk .mm b{font-weight:600;display:block;direction:ltr;text-align:right}
+details.tx summary{cursor:pointer;font-weight:500;padding:13px 18px;font-size:14px}
+details.tx .in2{padding:0 18px 16px}
+details.tx .btn{margin-top:10px}
+
+/* reception */
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:10px;background:var(--sheet);margin-bottom:18px;overflow:hidden}
+.kpi.five{grid-template-columns:repeat(5,1fr)}
+.kpi div{padding:14px 16px;border-right:1px solid var(--line2);min-width:0}
+.kpi div:first-child{border-right:0}
+.kpi small{display:block;line-height:1.4}
+.kpi b{font:600 32px/1.2 var(--d);display:block;white-space:nowrap}
+.kpi b i{font:400 13px var(--b);color:var(--mute);font-style:normal}
+.kpi .hot b{color:var(--clay-d)}
+.flt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.flt button{border:1px solid var(--line);background:var(--sheet);border-radius:5px;padding:8px 12px;font:500 13.5px/1.2 var(--b)}
+.flt button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--paper2)}
+.flt button span{font:400 12px var(--m);opacity:.7;margin-right:5px}
+.flt select{width:auto;min-width:160px;padding:7px 12px 7px 32px;font-size:13.5px;border-color:var(--line);margin-right:auto}
+.fu-r{display:grid;grid-template-columns:1.2fr 1.9fr .8fr auto;gap:14px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line2)}
+.fu-r:last-child{border:0}
+.fu-r>*{min-width:0}
+.fu-r b{font-weight:600;line-height:1.5}
+.fu-r small{display:block}
+.fu-r .due{font-size:13px;color:var(--mute)}
+.fu-r .due.late{color:var(--clay-d);font-weight:600}
+.fu-r .due.today{color:var(--ink);font-weight:600}
+.fu-a{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.send{font:500 13px/1 var(--b);padding:10px 12px;border-radius:6px;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);white-space:nowrap}
+.send:hover{background:var(--ink);color:var(--paper2)}
+.send.sent{background:var(--sage);border-color:var(--sage);color:var(--forest)}
+.fu-r.done{background:var(--paper2)}
+.fu-r.done b,.fu-r.done>div{color:var(--mute)}
+.bk-ok{font:500 13px/1 var(--b);padding:10px 12px;border-radius:6px;background:var(--forest);color:#fff;white-space:nowrap}
+.empty{padding:26px 18px;color:var(--mute);text-align:center}
+.sub-h{margin:34px 0 12px}
+.sub-h p{color:var(--mute);font-size:14px;margin-top:2px}
+
+/* management */
+.ex{font:600 12.5px/1 var(--b);color:var(--clay-d);border:1.5px solid var(--clay);border-radius:4px;padding:7px 10px;white-space:nowrap;background:var(--clay-bg)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:28px 30px 22px;box-shadow:0 40px 80px -56px rgba(20,33,27,.45);margin-top:14px}
+.sheet-h{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid var(--ink);padding-bottom:14px}
+.sheet-h b{font:600 28px/1.2 var(--d);display:block}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.mg>*{min-width:0}
+.big{padding:20px 0 18px;border-bottom:1px solid var(--line2)}
+.big .v{font:600 clamp(40px,5vw,60px)/1.05 var(--d);display:block}
+.bar{height:6px;background:var(--line2);border-radius:3px;margin:10px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--forest);border-radius:3px}
+.bar.was i{background:var(--clay-l)}
+.rw{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:12px 0;border-bottom:1px solid var(--line2)}
+.rw b{font:600 26px/1 var(--d);white-space:nowrap}
+.rw em{font-style:normal;font-size:12.5px;color:var(--forest);margin-left:8px}
+.cmp{padding:16px 0;border-bottom:1px solid var(--line2)}
+.cmp .l{display:grid;grid-template-columns:86px 1fr 46px;gap:10px;align-items:center;font-size:13.5px;padding:2px 0}
+.cmp .bar{margin:0}
+.dr{display:grid;grid-template-columns:150px 1fr 46px;gap:10px;align-items:center;font-size:13.5px;padding:4px 0}
+.dr .bar{margin:0}
+.dr.low .bar i{background:var(--clay)}
+.dr.low span:last-child{color:var(--clay-d);font-weight:600}
+.sh3{font:600 23px/1.2 var(--d);margin:26px 0 8px}
+.dt{border-top:1px solid var(--ink)}
+.dt .r{display:grid;grid-template-columns:1.6fr repeat(5,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:14px;align-items:baseline}
+.dt .r.h{font-size:12px;color:var(--mute)}
+.dt .r.t{font-weight:600;border-bottom:0}
+.dt .r span:first-child{font-weight:500}
+.exn{font-size:12.5px;color:var(--mute);margin-top:14px}
+
+/* doctor nav, ownership */
+.dnav{display:flex;justify-content:space-between;align-items:flex-end;gap:10px 20px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:24px}
+.dtabs{display:flex;gap:2px}
+.dtabs button{border:0;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 12px 11px;font:500 15.5px/1.2 var(--b);color:var(--mute);white-space:nowrap}
+.dtabs button[aria-pressed=true]{color:var(--ink);border-color:var(--clay)}
+.dtabs button span{display:inline-block;min-width:18px;border-radius:9px;background:var(--clay);color:#fff;font-size:11px;line-height:18px;text-align:center;padding:0 5px;margin-right:6px}
+.dnav .dept{min-width:240px;margin-bottom:10px}
+.sw{border:1px solid var(--ink);border-radius:10px;background:var(--sheet);padding:18px;margin-bottom:8px}
+.sw .q{font:600 24px/1.2 var(--d);display:block}
+.sw .opts{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--ink);border-radius:8px;overflow:hidden;margin-top:12px}
+.sw .opts button{border:0;background:var(--sheet);padding:15px 14px;text-align:right;display:flex;gap:10px;align-items:center;font:500 15.5px/1.3 var(--b);transition:background .2s,color .2s}
+.sw .opts button+button{border-right:1px solid var(--ink)}
+.sw .opts i{width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;flex:none;display:grid;place-items:center}
+.sw .opts button[aria-pressed=true]{background:var(--ink);color:var(--paper2)}
+.sw .opts button[aria-pressed=true] i:after{content:"";width:8px;height:8px;border-radius:50%;background:var(--clay-l)}
+.sw p{color:var(--mute);font-size:13.5px;margin-top:10px}
+.sec-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:28px 0 10px}
+.sec-h .n{font-size:13px;color:var(--clay-d);font-weight:600}
+.sec-h p{width:100%;color:var(--mute);font-size:13.5px}
+.own{display:block;width:max-content;margin-top:5px;font-size:12.5px}
+.grp{display:flex;justify-content:space-between;gap:10px;padding:9px 18px;background:var(--paper2);border-bottom:1px solid var(--line2);font-size:13px;color:var(--mute)}
+.grp b{color:var(--ink);font-weight:600}
+.fu-r.ro .fu-a{align-items:center}
+.fu-r.ro .fu-a>*{flex:none}
+.dt.four .r{grid-template-columns:1.6fr 1.2fr 1fr 1fr}
+
+/* misc */
+.bbar{display:none}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--on-ink);border-radius:8px;padding:11px 16px;font-weight:500;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.fbk{position:fixed;left:18px;bottom:18px;z-index:40}
+.fbk>button{border:1px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:6px;padding:9px 14px;font:500 13.5px/1.2 var(--b);box-shadow:0 10px 24px -14px rgba(20,33,27,.5)}
+.fbk .box{position:absolute;bottom:48px;left:0;width:290px;max-width:calc(100vw - 32px);background:var(--sheet);border:1px solid var(--ink);border-radius:10px;padding:14px}
+.fbk textarea{min-height:90px;margin:8px 0}
+
+@media(max-width:900px){
+  .home-g,.pf-g,.vis-g,.note-g,.mg{grid-template-columns:1fr}
+  .kpi.five{grid-template-columns:repeat(2,1fr)}
+  .kpi.five div{border-right:0;border-top:1px solid var(--line2)}
+  .kpi.five div:nth-child(-n+2){border-top:0}
+  .kpi.five div:nth-child(even){border-right:1px solid var(--line2)}
+  .kpi.five div:last-child{grid-column:1/-1}
+}
+@media(max-width:700px){
+  body{font-size:15px}
+  .top .in{padding:0 16px;height:52px}
+  .logo{font-size:28px}
+  .roles{display:none}
+  .warn{font-size:11.5px;padding:4px 12px}
+  .page{padding:20px 16px 150px}
+  .ph{margin-bottom:16px;gap:12px}
+  .dept{width:100%;min-width:0}
+  .win-h,.desk-f{padding:12px 14px}
+  .win-b,.pane{padding:14px}
+  .pane{min-height:0}
+  .sch-r{padding:12px 14px;grid-template-columns:46px 1fr auto;gap:10px}
+  .pf-h .btn,.desk-f .btn{width:100%}
+  .cap{padding:26px 14px 22px}
+  .recbtn{width:100%;justify-content:center}
+  .alt{padding:12px 14px}
+  .alt .btn{flex:1 1 100%}
+  .kpi{grid-template-columns:repeat(2,1fr)}
+  .kpi div{border-right:0;border-top:1px solid var(--line2);padding:12px 14px}
+  .kpi div:nth-child(-n+2){border-top:0}
+  .kpi div:nth-child(even){border-right:1px solid var(--line2)}
+  .kpi b{font-size:28px}
+  .flt select{width:100%;margin:0}
+  .fu-r{grid-template-columns:1fr auto;gap:2px 12px;padding:13px 14px}
+  .fu-r>div:nth-child(2){grid-column:1/-1}
+  .fu-r .due{grid-column:2;grid-row:1;text-align:left}
+  .fu-a{grid-column:1/-1;justify-content:stretch;margin-top:8px}
+  .fu-a>*{flex:1;text-align:center}
+  .sheet{padding:20px 16px 16px}
+  .sheet-h{flex-direction:column-reverse;align-items:flex-start}
+  .dr{grid-template-columns:112px 1fr 40px}
+  .dt .r.h{display:none}
+  .dnav{margin-bottom:18px}
+  .dnav .dept{width:100%;min-width:0;order:-1;margin-bottom:4px}
+  .dtabs{width:100%}
+  .dtabs button{flex:1;padding:10px 4px 11px}
+  .sw{padding:14px}
+  .sw .opts button{padding:13px 10px;font-size:14.5px}
+  .grp{padding:9px 14px}
+  .dt .r{grid-template-columns:1fr 1fr;gap:2px 12px;padding:12px 0}
+  .dt .r span:first-child{grid-column:1/-1;font-weight:600;font-size:15px}
+  .dt .r span[data-l]:before{content:attr(data-l) " ";color:var(--mute);font-size:12px}
+  .spt div{grid-template-columns:1fr;gap:0}
+  .pr{grid-template-columns:1fr auto}
+  .bbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;bottom:0;left:0;right:0;z-index:35;background:var(--sheet);border-top:1px solid var(--ink);padding-bottom:env(safe-area-inset-bottom)}
+  .bbar button{border:0;background:none;padding:9px 4px 8px;font:500 12.5px/1.3 var(--b);color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
+  .bbar button+button{border-right:1px solid var(--line2)}
+  .bbar button[aria-pressed=true]{color:var(--ink);box-shadow:0 2px 0 var(--clay) inset}
+  .bbar .badge{position:absolute;top:5px;left:calc(50% - 28px);margin:0}
+  .fbk{bottom:calc(70px + env(safe-area-inset-bottom));left:12px}
+  .toast{bottom:calc(122px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-page="demo">
+
+<header class="top">
+  <div class="in">
+    <a class="logo" href="/" aria-label="رفيق — الصفحة الرئيسية">رفيق<i></i></a>
+    <span class="org"><b>مجمع رفيق الطبي</b> (تجريبي)</span>
+    <nav class="roles" id="roles" aria-label="الدور"></nav>
+    <button class="learn" id="learnBtn" type="button" aria-label="تعلّم هذي الشاشة">تعلّم</button>
+  </div>
+  <div class="warn"><b>نسخة تجريبية.</b> لا تدخل بيانات مريض حقيقي. كل الأسماء والأرقام هنا خيالية. الديمو يشتغل على خوادم Cloudflare للتجربة فقط، وبياناته تنحذف بعد ٧ أيام. بيانات العيادات الفعلية تُستضاف داخل المملكة وفق نظام حماية البيانات الشخصية.</div>
+</header>
+
+<main class="page">
+
+  <!-- DOCTOR -->
+  <section id="v-doc">
+    <div class="dnav" id="dnav" hidden></div>
+    <div id="d-home"></div>
+    <div id="d-fu" hidden></div>
+    <div id="d-nums" hidden></div>
+    <div id="d-file" hidden></div>
+
+    <div id="d-visit" hidden>
+      <button class="back" id="vBack" type="button">رجوع لملف المريض</button>
+      <div class="vis-g">
+        <div class="win">
+          <div class="win-h">
+            <div class="pin"><input id="pName" aria-label="اسم المريض (خيالي)"><input id="pCtx" class="sub" aria-label="سبب الزيارة"></div>
+            <span class="stat" id="capStat"><span class="dot"></span><span id="capStatT">ما بدأ التسجيل</span></span>
+          </div>
+          <div class="cap">
+            <div id="cIdle">
+              <button class="recbtn" id="recBtn" type="button"><i></i>ابدأ التسجيل</button>
+              <p>خلّ الجوال على الطاولة وتكلّم مع المريض طبيعي. دقيقتين إلى أربع تكفي.</p>
+            </div>
+            <div id="cConsent" class="ask" role="group" aria-labelledby="askT" hidden>
+              <b id="askT">المريض موافق على تسجيل الزيارة؟</b>
+              <p>التسجيل ما يبدأ إلا بموافقته، والموافقة تنحفظ مع ملف الزيارة.</p>
+              <div class="row"><button class="btn" id="cYes" type="button">نعم، موافق</button><button class="btn ghost" id="cNo" type="button">لا</button></div>
+            </div>
+            <div id="cAsk" hidden><p style="margin:0">المتصفح يطلب إذن المايكروفون. اضغط «سماح».</p><button class="lnkb" id="cancelAsk" type="button">إلغاء</button></div>
+            <div id="cRec" hidden>
+              <div class="timer" id="timer">00:00</div>
+              <canvas id="lvl" width="520" height="88"></canvas>
+              <button class="btn" id="stopBtn" type="button">إيقاف وكتابة الملف</button>
+              <button class="lnkb" id="cancelRec" type="button">إلغاء التسجيل وحذفه</button>
+            </div>
+            <div class="err" id="recErr" role="alert" hidden></div>
+          </div>
+          <div class="alt" id="altBox">
+            <span class="lab">أو جرّب بدون مايك</span>
+            <button class="btn ghost sm" id="sampleBtn" type="button">شغّل زيارة جاهزة</button>
+            <button class="btn ghost sm" id="typeBtn" type="button">اكتب أو الصق المحادثة</button>
+            <div id="typeBox" hidden>
+              <textarea id="typed" placeholder="الدكتور: ...&#10;المريض: ..."></textarea>
+              <button class="btn sm" id="typedGo" type="button">اكتب الملف من النص</button>
+            </div>
+          </div>
+        </div>
+        <aside>
+          <div class="card">
+            <h3>وش يطلع من الزيارة</h3>
+            <ul class="plain">
+              <li>ملف SOAP<span>بالإنجليزي</span></li>
+              <li>الأدوية والفحوصات<span>مثل ما انقالت</span></li>
+              <li>أكواد ICD-10<span>الطبيب يعتمدها</span></li>
+              <li>ملخص ورسالة للمريض<span>بالعربي</span></li>
+              <li>الخطة والمتابعات<span>تنزل للاستقبال</span></li>
+              <li>نواقص التوثيق<span>تنبيه للطبيب</span></li>
+            </ul>
+          </div>
+          <div class="card"><p class="never">رفيق يوثّق اللي قاله الطبيب بس. ما يشخّص، ولا يقترح علاج.</p></div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="d-proc" hidden>
+      <div class="win proc">
+        <div class="win-h">
+          <div class="who-p"><b id="prWho">يكتب ملف الزيارة</b><small>رفيق يكتب اللي انقال في الزيارة بس</small></div>
+          <span class="stat rec" id="prStat"><span class="dot"></span><span id="prT"></span></span>
+        </div>
+        <div class="pis">
+          <div class="pi" id="p1"><span class="dot"></span><span id="p1t">يحوّل الصوت إلى نص</span></div>
+          <div class="pi" id="p2"><span class="dot"></span><span>يكتب الملف، الأكواد، والمتابعات</span></div>
+        </div>
+        <div class="foot">
+          <p class="hint" id="prHint">ياخذ عادةً من ١٥ إلى ٢٥ ثانية. خلّ الصفحة مفتوحة.</p>
+          <div class="err" id="procErr" role="alert" hidden></div>
+          <div class="acts" id="procActs" hidden>
+            <button class="btn" id="retryBtn" type="button">حاول مرة ثانية</button>
+            <button class="btn ghost" id="backBtn" type="button">ارجع</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="d-note" hidden>
+      <div class="note-g">
+        <div>
+          <div class="win">
+            <div class="win-h">
+              <div class="who-p"><b id="rTitle">ملف الزيارة</b><small id="rMeta"></small></div>
+              <span class="stat" id="rState"><span class="dot"></span><span id="rStateT">بانتظار اعتماد الطبيب</span></span>
+            </div>
+            <div class="tabs" id="tabs" role="tablist"></div>
+            <div id="panes"></div>
+            <div class="desk-f">
+              <button class="btn" id="approveBtn" type="button">اعتمد الملف</button>
+              <span class="drop" id="apNote">ولا شيء يدخل الملف قبل اعتماد الطبيب. تقدر تعدّل أي خانة قبل.</span>
+            </div>
+          </div>
+          <div class="fb" id="fbRow">هل الملف مطابق للي انقال؟
+            <button type="button" data-fb="yes">مطابق</button><button type="button" data-fb="partly">فيه أخطاء بسيطة</button><button type="button" data-fb="no">مو مطابق</button>
+          </div>
+        </div>
+        <aside>
+          <div class="win" id="qrPanel" hidden>
+            <div class="win-h"><div class="who-p"><b>المريض يمسح الكود، وملفه في جيبه</b><small>بدون تطبيق وبدون تسجيل</small></div></div>
+            <div class="qr-b">
+              <p class="none" id="qrWait">نجهّز كود المريض…</p>
+              <div id="qrOk" hidden><div id="qrBox"></div><a class="btn ghost sm" id="qrLink" target="_blank" rel="noopener">افتح صفحة المريض</a></div>
+              <div class="err" id="qrErr" role="alert" hidden></div>
+              <button class="btn ghost sm" id="qrRetry" type="button" style="margin-top:10px" hidden>جهّز الكود مرة ثانية</button>
+              <div class="phone" aria-label="معاينة صفحة المريض"><div class="scr" id="ptPrev"></div></div>
+              <small style="display:block;margin-top:10px">معاينة: هذا اللي يشوفه المريض في جواله</small>
+            </div>
+            <div class="desk-f">
+              <button class="btn sm" id="goRec" type="button">شوف المتابعات عند الاستقبال</button>
+              <button class="btn ghost sm" id="nextBtn" type="button">المريض التالي</button>
+            </div>
+          </div>
+          <div class="win">
+            <details class="tx"><summary>النص اللي سمعه رفيق</summary>
+              <div class="in2">
+                <small>تقدر تعدّل النص وتعيد كتابة الملف منه.</small>
+                <textarea id="txEdit" style="margin-top:8px"></textarea>
+                <button class="btn ghost sm" id="regenBtn" type="button">أعد كتابة الملف من النص</button>
+              </div>
+            </details>
+          </div>
+          <button class="lnkb" id="newBtn" type="button" style="margin-top:16px">زيارة جديدة</button>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECEPTION -->
+  <section id="v-rec" hidden></section>
+
+  <!-- MANAGEMENT -->
+  <section id="v-mgt" hidden></section>
+
+  <!-- فريق نجاحك -->
+  <section id="v-team" hidden></section>
+</main>
+
+<nav class="bbar" id="bbar" aria-label="الدور"></nav>
+<div class="toast" id="toast" role="status"></div>
+<div class="fbk"><button id="fbOpen" type="button">ملاحظة؟</button>
+  <div class="box" id="fbBox" hidden><b>وش ما عجبك أو وين علقت؟</b><textarea id="fbTxt"></textarea><button class="btn sm" id="fbSend" type="button">أرسل</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="/assets/track.js"></script>
+<script src="/assets/samples.js"></script>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var SP=window.RQ_SPECS||{},SEED=window.RQ_SEED||[],RQ=window.RQ||{};
+var track=window.track||function(){};
+var CLINIC='مجمع رفيق الطبي (تجريبي)';
+var S={sp:'ob',role:'doc',dscr:'home',pid:null,note:null,transcript:'',source:'',approved:false,consent:false,
+  imp:[],visits:[],fu:[],plans:[],sent:0,back:0,planValue:0,seedDone:{},planDone:{},stat:{},waSent:{},flt:'all',fdept:'',fdoc:'',mode:{},own:{}};
+try{var sv=JSON.parse(localStorage.getItem('rq_state')||'null');if(sv){['visits','fu','plans'].forEach(function(k){if(Array.isArray(sv[k]))S[k]=sv[k]});
+  ['sent','back','planValue'].forEach(function(k){S[k]=Number(sv[k])||0});['seedDone','planDone','stat','mode','own'].forEach(function(k){if(sv[k]&&typeof sv[k]==='object')S[k]=sv[k]})}}catch(e){}
+function save(){try{localStorage.setItem('rq_state',JSON.stringify({visits:S.visits,fu:S.fu,plans:S.plans,sent:S.sent,back:S.back,planValue:S.planValue,seedDone:S.seedDone,planDone:S.planDone,stat:S.stat,mode:S.mode,own:S.own}))}catch(e){}}
+function step(s){window.__rqStep=s}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var toastT=0;
+function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('on')},3000)}
+function ar(n){return Number(n||0).toLocaleString('ar-SA')}
+function dg(s){return String(s).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d]})}
+function A(x){return Array.isArray(x)?x:[]}
+function sar(n){return ar(n)+' ر.س'}
+
+/* ---------- fictional clinic data ---------- */
+var ORDER=['ob','dental','ortho','physio','general','peds','derm','psych'].filter(function(k){return SP[k]});
+var DOC={ob:'د. هند',dental:'د. ماجد',ortho:'د. تركي',physio:'أ. ريما',general:'د. سامي',peds:'د. أمل',derm:'د. لمى',psych:'أ. دانة'};
+/* who follows up after the visit: each doctor's default; the doctor can flip it in «متابعاتي» */
+var MODE={ob:'doctor',dental:'reception',ortho:'reception',physio:'doctor',general:'reception',peds:'reception',derm:'doctor',psych:'doctor'};
+function mode(sp){return S.mode[sp]==='doctor'||S.mode[sp]==='reception'?S.mode[sp]:(MODE[sp]||'reception')}
+var MODE_T={doctor:'بنفسه',reception:'الاستقبال'};
+/* example month per doctor: [follow-ups, completed %] */
+var DFU={ob:[38,84],dental:[44,79],ortho:[26,58],physio:[52,91],general:[41,74],peds:[33,81],derm:[29,77],psych:[21,93]};
+var TIMES=['09:00','09:20','09:40','10:00','10:20','10:40','11:00','11:20'];
+var NO='لا يوجد';
+/* [name, age, reason, type, allergy, chronic, meds, previous visits [when,title,note], open plans [item,value,state]] — row 4 is the samples.js patient */
+var DATA={
+ob:[
+ ['ريما',32,'حمل ١٢ أسبوع · أول زيارة','جديدة',NO,NO,['Folic acid 5 mg'],[],[]],
+ ['أمل',41,'متابعة تكيس المبايض','متابعة','بنسلين','تكيس المبايض',['Metformin 500 mg'],[['قبل ٣ شهور','سونار حوض ومتابعة','وثّقت الطبيبة انتظام الدورة مع العلاج.']],[]],
+ ['جواهر',26,'مراجعة بعد الولادة · ٦ أسابيع','متابعة',NO,NO,['Ferrous sulfate'],[['قبل ٦ أسابيع','ولادة طبيعية','خروج بعد يوم، بدون مضاعفات موثّقة.']],[]],
+ ['','','','متابعة',NO,'أنيميا في الحمل',['Ferrous sulfate · حبة يومياً','Folic acid 5 mg'],[['قبل ٤ أسابيع','متابعة حمل · الأسبوع ٢٠','سونار تفصيلي. Hb 10.5 وبدأت الحديد.'],['قبل ٨ أسابيع','متابعة حمل · الأسبوع ١٦','فحوصات الحمل الأولى مكتملة.']],[['اختبار السكر بين الأسبوع ٢٤ و٢٨',0,'ما انحجز']]],
+ ['نوف',35,'حمل ٣٤ أسبوع · سكري حمل','متابعة',NO,'سكري حمل',['Insulin حسب خطة الطبيبة'],[['قبل أسبوعين','متابعة حمل · الأسبوع ٣٢','قراءات السكر المنزلية انراجعت.']],[['سونار نمو · الأسبوع ٣٦',300,'مقبول · ما انحجز']]],
+ ['هيفاء',29,'تأخر حمل · استشارة','جديدة',NO,NO,[],[],[]],
+ ['مها',48,'نزيف غير منتظم','متابعة','سلفا','ضغط',['Amlodipine 5 mg'],[['قبل شهر','استشارة','انطلب سونار وتحاليل هرمونات.']],[['سونار مهبلي',250,'مقبول · ما انحجز']]],
+ ['لولوة',24,'حمل ٨ أسابيع · غثيان','جديدة',NO,NO,[],[],[]]],
+dental:[
+ ['سلطان',39,'ألم بعد حشوة','متابعة',NO,NO,[],[['قبل أسبوعين','حشوة سن ١٦','حشوة كمبوزيت.']],[['علاج عصب سن ١٦',1100,'مقبول · ما انحجز']]],
+ ['العنود',27,'تنظيف دوري','متابعة',NO,NO,[],[['قبل ٦ شهور','تنظيف وفحص','ما انوثّق تسوس.']],[]],
+ ['بدر',45,'تركيب تاج · القياس','متابعة','بنسلين','سكري نوع ٢',['Metformin 1000 mg'],[['قبل ٣ أسابيع','علاج عصب سن ٤٦','اكتمل العلاج.']],[['تاج زيركون سن ٤٦',1800,'مقبول']]],
+ ['','','','جديدة',NO,NO,[],[['قبل سنة','فحص وتنظيف','أشعة بانوراما محفوظة في الملف.']],[]],
+ ['شهد',19,'تقويم · زيارة شهرية','متابعة',NO,NO,[],[['قبل شهر','شدّ التقويم','الزيارة ٧ من ١٨.']],[['تقويم · باقي ١١ زيارة',3300,'جاري']]],
+ ['ناصر',52,'زراعة · استشارة','جديدة',NO,'ضغط',['Amlodipine 5 mg'],[],[]],
+ ['جود','٨ سنوات','تسوس أسنان لبنية','جديدة',NO,NO,[],[],[]],
+ ['منيرة',61,'طقم جزئي · تعديل','متابعة','أسبرين','سكري وضغط',['Metformin','Losartan'],[['قبل شهرين','تسليم الطقم الجزئي','']],[]]],
+ortho:[
+ ['حمد',33,'كسر رسغ · فك الجبس','متابعة',NO,NO,[],[['قبل ٦ أسابيع','كسر في الرسغ الأيسر','تجبير. الأشعة مرفقة.']],[['علاج طبيعي ٨ جلسات',1200,'مقترح']]],
+ ['وفاء',57,'خشونة الركبتين','متابعة',NO,'سكري نوع ٢',['Metformin','Paracetamol عند الحاجة'],[['قبل ٣ شهور','إبرة في الركبة اليمنى','وثّق الطبيب تحسن الألم.']],[]],
+ ['ياسر',24,'إصابة ملعب · الكاحل','جديدة',NO,NO,[],[],[]],
+ ['','','','جديدة',NO,NO,[],[],[]],
+ ['صالح',68,'ألم في الورك','متابعة',NO,'ضغط وقلب',['Bisoprolol','Aspirin 81 mg'],[['قبل شهر','استشارة','انطلبت أشعة للحوض.']],[]],
+ ['رهف',16,'انحناء الظهر · متابعة','متابعة',NO,NO,[],[['قبل ٦ شهور','أشعة العمود الفقري','محفوظة في الملف.']],[]],
+ ['ماجد',41,'ألم في الكتف','جديدة','مسكنات NSAIDs',NO,[],[],[]],
+ ['أبو تركي',59,'بعد تبديل الركبة · ٣ شهور','متابعة',NO,'سكري',['Metformin'],[['قبل ٣ شهور','تبديل مفصل الركبة اليمنى','']],[['علاج طبيعي · باقي ٦ جلسات',900,'جاري']]]],
+physio:[
+ ['فيصل',36,'بعد الرباط الصليبي · جلسة ٩ من ٢٠','متابعة',NO,NO,[],[['قبل ٣ أيام','الجلسة ٨','ثني الركبة ١١٠ درجة.']],[['باقة ٢٠ جلسة · باقي ١١',1650,'جاري']]],
+ ['حصة',62,'خشونة الركبة · جلسة ٣ من ١٢','متابعة',NO,'ضغط',['Amlodipine'],[['قبل ٤ أيام','الجلسة ٢','الألم ٦ من ١٠.']],[['باقة ١٢ جلسة · باقي ٩',1350,'جاري']]],
+ ['تركي',28,'ألم الرقبة · تقييم أولي','جديدة',NO,NO,[],[],[]],
+ ['','','','متابعة',NO,NO,['Paracetamol عند الحاجة'],[['قبل ٣ أيام','الجلسة ٣ من ١٠','الألم ٧ من ١٠.'],['قبل أسبوعين','تقييم أولي · محوّلة من العظام','الألم ٨ من ١٠. خطة ١٠ جلسات.']],[['باقة ١٠ جلسات · باقي ٧',1050,'جاري']]],
+ ['سعود',45,'كتف متجمد · جلسة ٦ من ١٢','متابعة',NO,'سكري',['Metformin'],[['قبل أسبوع','الجلسة ٥','رفع الذراع ١٢٠ درجة.']],[['باقة ١٢ جلسة · باقي ٦',900,'جاري']]],
+ ['دلال',31,'ألم الظهر بعد الولادة','جديدة',NO,NO,[],[],[]],
+ ['عمر','١٢ سنة','تأهيل بعد كسر المرفق','متابعة',NO,NO,[],[['قبل أسبوع','الجلسة ٢ من ٨','']],[]],
+ ['أم خالد',66,'توازن ومشي · جلسة ٢ من ٨','متابعة',NO,'سكري وضغط',['Metformin','Losartan'],[['قبل ٥ أيام','تقييم أولي','خطة ٨ جلسات.']],[]]],
+general:[
+ ['سعد',47,'ضغط · مراجعة','متابعة',NO,'ضغط',['Losartan 50 mg'],[['قبل ٣ شهور','مراجعة الضغط','']],[]],
+ ['منال',34,'خمول · نتيجة تحاليل','متابعة',NO,'قصور الغدة الدرقية',['Levothyroxine 50 mcg'],[['قبل أسبوع','استشارة','انطلب TSH و CBC.']],[]],
+ ['راكان',22,'التهاب حلق','جديدة','بنسلين',NO,[],[],[]],
+ ['','','','متابعة',NO,'سكري نوع ٢ · ضغط',['Metformin 500 mg مرتين يومياً','Amlodipine 5 mg'],[['قبل ٣ شهور','مراجعة السكري','HbA1c 7.5'],['قبل ٦ شهور','مراجعة السكري','']],[['فحص العين السنوي',0,'ما انحجز']]],
+ ['فاطمة',58,'سكري · مراجعة','متابعة',NO,'سكري نوع ٢ · دهون',['Metformin','Atorvastatin 20 mg'],[['قبل ٣ شهور','مراجعة السكري','HbA1c 7.1']],[]],
+ ['عادل',40,'فحص دوري للعمل','جديدة',NO,NO,[],[],[]],
+ ['أبو ناصر',71,'ضيق نفس مع المجهود','متابعة',NO,'قلب · ضغط',['Bisoprolol','Furosemide'],[['قبل شهر','مراجعة','انطلب إيكو للقلب.']],[['إيكو القلب',450,'مقبول · ما انحجز']]],
+ ['ريان',29,'حموضة','جديدة',NO,NO,[],[],[]]],
+peds:[
+ ['لين','٤ سنوات','كحة من أسبوع','جديدة',NO,NO,[],[],[]],
+ ['فارس','٦ شهور','تطعيم ٦ شهور','متابعة',NO,NO,[],[['قبل شهرين','تطعيم ٤ شهور','الوزن ٦٫٨ كجم.']],[]],
+ ['جنى','٩ سنوات','ربو · مراجعة','متابعة',NO,'ربو',['Salbutamol بخاخ عند الحاجة'],[['قبل ٣ شهور','مراجعة الربو','']],[]],
+ ['','','','جديدة',NO,NO,[],[['قبل ٦ شهور','تطعيم ١٢ شهر','الوزن ٩٫٤ كجم.']],[['تطعيم ١٨ شهر',0,'متأخر']]],
+ ['سلمان','٣ سنوات','إسهال','جديدة',NO,NO,[],[],[]],
+ ['غلا','سنتين','متابعة الوزن','متابعة','بيض',NO,[],[['قبل شهرين','متابعة النمو','الوزن ١٠٫١ كجم.']],[]],
+ ['عبدالعزيز','٧ سنوات','ألم بطن متكرر','جديدة',NO,NO,[],[],[]],
+ ['ميار','شهرين','تطعيم شهرين','متابعة',NO,NO,[],[],[]]],
+derm:[
+ ['عبير',28,'ليزر · الجلسة ٣ من ٦','متابعة',NO,NO,[],[['قبل ٥ أسابيع','ليزر · الجلسة ٢','الإقرار والصور في الملف.']],[['باقة ليزر · باقي ٤ جلسات',1200,'جاري']]],
+ ['مشعل',19,'حب شباب · متابعة','متابعة',NO,NO,['Isotretinoin 20 mg'],[['قبل شهر','متابعة','انطلبت تحاليل دهون ووظائف كبد.']],[]],
+ ['نجلاء',44,'بوتوكس · استشارة','جديدة',NO,NO,[],[],[]],
+ ['','','','جديدة',NO,NO,[],[],[]],
+ ['هند',36,'إكزيما','متابعة','عطور',  'إكزيما',['كريم مرطّب','Hydrocortisone 1%'],[['قبل شهرين','متابعة','']],[]],
+ ['طلال',50,'شامة · فحص','جديدة',NO,'ضغط',['Losartan'],[],[]],
+ ['سما',25,'تساقط شعر','جديدة',NO,NO,[],[],[]],
+ ['أسماء',39,'تقشير · الجلسة ٢ من ٤','متابعة',NO,NO,[],[['قبل ٣ أسابيع','تقشير · الجلسة ١','']],[['باقة تقشير · باقي ٣ جلسات',900,'جاري']]]],
+psych:[
+ ['هشام',34,'الجلسة ٦','متابعة',NO,NO,['Sertraline 50 mg'],[['قبل أسبوعين','الجلسة ٥','PHQ-9: 11']],[['برنامج ١٢ جلسة · باقي ٧',2100,'جاري']]],
+ ['رزان',22,'الجلسة ٢','متابعة',NO,NO,[],[['قبل أسبوع','الجلسة الأولى','']],[]],
+ ['أبو سعود',55,'أرق · تقييم','جديدة',NO,'ضغط',['Amlodipine'],[],[]],
+ ['','','','متابعة',NO,NO,[],[['قبل أسبوع','الجلسة ٢','GAD-7: 14'],['قبل أسبوعين','الجلسة الأولى','GAD-7: 15']],[['برنامج ٨ جلسات · باقي ٥',1500,'جاري']]],
+ ['غدير',30,'تقييم أولي','جديدة',NO,NO,[],[],[]],
+ ['ثامر',41,'الجلسة ٤','متابعة',NO,NO,[],[['قبل أسبوع','الجلسة ٣','']],[]],
+ ['شوق','١٧ سنة','تقييم أولي · مع ولي الأمر','جديدة',NO,NO,[],[],[]],
+ ['نادية',48,'متابعة دوائية','متابعة',NO,NO,['Escitalopram 10 mg'],[['قبل شهر','متابعة دوائية','']],[]]]
+};
+/* extra reception rows on top of RQ_SEED */
+var XFU=[
+ {patient:'عبدالرحمن',sp:'ortho',reason:'مراجعة بعد ٦ أسابيع من العلاج الطبيعي',due:-1,value:0},
+ {patient:'يوسف',sp:'peds',reason:'تطعيم ١٨ شهر متأخر',due:0,value:0},
+ {patient:'ريم',sp:'derm',reason:'ليزر · الجلسة الثانية من الباقة',due:3,value:300},
+ {patient:'ليان',sp:'psych',reason:'الجلسة الجاية',due:2,value:250},
+ {patient:'نوف',sp:'ob',reason:'سونار نمو · الأسبوع ٣٦',due:5,value:300},
+ {patient:'بدر',sp:'dental',reason:'تركيب التاج بعد القياس',due:6,value:1800},
+ {patient:'فاطمة',sp:'general',reason:'تحاليل قبل موعد السكري',due:-6,value:180},
+ {patient:'حمد',sp:'ortho',reason:'يبدأ العلاج الطبيعي بعد فك الجبس',due:12,value:1200},
+ {patient:'جواهر',sp:'ob',reason:'تحليل الحديد بعد الولادة',due:-2,value:0,owner:'reception',sent:1},
+ {patient:'مها',sp:'ob',reason:'موعد نتيجة السونار',due:1,value:250,owner:'reception'},
+ {patient:'أمل',sp:'ob',reason:'مراجعة تكيس المبايض بعد ٣ شهور',due:-4,value:0,owner:'reception',done:1},
+ {patient:'لولوة',sp:'ob',reason:'سونار الأسبوع ١٢',due:4,value:300},
+ {patient:'شهد',sp:'dental',reason:'زيارة التقويم الشهرية',due:2,value:300,owner:'doctor'},
+ {patient:'سعود',sp:'physio',reason:'الجلسة ٧ من ١٢',due:0,value:150},
+ {patient:'أسماء',sp:'derm',reason:'تقشير · الجلسة الثالثة',due:-1,value:300},
+ {patient:'هشام',sp:'psych',reason:'الجلسة ٧',due:1,value:300,sent:1},
+ {patient:'جنى',sp:'peds',reason:'مراجعة الربو',due:3,value:0},
+ {patient:'سعد',sp:'general',reason:'قياسات الضغط المنزلية',due:0,value:0,owner:'doctor'}
+];
+var XPL=[
+ {patient:'خالد',sp:'dental',item:'سن ٤٧ · حشوة تجميلية',value:350,days:3},
+ {patient:'عبير',sp:'derm',item:'باقة ليزر ٦ جلسات',value:1800,days:5},
+ {patient:'فيصل',sp:'ortho',item:'علاج طبيعي ١٢ جلسة',value:1800,days:2},
+ {patient:'سلمان',sp:'dental',item:'تاج زيركون سن ٣٦',value:1800,days:9},
+ {patient:'غادة',sp:'physio',item:'باقة ١٠ جلسات',value:1500,days:1},
+ {patient:'أبو ناصر',sp:'general',item:'إيكو القلب',value:450,days:4}
+];
+function spName(k){return SP[k]?SP[k].name:''}
+function spOf(label){var l=String(label||'');for(var i=0;i<ORDER.length;i++){var n=spName(ORDER[i]);if(l&&(n.indexOf(l)>-1||l.indexOf(n)>-1||n.split(' ')[0]===l.split(' ')[0]))return ORDER[i]}return ''}
+function ageTxt(a){if(a===''||a==null)return 'مريض مستورد';return typeof a==='number'?ar(a)+' سنة':String(a)}
+/* imported demo patients (kept in D1 for this demo session, deleted after 7 days) */
+function isoToday(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function impSp(r){var n=String(r.dr||'').replace(/^(د\.|أ\.|دكتور|دكتورة|الدكتور|الدكتورة)\s*/,'').trim(),i,k;
+  if(n)for(i=0;i<ORDER.length;i++){k=ORDER[i];if(DOC[k].replace(/^(د\.|أ\.)\s*/,'')===n)return k}
+  return spOf(r.s)||ORDER[0]}
+function impSplit(){var t=isoToday(),a={},f=[];A(S.imp).forEach(function(r,ix){var sp=impSp(r);
+  if(r.d&&r.d>=t)(a[sp]=a[sp]||[]).push({r:r,ix:ix});else f.push({r:r,ix:ix,sp:sp})});
+  Object.keys(a).forEach(function(k){a[k].sort(function(x,y){return x.r.d<y.r.d?-1:x.r.d>y.r.d?1:0})});return{appts:a,fu:f}}
+function pts(sp){var s=SP[sp].patient,si=ORDER.indexOf(sp);
+  var base=DATA[sp].map(function(r,i){var sm=i===3;
+    return{id:sp+'-'+i,i:i,sp:sp,time:TIMES[i],n:sm?s.name:r[0],a:sm?s.age:r[1],r:sm?s.ctx:r[2],t:r[3],al:r[4],ch:r[5],m:r[6],v:r[7],p:r[8],sample:sm,
+      mrn:'MR-'+(20418+si*37+i*113),pay:['تأمين · فئة ب','نقدي','تأمين · فئة أ','نقدي'][(i+si)%4]}});
+  var ex=impSplit().appts[sp]||[],t=isoToday();
+  ex.forEach(function(e,j){var i=DATA[sp].length+j,fut=e.r.d>t;
+    base.push({id:sp+'-'+i,i:i,sp:sp,time:fut?dg(e.r.d.slice(5).replace('-','/')):TIMES[(j+4)%TIMES.length],n:e.r.n,a:'',r:'موعد مستورد (تجريبي)'+(fut?' · '+dg(e.r.d):''),t:'موعد',al:NO,ch:NO,m:[],v:[],p:[],sample:false,imp:true,
+      mrn:'MR-'+(30000+si*1000+j),pay:'نقدي'})});
+  return base}
+function pById(id){var a=String(id||'').split('-');return SP[a[0]]?pts(a[0])[+a[1]]:null}
+function pStat(p){if(S.stat[p.id])return 'done';var cur=(S.pid&&S.pid.indexOf(p.sp+'-')===0&&S.dscr!=='home'&&S.dscr!=='file')?S.pid:'';
+  if(!cur)for(var i=3;i<8;i++)if(!S.stat[p.sp+'-'+i]){cur=p.sp+'-'+i;break}
+  if(p.id===cur)return 'in';return p.i<3?'done':'wait'}
+var ST={wait:'انتظار',in:'داخل',done:'تم'};
+
+/* ---------- roles ---------- */
+var ROLES=[['doc','الطبيب','<path d="M5 3v5a4 4 0 008 0V3M9 12v2a4 4 0 008 0v-1"/><circle cx="17" cy="11" r="2"/>'],
+           ['rec','الاستقبال','<path d="M4 6h14M4 11h14M4 16h9"/>'],
+           ['mgt','الإدارة','<path d="M5 18V10M11 18V4M17 18v-6"/>'],
+           ['team','فريق نجاحك','<circle cx="8" cy="8" r="3"/><circle cx="15" cy="9" r="2.2"/><path d="M3 18c0-3 2.4-5 5-5s5 2 5 5M13 15c.7-.6 1.4-.8 2-.8 2 0 4 1.4 4 4"/>']];
+var VNAME={doc:'visit',rec:'follow',mgt:'report',team:'team'};
+function rolesHtml(){return ROLES.map(function(r){return '<button type="button" data-role="'+r[0]+'" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">'+r[2]+'</svg><span>'+r[1]+'</span>'+(r[0]==='rec'?'<span class="badge" data-badge hidden></span>':'')+(r[0]==='team'?'<span class="badge" data-prog></span>':'')+'</button>'}).join('')}
+$('roles').innerHTML=rolesHtml();$('bbar').innerHTML=rolesHtml();
+document.querySelectorAll('.bbar svg').forEach(function(s){s.style.display='block'});
+var DSTEP={home:'schedule',fu:'my_followups',nums:'my_numbers',file:'file',visit:'setup',proc:'writing',note:'result'};
+var DTOP={home:1,fu:1,nums:1};
+function go(role,silent){
+  if(role!=='doc')discardRec();
+  S.role=role;
+  ['doc','rec','mgt','team'].forEach(function(r){$('v-'+r).hidden=r!==role});
+  document.querySelectorAll('[data-role]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-role')===role?'true':'false')});
+  if(role==='rec')renderRec();if(role==='mgt'){renderMgt();window.RQT&&RQT.seenReport()}if(role==='team')window.RQT&&RQT.render();if(role==='doc')redoc();window.RQT&&RQT.refresh();
+  if(!silent){track('role_switch',{role:role});track('view_switch',{v:VNAME[role]});if(role==='mgt')track('report_view')}
+  step(role==='doc'?(S.approved&&S.dscr==='note'?'approved':DSTEP[S.dscr]):VNAME[role]);scrollTo(0,0);
+}
+document.querySelectorAll('[data-role]').forEach(function(b){b.onclick=function(){go(b.getAttribute('data-role'))}});
+function badge(){var n=allFU().filter(function(f){return f.owner==='reception'&&!f.done&&f.d<=0}).length;document.querySelectorAll('[data-badge]').forEach(function(b){b.textContent=ar(n);b.hidden=!n})}
+function dshow(k){['home','fu','nums','file','visit','proc','note'].forEach(function(x){$('d-'+x).hidden=x!==k});S.dscr=k;$('dnav').hidden=!DTOP[k];if(DTOP[k])renderDnav();scrollTo(0,0)}
+/* the doctor's own nav: schedule, his follow-ups, his numbers. The selector is "who is logged in". */
+function renderDnav(){
+  var n=docFU(S.sp).filter(function(f){return f.owner==='doctor'&&!f.done}).length;
+  $('dnav').innerHTML='<div class="dtabs">'+[['home','عيادتي اليوم'],['fu','متابعاتي'],['nums','أرقامي']].map(function(t){return '<button type="button" data-dt="'+t[0]+'" aria-pressed="'+(S.dscr===t[0])+'">'+t[1]+(t[0]==='fu'&&n?'<span>'+ar(n)+'</span>':'')+'</button>'}).join('')+'</div>'+
+   '<label class="dept"><span>داخل باسم</span><select id="deptSel">'+ORDER.map(function(k){return '<option value="'+k+'"'+(k===S.sp?' selected':'')+'>'+esc(DOC[k])+' · '+esc(spName(k))+'</option>'}).join('')+'</select></label>';
+  document.querySelectorAll('[data-dt]').forEach(function(b){b.onclick=function(){dtop(b.getAttribute('data-dt'))}});
+  $('deptSel').onchange=function(){discardRec();S.sp=this.value;S.pid=null;track('specialty_select',{sp:S.sp});dtop(S.dscr,true)};
+}
+function redoc(){if(S.dscr==='home')renderHome();else if(S.dscr==='fu')renderMyFu();else if(S.dscr==='nums')renderNums();if(DTOP[S.dscr])renderDnav()}
+function dtop(k,silent){
+  discardRec();dshow(k);redoc();step(DSTEP[k]);
+  if(!silent&&k==='fu')track('doctor_followups_view',{doctor:S.sp,mode:mode(S.sp)});
+  if(!silent&&k==='nums')track('doctor_numbers_view',{doctor:S.sp});
+}
+
+/* ---------- doctor: schedule ---------- */
+var qp=new URLSearchParams(location.search);if(SP[qp.get('sp')])S.sp=qp.get('sp');
+function renderHome(){
+  var L=pts(S.sp),c={wait:0,in:0,done:0};L.forEach(function(p){p.st=pStat(p);c[p.st]++});
+  var date='';try{date=new Date().toLocaleDateString('ar-SA-u-ca-gregory',{weekday:'long',day:'numeric',month:'long'})}catch(e){}
+  var inP=L.filter(function(p){return p.st==='in'})[0];
+  var mineN=S.visits.filter(function(v){return v.sp===S.sp}).length,myL=docFU(S.sp).filter(function(f){return !f.done});
+  var onMe=myL.filter(function(f){return f.owner==='doctor'}).length,onRec=myL.length-onMe;
+  $('d-home').innerHTML=
+   '<div class="ph"><div><span class="eyebrow">'+esc(date)+'</span><h1>عيادتي اليوم</h1><p>'+esc(DOC[S.sp])+' · عيادة '+esc(spName(S.sp))+'</p></div></div>'+
+   '<div class="home-g"><div class="win"><div class="win-h"><div class="who-p"><b>جدول المواعيد</b></div>'+
+   '<div class="cnt"><span><b>'+ar(L.length)+'</b> مواعيد</span><span><b>'+ar(c.done)+'</b> تم</span><span><b>'+ar(c.in)+'</b> داخل</span><span><b>'+ar(c.wait)+'</b> انتظار</span></div></div>'+
+   L.map(function(p){return '<button type="button" class="sch-r s-'+p.st+'" data-p="'+p.i+'"><span class="tm">'+p.time+'</span><span><b>'+esc(p.n)+' · '+esc(ageTxt(p.a))+'</b><small>'+esc(p.r)+' · '+esc(p.t)+'</small></span><span class="pill '+p.st+'">'+ST[p.st]+'</span></button>'}).join('')+
+   '</div><aside>'+
+   (inP?'<div class="card"><h3>'+esc(inP.n)+' داخل العيادة الحين</h3><p>افتح الملف، وابدأ الزيارة. رفيق يسمع ويكتب، وأنت تعتمد.</p><button class="btn" type="button" id="openIn">افتح ملف '+esc(inP.n)+'</button></div>':'')+
+   '<div class="card"><h3>أرقامي</h3><ul class="plain"><li>ملفات اعتمدتها<b>'+ar(mineN)+'</b></li><li>متابعات عليّ أنا<b>'+ar(onMe)+'</b></li><li>متابعات عند الاستقبال<b>'+ar(onRec)+'</b></li></ul><button class="btn ghost sm" type="button" id="toNums">كل أرقامي</button></div>'+
+   '<div class="card"><p class="never">رفيق يوثّق اللي قاله الطبيب بس. ما يشخّص، ولا يقترح علاج.</p></div>'+
+   '</aside></div>';
+  $('toNums').onclick=function(){dtop('nums')};
+  document.querySelectorAll('.sch-r').forEach(function(b){b.onclick=function(){var p=pts(S.sp)[+b.getAttribute('data-p')];track('schedule_open_patient',{sp:S.sp,i:p.i,status:pStat(p)});openFile(p.id)}});
+  if($('openIn'))$('openIn').onclick=function(){track('schedule_open_patient',{sp:S.sp,i:inP.i,status:'in',via:'card'});openFile(inP.id)};
+}
+function goHome(){discardRec();runId++;stopClock();dshow('home');renderHome();step('schedule')}
+
+/* ---------- doctor: patient file ---------- */
+function openFile(id){
+  discardRec();var p=pById(id);if(!p)return;S.pid=id;S.sp=p.sp;
+  var st=pStat(p),mineV=S.visits.filter(function(v){return v.pid===id});
+  var hasAl=p.al!==NO,psy=p.sp==='psych';
+  $('d-file').innerHTML=
+   '<button class="back" type="button" id="fBack">رجوع لجدول اليوم</button>'+
+   '<div class="pf-h"><div><h1>'+esc(p.n)+'</h1><div class="meta"><span>'+esc(ageTxt(p.a))+'</span><span>رقم الملف <span class="ltr">'+p.mrn+'</span></span><span>'+esc(p.pay)+'</span><span>'+esc(spName(p.sp))+' · '+esc(DOC[p.sp])+'</span></div>'+
+   '<p style="margin-top:8px"><span class="pill '+st+'">'+ST[st]+'</span> <span class="ltr">'+p.time+'</span> · '+esc(p.r)+'</p></div>'+
+   '<button class="btn" type="button" id="startV">'+(S.stat[id]?'ابدأ زيارة ثانية':'ابدأ الزيارة')+'</button></div>'+
+   '<div class="pf-g"><div>'+
+   '<div class="win"><div class="win-h"><div class="who-p"><b>الملف الطبي</b></div><span class="lab">بيانات خيالية</span></div><div class="win-b" style="padding-top:4px;padding-bottom:4px">'+
+   '<div class="kv'+(hasAl?' al':'')+'"><span>الحساسية</span><div><b>'+esc(p.al)+'</b></div></div>'+
+   '<div class="kv"><span>أمراض مزمنة</span><div>'+esc(p.ch)+'</div></div>'+
+   '<div class="kv"><span>الأدوية الحالية</span><div>'+(p.m.length?p.m.map(function(x){return '<div>'+esc(x)+'</div>'}).join(''):'<span class="none">'+NO+'</span>')+'</div></div>'+
+   '</div></div>'+
+   '<div class="win"><div class="win-h"><div class="who-p"><b>خطط علاج مفتوحة</b></div></div><div class="win-b" style="padding-top:4px;padding-bottom:4px">'+
+   (p.p.length?p.p.map(function(x){return '<div class="pl"><div>'+esc(x[0])+'<small>'+esc(x[2])+'</small></div>'+(x[1]?'<em>'+sar(x[1])+'</em>':'')+'</div>'}).join(''):'<p class="none" style="padding:10px 0">ما فيه خطط مفتوحة.</p>')+
+   '</div></div></div>'+
+   '<div class="win"><div class="win-h"><div class="who-p"><b>الزيارات السابقة</b></div>'+(psy?'<span class="lab">تفاصيل الجلسات عند المعالج فقط</span>':'')+'</div><div class="win-b">'+
+   ((mineV.length||p.v.length)?'<div class="tl">'+
+     mineV.slice().reverse().map(function(v){return '<div class="now"><b>اليوم · '+esc(v.title||'زيارة')+'</b><span>معتمد من الطبيب في هذي التجربة</span></div>'}).join('')+
+     p.v.map(function(v){return '<div><b>'+esc(v[0])+' · '+esc(v[1])+'</b>'+(v[2]?'<span>'+esc(v[2])+'</span>':'')+'</div>'}).join('')+'</div>'
+     :'<p class="none">أول زيارة للمجمع. ما فيه زيارات سابقة.</p>')+
+   '</div></div></div>';
+  $('fBack').onclick=function(){goHome()};
+  $('startV').onclick=function(){startVisit(id)};
+  dshow('file');step('file');track('patient_file_view',{sp:p.sp,i:p.i});
+}
+
+/* ---------- doctor: visit capture ---------- */
+function setVisitPatient(p){S.pid=p.id;$('pName').value=p.n+' — '+ageTxt(p.a);$('pCtx').value=p.r}
+function startVisit(id){
+  var p=pById(id);if(!p)return;discardRec();S.consent=false;S.note=null;S.approved=false;
+  setVisitPatient(p);$('typed').value='';$('typeBox').hidden=true;hideErr('recErr');
+  var sm=SP[S.sp].patient;$('sampleBtn').textContent='شغّل زيارة جاهزة ('+sm.name+')';
+  cap('idle');dshow('visit');step('setup');track('visit_start',{sp:S.sp,i:p.i});
+}
+$('vBack').onclick=function(){openFile(S.pid)};
+['pName','pCtx'].forEach(function(id){$(id).addEventListener('change',function(){track('edit_patient',{f:id})})});
+function cap(st){
+  var m={idle:'cIdle',consent:'cConsent',asking:'cAsk',rec:'cRec'};
+  Object.keys(m).forEach(function(k){$(m[k]).hidden=k!==st});
+  $('altBox').hidden=(st==='rec'||st==='asking');
+  $('capStat').className='stat'+(st==='rec'?' rec':(S.consent?' done':''));
+  $('capStatT').textContent=st==='rec'?'يسجّل':(S.consent?'موافقة المريض مسجّلة':'ما بدأ التسجيل');
+}
+function showErr(id,msg,soft){var e=$(id);e.textContent=msg;e.className='err'+(soft?' soft':'');e.hidden=false}
+function hideErr(id){$(id).hidden=true}
+
+/* ---------- recording ---------- */
+var rec=null,chunks=[],stream=null,actx=null,an=null,raf=0,t0=0,tick=0,recTok=0;
+$('recBtn').onclick=function(){hideErr('recErr');if(S.consent)startRec();else{cap('consent');track('consent_ask');step('consent')}};
+$('cYes').onclick=function(){S.consent=true;track('consent_check',{v:true,via:'inline'});startRec()};
+$('cNo').onclick=function(){track('consent_check',{v:false,via:'inline'});track('consent_missing');cap('idle');step('setup');
+  showErr('recErr','التسجيل ما يبدأ إلا بموافقة المريض. تقدر تشغّل زيارة جاهزة أو تكتب المحادثة من تحت.',true)};
+$('stopBtn').onclick=function(){stopRec()};
+$('cancelRec').onclick=function(){discardRec();toast('انحذف التسجيل')};
+$('cancelAsk').onclick=function(){discardRec()};
+async function startRec(){
+  hideErr('recErr');
+  if(!navigator.mediaDevices||!window.MediaRecorder){cap('idle');showErr('recErr','المتصفح هذا ما يدعم التسجيل. جرّب Chrome أو Safari الحديث، أو شغّل زيارة جاهزة.');track('mic_unsupported');return}
+  track('mic_request');cap('asking');var my=++recTok,st;
+  try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}
+  catch(e){if(my!==recTok)return;track('mic_denied',{err:e.name});cap('idle');step('setup');
+    showErr('recErr',e.name==='NotFoundError'?'ما لقينا مايكروفون في الجهاز. شغّل زيارة جاهزة أو اكتب المحادثة.':'ما قدرنا نوصل للمايكروفون. اسمح للموقع باستخدام المايك من إعدادات المتصفح، أو شغّل زيارة جاهزة.');return}
+  if(my!==recTok){try{st.getTracks().forEach(function(t){t.stop()})}catch(e){}return}
+  stream=st;track('mic_granted');
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();var src=actx.createMediaStreamSource(stream);an=actx.createAnalyser();an.fftSize=256;src.connect(an);drawLvl()}catch(e){}
+  chunks=[];
+  var mt=['audio/webm;codecs=opus','audio/mp4','audio/webm'].filter(function(t){return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t)})[0];
+  try{rec=mt?new MediaRecorder(stream,{mimeType:mt}):new MediaRecorder(stream)}
+  catch(e){try{stream.getTracks().forEach(function(t){t.stop()})}catch(x){}cap('idle');showErr('recErr','المتصفح هذا ما يدعم التسجيل. جرّب Chrome أو Safari الحديث، أو شغّل زيارة جاهزة.');track('mic_unsupported',{err:e.name});return}
+  rec.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+  rec.onstop=onRecStop;rec.start(1000);
+  t0=Date.now();$('timer').textContent='00:00';cap('rec');
+  tick=setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);$('timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');if(s>=480)stopRec()},500);
+  track('record_start',{mime:rec.mimeType});step('recording');
+}
+function drawLvl(){
+  var c=$('lvl'),g=c.getContext('2d'),d=new Uint8Array(an.frequencyBinCount);cancelAnimationFrame(raf);
+  (function f(){raf=requestAnimationFrame(f);an.getByteFrequencyData(d);g.clearRect(0,0,c.width,c.height);var n=40,w=c.width/n;
+    for(var i=0;i<n;i++){var v=d[i*2]/255,h=Math.max(6,v*c.height);g.fillStyle='#2f5a47';g.fillRect(i*w+3,(c.height-h)/2,w-6,h)}})();
+}
+function stopRec(){if(rec&&rec.state==='recording'){rec.stop();clearInterval(tick);cancelAnimationFrame(raf);stream.getTracks().forEach(function(t){t.stop()})}}
+async function onRecStop(){
+  var secs=Math.round((Date.now()-t0)/1000);
+  cap('idle');
+  track('record_stop',{secs:secs});
+  if(secs<8){step('setup');showErr('recErr','التسجيل قصير مرة ('+ar(secs)+' ث). جرّب زيارة دقيقة أو أكثر.');track('record_too_short',{secs:secs});return}
+  var blob=new Blob(chunks,{type:rec.mimeType||'audio/webm'});
+  S.source='mic';await processAudio(blob,secs);
+}
+/* any other path stops the microphone and throws the audio away */
+function discardRec(){
+  recTok++;
+  if(rec&&rec.state==='recording'){rec.onstop=null;try{rec.stop()}catch(e){}clearInterval(tick);cancelAnimationFrame(raf);try{stream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+    chunks=[];track('record_discarded')}
+  if(S.dscr==='visit')cap('idle');
+}
+
+/* audio -> 16k mono WAV chunks -> /api/transcribe */
+async function processAudio(blob,secs){
+  var my=showProc('يحوّل الصوت إلى نص');setP(1,'on');step('transcribing');
+  var t=Date.now();
+  try{
+    var buf=await blob.arrayBuffer();
+    var ctx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    var ab=await new Promise(function(res,rej){var p=ctx.decodeAudioData(buf,res,rej);if(p&&p.then)p.then(res,rej)});
+    var mono=toMono16k(ab);
+    var size=16000*28,texts=[];
+    for(var i=0;i<mono.length;i+=size){
+      var part=mono.subarray(i,Math.min(mono.length,i+size));
+      if(part.length<16000)continue;
+      var r=await fetch('/api/transcribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({audio:b64(wav(part)),sid:RQ.sid,ref:RQ.ref,specialty:S.sp,part:i/size})});
+      var j=await r.json().catch(function(){return{}});
+      if(!r.ok)throw new Error(j.error||('http_'+r.status));
+      if(my!==runId)return;
+      if(j.text)texts.push(j.text);
+    }
+    var tx=texts.join(' ').trim();
+    if(tx.length<20)throw new Error('empty_transcript');
+    track('transcribe_ok',{ms:Date.now()-t,chars:tx.length,secs:secs});
+    if(my!==runId)return;
+    setP(1,'ok');await makeNote(tx,my);
+  }catch(e){
+    track('transcribe_fail',{err:String(e.message||e).slice(0,120),ms:Date.now()-t});
+    if(my!==runId)return;
+    procFail(why(e,'tx'),function(){processAudio(blob,secs)});
+  }
+}
+function toMono16k(ab){
+  var ch=ab.numberOfChannels,len=ab.length,src=new Float32Array(len),i,c;
+  for(c=0;c<ch;c++){var d=ab.getChannelData(c);for(i=0;i<len;i++)src[i]+=d[i]/ch}
+  var ratio=ab.sampleRate/16000,outLen=Math.floor(len/ratio),out=new Float32Array(outLen);
+  for(i=0;i<outLen;i++){var p=i*ratio,a=Math.floor(p),f=p-a,s0=src[a]||0,s1=src[a+1]||s0;
+    // simple box filter to limit aliasing
+    var acc=0,n=0,lo=Math.max(0,Math.floor(p-ratio/2)),hi=Math.min(len-1,Math.ceil(p+ratio/2));for(var k=lo;k<=hi;k++){acc+=src[k];n++}
+    out[i]=n?acc/n:(s0+(s1-s0)*f)}
+  return out;
+}
+function wav(f){var b=new ArrayBuffer(44+f.length*2),v=new DataView(b),o=0;
+  function s(x){for(var i=0;i<x.length;i++)v.setUint8(o++,x.charCodeAt(i))}
+  s('RIFF');v.setUint32(o,36+f.length*2,true);o+=4;s('WAVE');s('fmt ');v.setUint32(o,16,true);o+=4;v.setUint16(o,1,true);o+=2;v.setUint16(o,1,true);o+=2;
+  v.setUint32(o,16000,true);o+=4;v.setUint32(o,32000,true);o+=4;v.setUint16(o,2,true);o+=2;v.setUint16(o,16,true);o+=2;s('data');v.setUint32(o,f.length*2,true);o+=4;
+  for(var i=0;i<f.length;i++,o+=2){var x=Math.max(-1,Math.min(1,f[i]));v.setInt16(o,x<0?x*0x8000:x*0x7fff,true)}return new Uint8Array(b)}
+function b64(u){var s='',n=0x8000;for(var i=0;i<u.length;i+=n)s+=String.fromCharCode.apply(null,u.subarray(i,i+n));return btoa(s)}
+
+/* plain reason for a real failure */
+function why(e,kind){
+  var m=String((e&&e.message)||e||'');
+  if(m==='daily_cap')return 'وصلنا الحد اليومي للتجربة. جرّب بكرة.';
+  if(m==='empty_transcript')return 'ما قدرنا نسمع كلام واضح في التسجيل. قرّب الجوال وجرّب مرة ثانية، أو شغّل زيارة جاهزة.';
+  if(m==='too_short')return 'المحادثة قصيرة مرة. اكتب أو سجّل زيارة أطول.';
+  if(navigator.onLine===false||/failed to fetch|networkerror|load failed/i.test(m))return 'ما فيه اتصال بالخادم. تأكد من الإنترنت وحاول مرة ثانية.';
+  if(/^http_\d+/.test(m))return 'الخادم ما ردّ (رمز '+dg(m.slice(5))+'). حاول مرة ثانية بعد لحظات.';
+  if(kind==='tx')return 'ما قدرنا نحوّل الصوت إلى نص. حاول مرة ثانية، أو شغّل زيارة جاهزة.';
+  return 'ما قدرنا نكتب الملف من هذي المحادثة. حاول مرة ثانية.';
+}
+
+/* sample + typed */
+$('sampleBtn').onclick=function(){
+  discardRec();hideErr('recErr');
+  var sm=pts(S.sp)[3];if(S.pid!==sm.id){setVisitPatient(sm);toast('الزيارة الجاهزة لـ'+sm.n+'، فتحنا ملف '+sm.n)}
+  track('sample_used',{sp:S.sp});S.source='sample';var my=showProc('يجهّز نص الزيارة الجاهزة');setP(1,'on');step('sample');
+  setTimeout(function(){if(my!==runId)return;setP(1,'ok');makeNote(SP[S.sp].sample,my)},900)};
+$('typeBtn').onclick=function(){discardRec();$('typeBox').hidden=!$('typeBox').hidden;track('type_open');if(!$('typeBox').hidden)$('typed').focus()};
+$('typedGo').onclick=function(){discardRec();var t=$('typed').value.trim();if(t.length<40){showErr('recErr','اكتب محادثة أطول شوي (سطرين أو أكثر).',true);return}
+  hideErr('recErr');track('paste_used',{chars:t.length});S.source='typed';var my=showProc('النص جاهز');setP(1,'ok');makeNote(t,my)};
+
+/* ---------- processing ---------- */
+var runId=0,retryFn=null,clock=0,pT0=0;
+function stopClock(){clearInterval(clock);clock=0}
+function showProc(l1){
+  var my=++runId;dshow('proc');hideErr('procErr');$('procActs').hidden=true;$('p1').className='pi';$('p2').className='pi';
+  if(l1)$('p1t').textContent=l1;
+  $('prWho').textContent='يكتب ملف '+$('pName').value.split('—')[0].trim();
+  $('prStat').className='stat rec';$('prHint').hidden=false;$('prHint').textContent='ياخذ عادةً من ١٥ إلى ٢٥ ثانية. خلّ الصفحة مفتوحة.';
+  pT0=Date.now();stopClock();$('prT').textContent=ar(0)+' ث';
+  clock=setInterval(function(){var s=Math.round((Date.now()-pT0)/1000);$('prT').textContent=ar(s)+' ث';if(s===40)$('prHint').textContent='أطول من المعتاد شوي. لسا يشتغل، لا تقفل الصفحة.'},1000);
+  return my;
+}
+function setP(n,c){$('p'+n).className='pi '+c}
+function procFail(msg,fn){stopClock();showErr('procErr',msg);$('procActs').hidden=false;$('prHint').hidden=true;$('prStat').className='stat bad';$('prT').textContent='توقف';retryFn=fn;
+  document.querySelectorAll('#d-proc .pi.on').forEach(function(x){x.className='pi'})}
+$('retryBtn').onclick=function(){track('retry');hideErr('procErr');$('procActs').hidden=true;if(retryFn)retryFn()};
+$('backBtn').onclick=function(){track('proc_back');runId++;stopClock();cap('idle');dshow('visit');step('setup')};
+async function makeNote(tx,my){
+  if(my===undefined){my=showProc();setP(1,'ok')}
+  if(my!==runId)return;
+  S.transcript=tx;setP(2,'on');step('writing');var t=Date.now();
+  track('note_request',{sp:S.sp,src:S.source,chars:tx.length});
+  try{
+    var r=await fetch('/api/note',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({transcript:tx,specialty:S.sp,patient:$('pName').value+' · '+$('pCtx').value,sid:RQ.sid,ref:RQ.ref})});
+    var j=await r.json().catch(function(){return{}});
+    if(!r.ok||!j.note)throw new Error(j.error||('http_'+r.status));
+    track('note_ok',{ms:Date.now()-t,model:j.model,src:S.source});window.RQT&&RQT.recorded();
+    if(my!==runId)return;
+    setP(2,'ok');stopClock();S.note=j.note;S.approved=false;
+    setTimeout(function(){if(my!==runId)return;showResult();if(S.role!=='doc')toast('الملف جاهز للمراجعة عند الطبيب')},350);
+  }catch(e){track('note_fail',{err:String(e.message||e).slice(0,120),ms:Date.now()-t});
+    if(my!==runId)return;
+    procFail(why(e,'note'),function(){makeNote(tx)})}
+}
+
+/* ---------- note screen ---------- */
+function ed(field,val,ltr){return '<div class="ed" contenteditable="true" data-f="'+field+'"'+(ltr?' dir="ltr"':'')+'>'+esc(val||'')+'</div>'}
+var PST={proposed:'مقترح',accepted:'مقبول',done:'تم اليوم',conditional:'مشروط'};
+function showResult(){
+  var n=S.note||{},soap=n.soap||{};
+  dshow('note');if(S.role==='doc')step('result');
+  $('rTitle').textContent=n.visit_title_ar||'ملف الزيارة';
+  $('rMeta').textContent=$('pName').value+' · '+spName(S.sp)+' · '+DOC[S.sp];
+  $('rState').className='stat rec';$('rStateT').textContent='بانتظار اعتماد الطبيب';
+  $('approveBtn').disabled=false;$('approveBtn').className='btn';$('approveBtn').textContent='اعتمد الملف';
+  $('apNote').textContent='ولا شيء يدخل الملف قبل اعتماد الطبيب. تقدر تعدّل أي خانة قبل.';
+  $('qrPanel').hidden=true;$('txEdit').value=S.transcript;
+  var meds=A(n.medications),inv=A(n.investigations),dx=A(n.diagnoses),plan=A(n.treatment_plan),fu=A(n.follow_ups),gaps=A(n.documentation_gaps_ar);
+  var spf=n.specialty_fields&&typeof n.specialty_fields==='object'?n.specialty_fields:{};
+  var SO=[['S','subjective','Subjective'],['O','objective','Objective'],['A','assessment','Assessment'],['P','plan','Plan']];
+  var spT=specTable(spf);
+  var tabs=[
+    ['doc','ملف الطبيب',0,
+      '<div class="fld"><span class="lab">Chief complaint</span>'+ed('cc',n.chief_complaint,1)+'</div>'+
+      SO.map(function(k){return '<div class="nr"><span class="k">'+k[0]+'</span><div><small dir="ltr" style="text-align:left">'+k[2]+'</small>'+ed('soap.'+k[1],soap[k[1]],1)+'</div></div>'}).join('')+
+      (spT?'<span class="sec">بيانات التخصص · '+esc(spName(S.sp))+'</span>'+spT:'')+
+      (n.referral&&n.referral.to?'<span class="sec">خطاب تحويل</span>'+ed('ref','To: '+n.referral.to+'\nReason: '+(n.referral.reason||''),1):'')+
+      '<p class="hint">مكتوب من كلام الطبيب في الزيارة. رفيق ما يضيف تشخيص ولا علاج من عنده.</p>'],
+    ['rx','الأدوية والفحوصات',meds.length+inv.length,
+      '<span class="sec">الأدوية</span>'+(meds.length?meds.map(function(m){return '<div class="med"><b>'+esc(m.name)+'</b><span>'+esc([m.dose,m.frequency,m.duration].filter(Boolean).join(' · '))+'</span>'+(m.how_ar?'<em>'+esc(m.how_ar)+'</em>':'')+(m.notes?'<small>'+esc(m.notes)+'</small>':'')+'</div>'}).join(''):'<p class="none">ما انذكرت أدوية في الزيارة.</p>')+
+      '<span class="sec">الفحوصات المطلوبة</span>'+(inv.length?inv.map(function(x){return '<div class="med"><b>'+esc(x.name)+'</b>'+(x.when?'<em>'+esc(x.when)+'</em>':'')+'</div>'}).join(''):'<p class="none">ما انطلبت فحوصات.</p>')+
+      '<p class="hint">مكتوبة مثل ما قالها الطبيب. رفيق ما يضيف دواء ولا يغيّر جرعة.</p>'],
+    ['icd','ICD-10',dx.length,
+      dx.length?dx.map(function(d){return '<div class="dx"><div>'+esc(d.label)+'</div><span class="code">'+esc(d.icd10)+'</span><small>'+(d.certainty==='stated'?'قاله الطبيب في الزيارة':'محتمل من كلام الطبيب · راجعه قبل الاعتماد')+'</small></div>'}).join('')+'<p class="hint">الكود مربوط بالتشخيص اللي قاله الطبيب، وهو اللي يعتمده قبل ما يروح للتأمين.</p>':'<p class="none">ما انذكر تشخيص صريح في الزيارة.</p>'],
+    ['pt','للمريض',0,
+      '<div class="fld"><span class="lab">ملخص الزيارة للمريض</span>'+ed('pt',n.patient_summary_ar)+'</div><div class="fld"><span class="lab">رسالة واتساب من العيادة</span><div class="bub ed" contenteditable="true" data-f="wa">'+esc(n.whatsapp_message_ar||'')+'</div></div><p class="hint">بالعربي البسيط. يوصل المريض لما يمسح الكود بعد الاعتماد.</p>'],
+    ['plan','الخطة والمتابعة',plan.length+fu.length,
+      '<span class="sec">خطة العلاج</span>'+(plan.length?plan.map(function(p){return '<div class="pr"><div>'+esc(p.item_ar)+(p.sessions?'<small>'+ar(p.sessions)+' جلسات</small>':'')+'</div><em>'+(p.price_sar?sar(p.price_sar):'')+'</em><span class="pill'+(p.status==='done'?' done':(p.status==='accepted'?' in':''))+'">'+(PST[p.status]||esc(p.status||''))+'</span></div>'}).join(''):'<p class="none">ما انذكرت خطة علاج بسعر أو جلسات.</p>')+
+      '<span class="sec">المتابعات · بعد الاعتماد '+(mode(S.sp)==='doctor'?'تنزل في متابعاتك':'تروح للاستقبال')+'</span>'+(fu.length?fu.map(function(f){return '<div class="pr"><div>'+esc(f.reason_ar)+'</div><em></em><span class="pill">'+dueTxt(f.in_days)+'</span></div>'}).join(''):'<p class="none">ما انذكرت متابعة.</p>')],
+    ['gaps','نواقص التوثيق',gaps.length,
+      gaps.length?'<div class="gaps">'+gaps.map(function(g){return '<span>'+esc(g)+'</span>'}).join('')+'</div><p class="hint">رفيق ينبّه بس. ما يضيف شيء للملف من عنده.</p>':'<p class="none">ما فيه نواقص واضحة في التوثيق.</p>']
+  ];
+  $('tabs').innerHTML=tabs.map(function(t,i){return '<button type="button" role="tab" aria-selected="'+(i?'false':'true')+'" data-t="'+t[0]+'">'+t[1]+(t[2]?'<span class="c">'+ar(t[2])+'</span>':'')+'</button>'}).join('');
+  $('panes').innerHTML=tabs.map(function(t,i){return '<div class="pane" role="tabpanel" id="pane-'+t[0]+'"'+(i?' hidden':'')+'>'+t[3]+'</div>'}).join('');
+  document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-t');document.querySelectorAll('#tabs button').forEach(function(x){x.setAttribute('aria-selected',x===b?'true':'false')});document.querySelectorAll('#panes .pane').forEach(function(p){p.hidden=p.id!=='pane-'+k});track('tab_view',{t:k})}});
+  document.querySelectorAll('#panes .ed').forEach(function(e){var done=false;e.addEventListener('input',function(){if(!done){done=true;track('edit_field',{f:e.getAttribute('data-f')})}})});
+  document.querySelectorAll('[data-fb]').forEach(function(b){b.classList.remove('on')});
+}
+function specTable(o){var h=Object.keys(o).map(function(k){var v=o[k];if(v==null||v===''||(Array.isArray(v)&&!v.length))return '';
+  if(Array.isArray(v))v=v.map(function(x){return x&&typeof x==='object'?Object.values(x).filter(Boolean).join(' · '):x}).join('\n');else if(typeof v==='object')v=JSON.stringify(v);
+  return '<div><span>'+esc(k.replace(/_/g,' '))+'</span><span dir="auto">'+esc(v)+'</span></div>'}).join('');return h?'<div class="spt">'+h+'</div>':''}
+function dueTxt(d){if(d===null||d===undefined||d==='')return 'عند الحاجة';d=Number(d);if(!isFinite(d))return 'عند الحاجة';if(d<=0)return 'اليوم';if(d===1)return 'بكرة';if(d===2)return 'بعد يومين';if(d===7)return 'بعد أسبوع';if(d<11)return 'بعد '+ar(d)+' أيام';if(d<60){var w=Math.round(d/7);return w===1?'بعد أسبوع':w===2?'بعد أسبوعين':'بعد '+ar(w)+' أسابيع'}var m=Math.round(d/30);return m===1?'بعد شهر':m===2?'بعد شهرين':m<=10?'بعد '+ar(m)+' شهور':'بعد '+ar(m)+' شهر'}
+function lateTxt(d){d=-d;return d===1?'متأخر يوم':d===2?'متأخر يومين':d<11?'متأخر '+ar(d)+' أيام':'متأخر '+ar(d)+' يوم'}
+document.querySelectorAll('[data-fb]').forEach(function(b){b.onclick=function(){document.querySelectorAll('[data-fb]').forEach(function(x){x.classList.toggle('on',x===b)});track('note_feedback',{v:b.getAttribute('data-fb'),sp:S.sp,src:S.source});toast('شكراً، وصلتنا ملاحظتك')}});
+function edTxt(f,fb){var e=document.querySelector('#panes [data-f="'+f+'"]');return ((e&&e.innerText)||fb||'').trim()}
+$('approveBtn').onclick=function(){
+  if(S.approved)return;S.approved=true;var n=S.note||{},who=$('pName').value.split('—')[0].trim(),now=Date.now();
+  var val=A(n.treatment_plan).reduce(function(s,p){return s+(Number(p.price_sar)||0)},0);
+  var open=A(n.treatment_plan).reduce(function(s,p){return s+((p.status==='proposed'||p.status==='conditional')?(Number(p.price_sar)||0):0)},0);
+  var wa=edTxt('wa',n.whatsapp_message_ar);
+  var dated=A(n.follow_ups).filter(function(f){return f.in_days!==null&&f.in_days!==undefined&&f.in_days!==''});
+  var own=mode(S.sp),where=own==='doctor'?'نزلت في متابعاتك':'انرسلت للاستقبال';S.lastOwn=own;
+  dated.forEach(function(f,i){S.fu.push({patient:who+' — '+spName(S.sp),sp:S.sp,reason:f.reason_ar,due:Math.max(0,Number(f.in_days)||0),at:now,value:i===0?open:0,msg:wa,mine:true,owner:own,doctor:DOC[S.sp],dept:spName(S.sp)})});
+  A(n.treatment_plan).forEach(function(p){var pr=Number(p.price_sar)||0;if(!pr)return;
+    if(p.status==='accepted'||(!dated.length&&(p.status==='proposed'||p.status==='conditional')))S.plans.push({patient:who,sp:S.sp,item:p.item_ar,value:pr,status:p.status,at:now,mine:true})});
+  S.visits.push({sp:S.sp,at:now,fu:A(n.follow_ups).length,value:val,pid:S.pid,title:n.visit_title_ar||''});S.planValue+=val;if(S.pid)S.stat[S.pid]=1;save();badge();
+  $('rState').className='stat done';$('rStateT').textContent='معتمد من الطبيب';$('approveBtn').textContent='انعتمد الملف';$('approveBtn').className='btn ok';$('approveBtn').disabled=true;
+  $('apNote').textContent=dated.length?ar(dated.length)+' متابعة '+where:'انحفظ الملف. ما فيه متابعة بتاريخ.';
+  $('goRec').textContent=own==='doctor'?'شوف متابعاتي':'شوف المتابعات عند الاستقبال';
+  track('approve',{sp:S.sp,fu:A(n.follow_ups).length,value:val,src:S.source,owner:own});step('approved');window.RQT&&RQT.refresh();
+  toast(dated.length?'انعتمد الملف، و'+ar(dated.length)+' متابعة '+where:'انعتمد الملف');
+  ptPreview(n,who);$('qrPanel').hidden=false;makeQR(n,who);
+  if(innerWidth<=900)$('qrPanel').scrollIntoView({behavior:'smooth',block:'start'});
+};
+function ptPreview(n,who){
+  var steps=A(n.follow_ups),meds=A(n.medications);
+  $('ptPrev').innerHTML='<div class="hd"><small>'+esc(CLINIC)+' · '+esc(spName(S.sp))+'</small><b>هلا '+esc(who)+'</b><small>ملخص زيارتك، محفوظ في جوالك</small></div>'+
+    '<div class="blk"><h5>وش صار في الزيارة</h5>'+esc(edTxt('pt',n.patient_summary_ar))+'</div>'+
+    (steps.length?'<div class="blk"><h5>خطواتك الجاية</h5>'+steps.map(function(f){return '<div class="r"><span>'+esc(f.reason_ar)+'</span><span>'+dueTxt(f.in_days)+'</span></div>'}).join('')+'</div>':'')+
+    (meds.length?'<div class="blk"><h5>أدويتك</h5>'+meds.map(function(m){return '<div class="mm"><b>'+esc(m.name)+'</b>'+esc(m.how_ar||[m.dose,m.frequency].filter(Boolean).join(' · '))+'</div>'}).join('')+'</div>':'');
+}
+async function makeQR(n,who){
+  $('qrWait').hidden=false;$('qrOk').hidden=true;hideErr('qrErr');$('qrRetry').hidden=true;
+  try{
+    var sum=edTxt('pt',n.patient_summary_ar);
+    var spf=n.specialty_fields||{};
+    var hw=A(spf.homework_ar).concat(A(spf.home_exercises));
+    var steps=A(n.follow_ups).map(function(f){return{what:f.reason_ar,when:dueTxt(f.in_days)}});
+    var r=await fetch('/api/share',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({clinic:CLINIC,patient:who,specialty:spName(S.sp),summary:sum,steps:steps,meds:A(n.medications),homework:hw,sid:RQ.sid})});
+    var j=await r.json();if(!j.id)throw new Error('no_id');
+    var url=location.origin+'/p?id='+j.id;
+    var qr=qrcode(0,'M');qr.addData(url);qr.make();
+    $('qrBox').innerHTML=qr.createSvgTag({cellSize:5,margin:2,scalable:true});
+    var svg=$('qrBox').querySelector('svg');if(svg){svg.style.width='170px';svg.style.height='170px'}
+    $('qrLink').href=url;$('qrWait').hidden=true;$('qrOk').hidden=false;
+    $('qrLink').onclick=function(){track('qr_open_link')};
+    track('qr_shown');
+  }catch(e){track('qr_fail',{err:String(e.message||e).slice(0,80)});
+    $('qrWait').hidden=true;showErr('qrErr','ما قدرنا نجهّز كود المريض الحين. الملف معتمد والمتابعات انحفظت، وتقدر تجهّز الكود مرة ثانية.');$('qrRetry').hidden=false;
+    $('qrRetry').onclick=function(){track('qr_retry');makeQR(n,who)}}
+}
+$('goRec').onclick=function(){track('go_follow_from_qr',{to:S.lastOwn==='doctor'?'doctor':'reception'});if(S.lastOwn==='doctor')dtop('fu');else go('rec')};
+$('newBtn').onclick=function(){track('new_visit');goHome()};
+$('nextBtn').onclick=function(){track('new_visit',{via:'next'});goHome()};
+$('regenBtn').onclick=function(){var t=$('txEdit').value.trim();if(t.length<40){toast('النص قصير. اكتب سطرين أو أكثر.');return}track('regen',{chars:t.length});S.source=S.source+'+edited';var my=showProc('النص جاهز');setP(1,'ok');makeNote(t,my)};
+
+/* ---------- reception ---------- */
+var DAY=864e5;
+function dayOf(t){var d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
+function allFU(){
+  var L=S.fu.map(function(f,k){var d=Number(f.due)||0;if(f.at)d-=Math.round((dayOf(Date.now())-dayOf(f.at))/DAY);
+    var a=String(f.patient||'').split('—'),sp=f.sp||spOf((a[1]||'').trim())||S.sp;
+    return{key:'m'+k,name:a[0].trim(),sp:sp,dept:spName(sp)||(a[1]||'').trim(),doctor:f.doctor||DOC[sp],owner:f.owner==='doctor'?'doctor':'reception',reason:f.reason,value:f.value||0,d:d,msg:f.msg,mine:true,done:!!f.done,sent:!!S.waSent['fm'+k]}}).reverse();
+  SEED.forEach(function(x,i){var a=String(x.patient||'').split('—'),sp=spOf((a[1]||'').trim()),k='s'+i;
+    L.push({key:k,name:a[0].trim(),sp:sp,dept:spName(sp)||(a[1]||'').trim(),doctor:DOC[sp]||'',owner:S.own[k]||MODE[sp]||'reception',reason:x.reason,value:x.value||0,d:Number(x.due)||0,done:!!S.seedDone[k],sent:!!S.waSent['f'+k]})});
+  XFU.forEach(function(x,i){if(!SP[x.sp])return;var k='x'+i;
+    L.push({key:k,name:x.patient,sp:x.sp,dept:spName(x.sp),doctor:DOC[x.sp],owner:S.own[k]||x.owner||MODE[x.sp],reason:x.reason,value:x.value,d:x.due,done:!!(S.seedDone[k]||x.done),sent:!!(S.waSent['f'+k]||x.sent)})});
+  var now=dayOf(Date.now());
+  impSplit().fu.forEach(function(x){var k='i'+x.ix,dd=x.r.d?Math.round((dayOf(Date.parse(x.r.d))-now)/DAY):0;if(dd>0)dd=0;
+    L.push({key:k,name:x.r.n,sp:x.sp,dept:spName(x.sp),doctor:DOC[x.sp],owner:S.own[k]||'doctor',reason:x.r.d?'مستحق متابعة بعد زيارة '+dg(x.r.d):'مستحق متابعة · مستورد (تجريبي)',value:0,d:dd,done:!!S.seedDone[k],sent:!!S.waSent['f'+k]})});
+  return L;
+}
+function docFU(sp){return allFU().filter(function(f){return f.sp===sp})}
+function byDue(a,b){return (a.done-b.done)||(a.d-b.d)}
+function allPlans(){
+  var L=S.plans.map(function(p,k){return{key:'m'+k,name:p.patient,sp:p.sp,item:p.item,value:p.value,days:Math.round((dayOf(Date.now())-dayOf(p.at||Date.now()))/DAY),mine:true,status:p.status,done:!!p.done}}).reverse();
+  XPL.forEach(function(p,i){if(!SP[p.sp])return;L.push({key:'x'+i,name:p.patient,sp:p.sp,item:p.item,value:p.value,days:p.days,status:'accepted',done:!!S.planDone['x'+i]})});
+  return L;
+}
+var FLT=[['all','الكل'],['today','اليوم'],['late','متأخر'],['week','هذا الأسبوع']];
+function inF(f,k){return k==='all'||(k==='today'&&f.d===0)||(k==='late'&&f.d<0)||(k==='week'&&f.d>=0&&f.d<=7)}
+function renderRec(){
+  var all=allFU(),pl=allPlans();
+  function inScope(f){return (!S.fdept||f.sp===S.fdept)&&(!S.fdoc||f.sp===S.fdoc)}
+  var mineAll=all.filter(function(f){return f.owner==='reception'}),open=mineAll.filter(function(f){return !f.done});
+  var scoped=open.filter(inScope);
+  var list=mineAll.filter(function(f){return inScope(f)&&inF(f,S.flt)}).sort(function(a,b){return (a.done-b.done)||((b.mine?1:0)-(a.mine?1:0))||(a.d-b.d)});
+  var self=all.filter(function(f){return f.owner==='doctor'&&inScope(f)});
+  var plShow=pl.filter(inScope),plv=plShow.filter(function(p){return !p.done});
+  var val=open.reduce(function(s,f){return s+f.value},0)+pl.filter(function(p){return !p.done}).reduce(function(s,p){return s+p.value},0);
+  function cntF(k){return scoped.filter(function(f){return inF(f,k)}).length}
+  $('v-rec').innerHTML=
+   '<div class="ph"><div><span class="eyebrow">الاستقبال</span><h1>قائمة المتابعات</h1><p>فوق: اللي عليكم أنتم. تحت: اللي الأطباء يتابعونها بنفسهم، عشان ما يتصل على المريض اثنين.</p></div></div>'+
+   '<div class="kpi"><div><small>علينا اليوم</small><b>'+ar(open.filter(function(f){return f.d===0}).length)+'</b></div><div class="hot"><small>متأخرة</small><b>'+ar(open.filter(function(f){return f.d<0}).length)+'</b></div>'+
+   '<div><small>هذا الأسبوع</small><b>'+ar(open.filter(function(f){return f.d>=0&&f.d<=7}).length)+'</b></div><div><small>قيمة مفتوحة تنتظر حجز</small><b>'+ar(val)+' <i>ر.س</i></b></div></div>'+
+   '<div class="sec-h" style="margin-top:6px"><h2>الاستقبال يتابعها</h2><span class="n">'+ar(scoped.length)+' مفتوحة</span></div>'+
+   '<div class="flt">'+FLT.map(function(f){return '<button type="button" data-flt="'+f[0]+'" aria-pressed="'+(S.flt===f[0])+'">'+f[1]+'<span>'+ar(cntF(f[0]))+'</span></button>'}).join('')+
+   '<select id="fDept" aria-label="حسب القسم"><option value="">كل الأقسام</option>'+ORDER.map(function(k){return '<option value="'+k+'"'+(k===S.fdept?' selected':'')+'>'+esc(spName(k))+'</option>'}).join('')+'</select>'+
+   '<select id="fDoc" aria-label="حسب الطبيب" style="margin-right:0"><option value="">كل الأطباء</option>'+ORDER.map(function(k){return '<option value="'+k+'"'+(k===S.fdoc?' selected':'')+'>'+esc(DOC[k])+'</option>'}).join('')+'</select></div>'+
+   '<div class="win">'+(list.length?list.map(function(f){return fuRow(f,'rec')}).join(''):'<p class="empty">ما فيه متابعات عليكم بهذا الفلتر.</p>')+'</div>'+
+   '<div class="sec-h"><h2>الأطباء يتابعونها بنفسهم</h2><span class="n">'+ar(self.filter(function(f){return !f.done}).length)+' مفتوحة</span><p>للاطلاع فقط. الطبيب هو اللي يتواصل مع هؤلاء المرضى، لا ترسلون لهم مرة ثانية.</p></div>'+
+   '<div class="win">'+(self.length?ORDER.map(function(k){var g=self.filter(function(f){return f.sp===k}).sort(byDue);if(!g.length)return '';
+       return '<div class="grp"><span><b>'+esc(DOC[k])+'</b> · '+esc(spName(k))+'</span><span>'+ar(g.filter(function(f){return !f.done}).length)+' مفتوحة</span></div>'+g.map(function(f){return roRow(f,'rec')}).join('')}).join(''):'<p class="empty">ما فيه متابعات عند الأطباء بهذا الفلتر.</p>')+'</div>'+
+   '<div class="sub-h"><h2>خطط علاج انقبلت وما انحجزت</h2><p>المريض وافق عند الطبيب وطلع بدون موعد. '+(plv.length?'القيمة المفتوحة '+sar(plv.reduce(function(s,p){return s+p.value},0))+'.':'')+'</p></div>'+
+   '<div class="win">'+(plShow.length?plShow.map(plRow).join(''):'<p class="empty">ما فيه خطط مفتوحة بهذا الفلتر.</p>')+'</div>';
+  document.querySelectorAll('[data-flt]').forEach(function(b){b.onclick=function(){S.flt=b.getAttribute('data-flt');track('fu_filter',{f:S.flt});renderRec()}});
+  $('fDept').onchange=function(){S.fdept=this.value;track('fu_filter',{dept:S.fdept||'all'});renderRec()};
+  $('fDoc').onchange=function(){S.fdoc=this.value;track('fu_filter',{doctor:S.fdoc||'all'});renderRec()};
+}
+function dueCell(f){var cls=f.d<0?'late':(f.d===0?'today':'');return '<div class="due '+(f.done?'':cls)+'">'+(f.d<0?lateTxt(f.d):dueTxt(f.d))+'</div>'}
+function whoCell(f,ctx){return '<div><b>'+esc(f.name)+'</b>'+(f.mine?'<span class="mine">من زيارتك</span>':'')+'<small>'+(ctx==='rec'?esc(f.dept)+' · '+esc(f.doctor):esc(f.dept)+' · '+esc(f.doctor))+'</small></div>'}
+/* actionable row: whoever owns the follow-up sends and marks it */
+function fuRow(f,ctx){
+  return '<div class="fu-r'+(f.done?' done':'')+'">'+whoCell(f,ctx)+
+   '<div>'+esc(f.reason)+(f.value?'<small>قيمة '+sar(f.value)+'</small>':'')+(ctx==='doc'&&!f.done?'<button type="button" class="lnkb own" data-fo="reception" data-k="'+f.key+'">حوّلها للاستقبال</button>':'')+'</div>'+dueCell(f)+
+   '<div class="fu-a">'+(f.done?'<span class="bk-ok">رجع وحجز</span>':'<button type="button" class="send'+(f.sent?' sent':'')+'" data-fa="wa" data-k="'+f.key+'">'+(f.sent?'انفتح واتساب':'واتساب')+'</button><button type="button" class="send" data-fa="back" data-k="'+f.key+'">رجع وحجز</button>')+'</div></div>'}
+/* read-only row: someone else owns it, show where it stands */
+function roRow(f,ctx){
+  var st=f.done?['done','رجع وحجز']:(f.d<0?['in','متأخر']:(f.sent?['','انرسلت']:['','ما انرسلت بعد']));
+  return '<div class="fu-r ro'+(f.done?' done':'')+'">'+whoCell(f,ctx)+
+   '<div>'+esc(f.reason)+(f.value?'<small>قيمة '+sar(f.value)+'</small>':'')+(ctx==='doc'&&!f.done?'<button type="button" class="lnkb own" data-fo="doctor" data-k="'+f.key+'">أتابعها بنفسي</button>':'')+'</div>'+dueCell(f)+
+   '<div class="fu-a"><span class="pill '+st[0]+'">'+st[1]+'</span></div></div>'}
+function plRow(p){var sent=S.waSent['p'+p.key];
+  return '<div class="fu-r'+(p.done?' done':'')+'"><div><b>'+esc(p.name)+'</b>'+(p.mine?'<span class="mine">من زيارتك</span>':'')+'<small>'+esc(spName(p.sp))+'</small></div>'+
+   '<div>'+esc(p.item)+'<small>'+(p.status==='accepted'?'مقبول':(PST[p.status]||''))+' · '+(p.days<=0?'اليوم':'قبل '+(p.days===1?'يوم':p.days===2?'يومين':ar(p.days)+' أيام'))+'</small></div><div class="due today">'+sar(p.value)+'</div>'+
+   '<div class="fu-a">'+(p.done?'<span class="bk-ok">انحجز</span>':'<button type="button" class="send'+(sent?' sent':'')+'" data-pa="wa" data-k="'+p.key+'">'+(sent?'انفتح واتساب':'واتساب')+'</button><button type="button" class="send" data-pa="book" data-k="'+p.key+'">انحجز</button>')+'</div></div>'}
+function openWa(m){window.open('https://wa.me/?text='+encodeURIComponent(m),'_blank','noopener')}
+function refu(){if(S.role==='rec')renderRec();else{renderMyFu();renderDnav()}badge()}
+function fuClick(ev){
+  var o=ev.target.closest('[data-fo]');
+  if(o){var ok=o.getAttribute('data-k'),to=o.getAttribute('data-fo')==='doctor'?'doctor':'reception';
+    if(ok.charAt(0)==='m')S.fu[+ok.slice(1)].owner=to;else S.own[ok]=to;
+    save();track('fu_owner_change',{to:to,doctor:S.sp});toast(to==='doctor'?'صارت عليك أنت':'تحوّلت للاستقبال');refu();return}
+  var b=ev.target.closest('[data-fa],[data-pa]');if(!b)return;var k=b.getAttribute('data-k');
+  if(b.hasAttribute('data-fa')){
+    var f=allFU().filter(function(x){return x.key===k})[0];if(!f)return;
+    if(b.getAttribute('data-fa')==='wa'){var m=f.msg||('هلا '+f.name+'، معك '+CLINIC.replace(' (تجريبي)','')+'. نذكّرك بخصوص: '+f.reason+'. يناسبك نحجز لك موعد؟');
+      S.sent++;window.RQT&&RQT.sent();S.waSent['f'+k]=1;save();track('followup_send',{mine:!!f.mine,by:f.owner});openWa(m);refu()}
+    else{if(k.charAt(0)==='m')S.fu[+k.slice(1)].done=true;else S.seedDone[k]=1;
+      S.back++;save();track('followup_returned',{mine:!!f.mine,value:f.value||0,by:f.owner});toast(S.role==='rec'?'انحسب في تقرير الإدارة':'انحسب في أرقامك');refu()}
+  }else{
+    var p=allPlans().filter(function(x){return x.key===k})[0];if(!p)return;
+    if(b.getAttribute('data-pa')==='wa'){S.sent++;window.RQT&&RQT.sent();S.waSent['p'+k]=1;save();track('plan_send',{mine:!!p.mine});
+      openWa('هلا '+p.name+'، معك '+CLINIC.replace(' (تجريبي)','')+'. بخصوص '+p.item+' اللي اتفقت عليه مع الطبيب، يناسبك نحجز لك موعد هالأسبوع؟');renderRec()}
+    else{if(k.charAt(0)==='m')S.plans[+k.slice(1)].done=true;else S.planDone[k]=1;
+      S.back++;save();track('plan_booked',{mine:!!p.mine,value:p.value});toast('انحجز، وانحسبت قيمته في تقرير الإدارة');renderRec()}
+  }
+}
+$('v-rec').addEventListener('click',fuClick);$('d-fu').addEventListener('click',fuClick);
+
+/* ---------- doctor: my follow-ups ---------- */
+function renderMyFu(){
+  var m=mode(S.sp),L=docFU(S.sp).sort(byDue),me=L.filter(function(f){return f.owner==='doctor'}),rc=L.filter(function(f){return f.owner==='reception'});
+  function openN(a){return a.filter(function(f){return !f.done}).length}
+  $('d-fu').innerHTML=
+   '<div class="ph"><div><span class="eyebrow">'+esc(DOC[S.sp])+' · '+esc(spName(S.sp))+'</span><h1>متابعاتي</h1><p>متابعات مرضاك أنت بس. ما يطلع هنا مريض لطبيب ثاني.</p></div></div>'+
+   '<div class="sw"><span class="q">مين يتابع مرضاي بعد الزيارة؟</span>'+
+   '<div class="opts" role="group" aria-label="طريقة المتابعة"><button type="button" data-mode="doctor" aria-pressed="'+(m==='doctor')+'"><i></i>أنا أتابع مرضاي</button><button type="button" data-mode="reception" aria-pressed="'+(m==='reception')+'"><i></i>الاستقبال يتابع عني</button></div>'+
+   '<p>'+(m==='doctor'?'أي متابعة جديدة تطلع من زياراتك تنزل هنا عندك، وأنت اللي ترسل للمريض.':'أي متابعة جديدة تطلع من زياراتك تروح لقائمة الاستقبال، وأنت تشوف حالتها هنا.')+' الاختيار يخص المتابعات الجديدة، وتقدر تحوّل أي متابعة لحالها من تحت.</p></div>'+
+   '<div class="sec-h"><h2>عليّ أنا</h2><span class="n">'+ar(openN(me))+' مفتوحة</span></div>'+
+   '<div class="win">'+(me.length?me.map(function(f){return fuRow(f,'doc')}).join(''):'<p class="empty">ما عليك متابعات الحين.</p>')+'</div>'+
+   '<div class="sec-h"><h2>عند الاستقبال</h2><span class="n">'+ar(openN(rc))+' مفتوحة</span><p>الاستقبال يتواصل مع هؤلاء المرضى عنك. تشوف الحالة بس.</p></div>'+
+   '<div class="win">'+(rc.length?rc.map(function(f){return roRow(f,'doc')}).join(''):'<p class="empty">ما فيه متابعات لمرضاك عند الاستقبال.</p>')+'</div>';
+  document.querySelectorAll('[data-mode]').forEach(function(b){b.onclick=function(){var to=b.getAttribute('data-mode');if(to===mode(S.sp))return;
+    S.mode[S.sp]=to;save();track('doctor_mode_toggle',{doctor:S.sp,mode:to});toast(to==='doctor'?'المتابعات الجديدة تنزل عندك':'المتابعات الجديدة تروح للاستقبال');renderMyFu()}});
+}
+
+/* ---------- doctor: my numbers (this doctor only, never the company) ---------- */
+function renderNums(){
+  var sp=S.sp,L=docFU(sp),vis=S.visits.filter(function(v){return v.sp===sp}),op=L.filter(function(f){return !f.done});
+  var onMe=op.filter(function(f){return f.owner==='doctor'}).length,dn=L.filter(function(f){return f.done&&(f.mine||S.seedDone[f.key])});
+  var myPl=S.plans.filter(function(p){return p.sp===sp&&p.done});
+  var opened=vis.reduce(function(s,v){return s+(v.value||0)},0),ret=dn.reduce(function(s,f){return s+f.value},0)+myPl.reduce(function(s,p){return s+(p.value||0)},0);
+  var d=DEPT[sp],fu=DFU[sp],pct=Math.round(d[3]/d[2]*100),bk=Math.round(d[1]/d[0]*100);
+  $('d-nums').innerHTML=
+   '<div class="ph"><div><span class="eyebrow">'+esc(DOC[sp])+' · '+esc(spName(sp))+'</span><h1>أرقامي</h1><p>أرقامك أنت بس. ما تطلع هنا أرقام المجمع ولا أرقام طبيب ثاني.</p></div></div>'+
+   '<div class="win"><div class="win-h"><div class="who-p"><b>جلستك الحين</b><small>محسوبة من اللي سويته في هذي التجربة</small></div><span class="lab">أرقام حقيقية من جلستك</span></div>'+
+   '<div class="kpi five" style="border:0;border-radius:0;margin:0">'+
+   '<div><small>ملفات اعتمدتها</small><b>'+ar(vis.length)+'</b></div><div><small>متابعات عليّ أنا</small><b>'+ar(onMe)+'</b></div><div><small>متابعات عند الاستقبال</small><b>'+ar(op.length-onMe)+'</b></div>'+
+   '<div><small>رجعوا وحجزوا</small><b>'+ar(dn.length+myPl.length)+'</b></div><div><small>خطط علاج انفتحت من زياراتك</small><b>'+ar(opened)+' <i>ر.س</i></b><small>رجع منها '+sar(ret)+'</small></div></div></div>'+
+   '<div class="sheet"><div class="sheet-h"><div><b>أرقام '+esc(DOC[sp])+' — أكتوبر</b><small>عيادة '+esc(spName(sp))+' · طبيب واحد</small></div><span class="ex">مثال توضيحي</span></div>'+
+   '<div class="mg"><div>'+
+     '<div class="big"><small>رجع من خطط علاجك</small><span class="v">'+sar(d[3])+'</span><div class="bar"><i style="width:'+pct+'%"></i></div><small>من '+sar(d[2])+' خطط فتحتها هذا الشهر</small></div>'+
+     '<div class="rw"><span>استشاراتك</span><b>'+ar(d[0])+'</b></div>'+
+     '<div class="rw"><span>تحولت حجز</span><span><em>'+ar(bk)+'٪</em><b>'+ar(d[1])+'</b></span></div>'+
+     '<div class="rw"><span>مرضى رجعوا بسبب المتابعة</span><b>'+ar(d[4])+'</b></div>'+
+   '</div><div>'+
+     '<div class="cmp"><span class="lab">متابعاتك هذا الشهر · '+ar(fu[0])+' متابعة</span><div class="l"><span>اكتملت</span><div class="bar"><i style="width:'+fu[1]+'%"></i></div><span>'+ar(fu[1])+'٪</span></div></div>'+
+     '<div class="cmp"><span class="lab">اكتمال توثيق ملفاتك</span><div class="l"><span>مكتمل</span><div class="bar'+(d[5]<80?' was':'')+'"><i style="width:'+d[5]+'%"></i></div><span>'+ar(d[5])+'٪</span></div></div>'+
+     '<div class="rw"><span>طريقة المتابعة الحين</span><span>'+(mode(sp)==='doctor'?'أنا أتابع مرضاي':'الاستقبال يتابع عني')+'</span></div>'+
+   '</div></div><p class="exn">أرقام الشهر مثال يوضح شكل الصفحة، مو نتائج حقيقية. في التشغيل الفعلي تنحسب من زياراتك ومتابعاتك أنت.</p></div>';
+}
+
+/* ---------- management ---------- */
+var DEPT={ob:[46,31,14000,6300,9,94],dental:[52,30,62000,24800,8,88],ortho:[34,19,21000,7200,4,71],physio:[38,29,26000,12400,7,97],general:[58,33,6000,2100,8,90],peds:[44,25,3000,900,6,92],derm:[30,19,44000,15900,4,85],psych:[18,9,8000,2800,2,96]};
+function renderMgt(){
+  var retV=S.fu.filter(function(f){return f.done}).reduce(function(s,f){return s+(f.value||0)},0)+S.plans.filter(function(p){return p.done}).reduce(function(s,p){return s+(p.value||0)},0)
+    +allFU().filter(function(f){return !f.mine&&f.done}).reduce(function(s,f){return s+f.value},0)+allPlans().filter(function(p){return !p.mine&&p.done}).reduce(function(s,p){return s+p.value},0);
+  var T=[0,0,0,0,0];ORDER.forEach(function(k){for(var i=0;i<5;i++)T[i]+=DEPT[k][i]});
+  $('v-mgt').innerHTML=
+   '<div class="ph"><div><span class="eyebrow">الإدارة</span><h1>كم ريال رجع؟</h1><p>فوق: أرقام حركتك أنت في هذي التجربة. تحت: مثال لشكل التقرير الشهري.</p></div></div>'+
+   '<div class="win"><div class="win-h"><div class="who-p"><b>تجربتك اليوم</b><small>محسوبة من اللي سويته أنت هنا</small></div><span class="lab">أرقام حقيقية من جلستك</span></div>'+
+   '<div class="kpi five" style="border:0;border-radius:0;margin:0">'+
+   '<div><small>ملفات اعتمدتها</small><b>'+ar(S.visits.length)+'</b></div><div><small>متابعات طلعت من زياراتك</small><b>'+ar(S.fu.length)+'</b></div><div><small>رسائل واتساب انفتحت</small><b>'+ar(S.sent)+'</b></div>'+
+   '<div><small>مرضى رجعوا وحجزوا</small><b>'+ar(S.back)+'</b>'+(retV?'<small>'+sar(retV)+' رجعت</small>':'')+'</div><div><small>قيمة خطط العلاج من زياراتك</small><b>'+ar(S.planValue)+' <i>ر.س</i></b></div></div></div>'+
+   '<div class="sheet"><div class="sheet-h"><div><b>تقرير الإدارة — أكتوبر</b><small>'+esc(CLINIC)+' · ٨ عيادات</small></div><span class="ex">مثال توضيحي</span></div>'+
+   '<div class="mg"><div>'+
+     '<div class="big"><small>رجع من خطط العلاج</small><span class="v">'+sar(72400)+'</span><div class="bar"><i style="width:39%"></i></div><small>من '+sar(184000)+' خطط انفتحت هذا الشهر</small></div>'+
+     '<div class="rw"><span>مرضى رجعوا بسبب المتابعة</span><b>'+ar(48)+'</b></div>'+
+     '<div class="cmp"><span class="lab">استشارات تحولت حجز · '+ar(T[1])+' من '+ar(T[0])+'</span>'+
+       '<div class="l"><span>قبل رفيق</span><div class="bar was"><i style="width:47%"></i></div><span>٤٧٪</span></div><div class="l"><span>مع رفيق</span><div class="bar"><i style="width:61%"></i></div><span>٦١٪</span></div></div>'+
+     '<div class="cmp"><span class="lab">مطالبات تأمين مرفوضة</span>'+
+       '<div class="l"><span>قبل رفيق</span><div class="bar was"><i style="width:48%"></i></div><span>١٢٪</span></div><div class="l"><span>مع رفيق</span><div class="bar"><i style="width:20%"></i></div><span>٥٪</span></div></div>'+
+   '</div><div><div style="padding-top:20px"><span class="lab" style="display:block;margin-bottom:8px">اكتمال التوثيق لكل طبيب</span>'+
+     ORDER.map(function(k){var v=DEPT[k][5];return '<div class="dr'+(v<80?' low':'')+'"><span>'+esc(DOC[k])+' · '+esc(spName(k).split(' ')[0])+'</span><div class="bar"><i style="width:'+v+'%"></i></div><span>'+ar(v)+'٪</span></div>'}).join('')+
+     '<p class="exn">الأقل من ٨٠٪ يطلع بلون مختلف، عشان الإدارة تعرف مين ملفاته ناقصة.</p></div></div></div>'+
+   '<h3 class="sh3">لكل طبيب</h3><div class="dt four"><div class="r h"><span>الطبيب</span><span>طريقة المتابعة</span><span>متابعات الشهر</span><span>اكتملت</span></div>'+
+     ORDER.map(function(k){var f=DFU[k];return '<div class="r"><span>'+esc(DOC[k])+' · '+esc(spName(k))+'</span><span data-l="المتابعة">'+MODE_T[mode(k)]+'</span><span data-l="متابعات">'+ar(f[0])+'</span><span data-l="اكتملت"'+(f[1]<70?' style="color:var(--clay-d);font-weight:600"':'')+'>'+ar(f[1])+'٪</span></div>'}).join('')+'</div>'+
+   '<p class="exn">«بنفسه»: الطبيب يرسل لمرضاه. «الاستقبال»: الاستقبال يتابع عنه. الطبيب يغيّرها من صفحته.</p>'+
+   '<h3 class="sh3">لكل قسم</h3><div class="dt"><div class="r h"><span>القسم</span><span>استشارات</span><span>تحولت حجز</span><span>خطط انفتحت</span><span>رجع منها</span><span>رجعوا بالمتابعة</span></div>'+
+     ORDER.map(function(k){var d=DEPT[k];return '<div class="r"><span>'+esc(spName(k))+'</span><span data-l="استشارات">'+ar(d[0])+'</span><span data-l="حجز">'+ar(d[1])+'</span><span data-l="خطط">'+ar(d[2])+'</span><span data-l="رجع">'+ar(d[3])+'</span><span data-l="رجعوا">'+ar(d[4])+'</span></div>'}).join('')+
+     '<div class="r t"><span>المجموع</span><span data-l="استشارات">'+ar(T[0])+'</span><span data-l="حجز">'+ar(T[1])+'</span><span data-l="خطط">'+ar(T[2])+'</span><span data-l="رجع">'+ar(T[3])+'</span><span data-l="رجعوا">'+ar(T[4])+'</span></div></div>'+
+   '<p class="exn">الأرقام مثال يوضح شكل التقرير، مو نتائج عميل. في التشغيل الفعلي تنحسب من زياراتكم ومتابعاتكم. المبالغ بالريال.</p></div>';
+  window.RQT&&RQT.mgtHealth($('v-mgt'),retV);
+}
+
+/* ---------- feedback ---------- */
+$('fbOpen').onclick=function(){$('fbBox').hidden=!$('fbBox').hidden;track('feedback_open',{at:window.__rqStep});if(!$('fbBox').hidden)$('fbTxt').focus()};
+$('fbSend').onclick=function(){var t=$('fbTxt').value.trim();if(!t)return;track('feedback',{text:t.slice(0,1500),at:window.__rqStep});$('fbTxt').value='';$('fbBox').hidden=true;toast('وصلتنا، مشكور')};
+
+window.RQD={setImp:function(rows){S.imp=A(rows);if(S.role==='doc'&&S.dscr==='home')renderHome();else if(S.role==='doc'&&S.dscr==='fu')renderMyFu();else if(S.role==='rec')renderRec()},impSplit:impSplit,S:S,go:go,dtop:dtop,ar:ar,esc:esc,toast:toast,track:track,save:save,sar:sar,dg:dg,RQ:RQ,CLINIC:CLINIC,openWa:openWa,allFU:allFU};
+/* ---------- start ---------- */
+dshow('home');renderHome();badge();step('schedule');
+go(location.hash==='#report'?'mgt':(location.hash==='#follow'?'rec':'doc'),true);
+track('demo_open',{sp:S.sp});
+})();
+</script>
+<script src="/assets/team.js"></script>
+</body>
+</html>
