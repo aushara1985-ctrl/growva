@@ -1,5 +1,8 @@
 // POST {name, clinic, city, specialty, phone, doctors, note, sid, ref}
+import { guard } from '../_lib/ratelimit.js';
 export async function onRequestPost({ request, env }) {
+  const blocked = await guard(env, request, 'lead', null);
+  if (blocked) return blocked;
   let b = {};
   try { b = await request.json(); } catch { return json({ ok: false }, 400); }
   const s = (k, n = 120) => String(b[k] || '').trim().slice(0, n);

@@ -1,4 +1,5 @@
-// POST {transcript, specialty, patient, sid, ref}
+// POST {transcript, specialty, patient}   session required (clinic id from the session)
+// Privacy: the transcript and the generated note are NOT stored. Only metadata is logged (length, timing, ok/error). See _lib/purge.js.
 // Turns a visit conversation into a structured, doctor-reviewable record. Documentation only:
 // it never invents a diagnosis or treatment that the doctor did not say.
 
@@ -42,8 +43,13 @@ Rules:
 - Output ONE JSON object only, no markdown, matching this shape:
 ${SCHEMA}`;
 
-export async function onRequestPost({ request, env }) {
+import { guard } from '../_lib/ratelimit.js';
+
+export async function onRequestPost({ request, env, data: ctx }) {
   const t0 = Date.now();
+  const cid = ctx.session.cid;
+  const blocked = await guard(env, request, 'note', cid);
+  if (blocked) return blocked;
   let b = {};
   try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400); }
   const transcript = String(b.transcript || '').trim().slice(0, 16000);
@@ -63,7 +69,7 @@ export async function onRequestPost({ request, env }) {
       err = 'parse_failed';
     } catch (e) { err = String(e?.message || e).slice(0, 300); }
   }
-  await log(env, b, 'note', !!data && !err, Date.now() - t0, transcript.length, transcript, raw, err ? `${model}: ${err}` : null, sp);
+  await log(env, cid, 'note', !!data && !err, Date.now() - t0, transcript.length, err ? `${model}: ${err}` : null, sp);
   if (!data || err) return json({ error: 'note_failed', detail: err }, 502);
   return json({ note: data, model, ms: Date.now() - t0 });
 }
@@ -102,11 +108,11 @@ function parseJson(s) {
   try { return JSON.parse(s.slice(a, z + 1)); } catch { return null; }
 }
 
-async function log(env, b, kind, ok, ms, chars, input, output, error, sp) {
+// metadata only: no transcript, no note text, no patient context (input_text / output_text stay NULL)
+async function log(env, cid, kind, ok, ms, chars, error, sp) {
   try {
-    await env.DB.prepare('INSERT INTO runs (ts,sid,ref,kind,specialty,ok,ms,input_chars,input_text,output_text,error) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-      .bind(Date.now(), String(b.sid || '').slice(0, 64), String(b.ref || '').slice(0, 64), kind, sp, ok ? 1 : 0, ms, chars,
-        (input || '').slice(0, 16000), (output || '').slice(0, 20000), error).run();
+    await env.DB.prepare('INSERT INTO runs (ts,clinic_id,kind,specialty,ok,ms,input_chars,error) VALUES (?,?,?,?,?,?,?,?)')
+      .bind(Date.now(), cid, kind, sp, ok ? 1 : 0, ms, chars, error ? String(error).replace(/[0-9٠-٩]{4,}/g, '#').slice(0, 80) : null).run();
   } catch {}
 }
 function json(o, s = 200) { return new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8' } }); }

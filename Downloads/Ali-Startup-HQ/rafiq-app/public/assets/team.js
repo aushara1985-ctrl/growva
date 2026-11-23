@@ -15,7 +15,7 @@
   saveT();
 
   /* imported demo patients come back from D1 for this demo session (deleted after 7 days) */
-  fetch('/api/cs-import?rows=1&sid=' + encodeURIComponent(SID)).then(function (r) { return r.json(); }).then(function (j) { if (j && j.rows && j.rows.length) D.setImp(j.rows); }).catch(function () {});
+  fetch('/api/cs-import?rows=1').then(function (r) { return r.json(); }).then(function (j) { if (j && j.rows && j.rows.length) D.setImp(j.rows); }).catch(function () {});
 
   function post(url, body) {
     return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) {

@@ -1,5 +1,9 @@
 // POST (sendBeacon, text/plain) {sid, ref, page, events: [{name, props, ts}]}
+import { guard } from '../_lib/ratelimit.js';
 export async function onRequestPost({ request, env }) {
+  const blocked = await guard(env, request, 'event', null);
+  if (blocked) return blocked;
+  if (Number(request.headers.get('content-length') || 0) > 64000) return new Response('too large', { status: 413 });
   let b = {};
   try { b = JSON.parse(await request.text()); } catch { return new Response('bad', { status: 400 }); }
   const evs = Array.isArray(b.events) ? b.events.slice(0, 50) : [];

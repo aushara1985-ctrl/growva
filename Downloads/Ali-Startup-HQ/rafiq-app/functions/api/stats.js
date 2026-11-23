@@ -1,13 +1,17 @@
-// GET /api/stats?k=STATS_KEY[&ref=dr1][&hours=72]  -> what each visitor did, where they stopped, AI failures, leads.
+// GET /api/stats[?ref=dr1][&hours=72] with header x-admin-key: STATS_KEY (never in the URL)  -> what each visitor did, where they stopped, AI failures, leads.
+import { adminOk } from '../_lib/auth.js';
+import { guard } from '../_lib/ratelimit.js';
 export async function onRequestGet({ request, env }) {
   const u = new URL(request.url);
-  if (!env.STATS_KEY || u.searchParams.get('k') !== env.STATS_KEY) return new Response('forbidden', { status: 403 });
+  const blocked = await guard(env, request, 'admin', null);
+  if (blocked) return blocked;
+  if (!(await adminOk(request, env))) return new Response('forbidden', { status: 403 });
   const since = Date.now() - Number(u.searchParams.get('hours') || 168) * 3600000;
   const ref = u.searchParams.get('ref');
   const where = ref ? 'ts > ? AND ref = ?' : 'ts > ?';
   const args = ref ? [since, ref] : [since];
   const ev = (await env.DB.prepare(`SELECT ts,sid,ref,page,name,props,ua FROM events WHERE ${where} ORDER BY ts`).bind(...args).all()).results || [];
-  const runs = (await env.DB.prepare(`SELECT ts,sid,ref,kind,specialty,ok,ms,input_chars,error,substr(input_text,1,400) AS input_head FROM runs WHERE ${where} ORDER BY ts`).bind(...args).all()).results || [];
+  const runs = (await env.DB.prepare(`SELECT ts,sid,ref,kind,specialty,ok,ms,input_chars,error FROM runs WHERE ${where} ORDER BY ts`).bind(...args).all()).results || [];
   const leads = (await env.DB.prepare('SELECT * FROM leads WHERE ts > ? ORDER BY ts DESC').bind(since).all()).results || [];
   const sessions = {};
   for (const e of ev) {

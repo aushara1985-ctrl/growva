@@ -1,9 +1,14 @@
-// POST {audio: base64 16kHz mono WAV, sid, ref, part}
-// Speech-to-text with Workers AI Whisper (large-v3-turbo). Demo only: acted visits, no real patient data.
+// POST {audio: base64 16kHz mono WAV, specialty, part}   session required
+// Speech-to-text with Workers AI Whisper (large-v3-turbo). The text is returned to the caller and NOT stored.
 const PROMPT = 'زيارة عيادة باللهجة السعودية مع مصطلحات طبية بالإنجليزي. Patient visit, mixed Arabic and English: blood pressure, ultrasound, CBC, HbA1c, paracetamol, folic acid, ferritin, follow up.';
 
-export async function onRequestPost({ request, env }) {
+import { guard } from '../_lib/ratelimit.js';
+
+export async function onRequestPost({ request, env, data }) {
   const t0 = Date.now();
+  const cid = data.session.cid;
+  const blocked = await guard(env, request, 'transcribe', cid);
+  if (blocked) return blocked;
   let body = {};
   try { body = await request.json(); } catch { return json({ error: 'bad_json' }, 400); }
   const audio = String(body.audio || '');
@@ -17,7 +22,7 @@ export async function onRequestPost({ request, env }) {
     });
     text = String(r?.text || '').trim();
   } catch (e) { err = String(e?.message || e).slice(0, 300); }
-  await log(env, body, 'transcribe', !err, Date.now() - t0, audio.length, null, text, err);
+  await log(env, cid, body, 'transcribe', !err, Date.now() - t0, audio.length, err);
   if (err) return json({ error: 'stt_failed', detail: err }, 502);
   return json({ text, ms: Date.now() - t0 });
 }
@@ -28,11 +33,10 @@ async function overDailyCap(env) {
     return Number(r?.n || 0) > 600;
   } catch { return false; }
 }
-async function log(env, b, kind, ok, ms, chars, input, output, error) {
+async function log(env, cid, b, kind, ok, ms, chars, error) {
   try {
-    await env.DB.prepare('INSERT INTO runs (ts,sid,ref,kind,specialty,ok,ms,input_chars,input_text,output_text,error) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-      .bind(Date.now(), String(b.sid || '').slice(0, 64), String(b.ref || '').slice(0, 64), kind, String(b.specialty || '').slice(0, 32),
-        ok ? 1 : 0, ms, chars, input, (output || '').slice(0, 20000), error).run();
+    await env.DB.prepare('INSERT INTO runs (ts,clinic_id,kind,specialty,ok,ms,input_chars,error) VALUES (?,?,?,?,?,?,?,?)')
+      .bind(Date.now(), cid, kind, String(b.specialty || '').slice(0, 32), ok ? 1 : 0, ms, chars, error ? String(error).slice(0, 80) : null).run();
   } catch {}
 }
 function json(o, s = 200) { return new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8' } }); }

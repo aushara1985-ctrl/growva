@@ -1,6 +1,7 @@
 // POST {sid, message, history:[{r:'u'|'a',t}], screen, role, state, unclear, mode?, lesson?} -> {reply, action, intent, ticket?}
 // "اسأل رفيق": one grounded assistant. Allowed actions: explain, navigate, rerun_import, open a ticket. Never medical advice.
-import { askJson, json, limited, logCall, logQuality, cleanSid, newTicket, SLA } from '../_lib/cs.js';
+import { askJson, json, limited, logCall, logQuality, newTicket, SLA } from '../_lib/cs.js';
+import { guard } from '../_lib/ratelimit.js';
 import { checkReply, MAX_ROUNDS, MIN_CONFIDENCE } from '../_lib/harness.js';
 
 const FACTS = `حقائق رفيق (هذا كل ما تعرفه. أي شيء خارجه ما تعرفه):
@@ -39,11 +40,13 @@ const RULES = `أنت «مساعد رفيق»: مساعد ذكاء اصطناع�
 أخرج JSON واحد فقط بدون markdown:
 {"reply":"...","intent":"answered|unknown|medical|unclear|human|smalltalk","evidence":"اقتباس حرفي من الحقائق","confidence":0.9,"urgency":"normal|urgent","topic":"وصف قصير للموضوع (٥ كلمات)","action":{"type":"none","screen":null,"hint":null}}`;
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, data }) {
   const t0 = Date.now();
+  const sid = data.session.cid; // clinic id from the verified session, never from the body
   let b = {};
   try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400); }
-  const sid = cleanSid(b.sid) || 'anon';
+  const blocked = await guard(env, request, 'ask', sid);
+  if (blocked) return blocked;
   const message = String(b.message || '').trim().slice(0, 600);
   const screen = String(b.screen || '').slice(0, 30);
   if (b.mode === 'quiz_explain') return quiz(env, sid, b, t0);
@@ -52,7 +55,7 @@ export async function onRequestPost({ request, env }) {
   const lim = await limited(env, sid);
   if (lim) {
     const r = lim === 'session' ? 'وصلت الحد المسموح من الأسئلة لهالساعة في الديمو (٣٠ سؤال). ارجع بعد شوي، أو اضغط «كلّم إنسان» ويرد عليك فريقنا.' : 'المساعد مشغول الحين. اضغط «كلّم إنسان» ويرد عليك فريقنا على الإيميل.';
-    await logCall(env, { sid, kind: 'ask', ok: 0, intent: 'rate_limited', screen, msg: message, reply: r, error: lim });
+    await logCall(env, { cid: sid, kind: 'ask', ok: 0, intent: 'rate_limited', screen, msg: message, reply: r, error: lim });
     return json({ reply: r, intent: 'rate_limited', action: { type: 'none' } }, 429);
   }
 
@@ -61,7 +64,7 @@ export async function onRequestPost({ request, env }) {
   const asksHuman = /(انت|انتي|انتا|you).{0,8}(انسان|بشر|شخص حقيق|واحد حقيق|روبوت|بوت|ذكاء|اله|human|real person|bot)/i.test(norm) || /^(هل )?(انت )?(انسان|بشر)\s*[؟?]*$/.test(norm.trim());
   if (asksHuman) {
     const reply = 'لا، أنا مساعد ذكاء اصطناعي مو إنسان. فريق رفيق يراجع ردودي، وإذا تبي تكلّم إنسان اضغط «كلّم إنسان» ويرد عليك فريقنا على الإيميل.';
-    await logCall(env, { sid, kind: 'ask', ok: 1, intent: 'identity', screen, msg: message, reply, ms: Date.now() - t0 });
+    await logCall(env, { cid: sid, kind: 'ask', ok: 1, intent: 'identity', screen, msg: message, reply, ms: Date.now() - t0 });
     return json({ reply, intent: 'identity', action: { type: 'none' } });
   }
   const medAsk = /(وصفه|جرعه|دواء|علاج|تشخيص|اعراض|ادويه)/.test(norm) &&
@@ -69,7 +72,7 @@ export async function onRequestPost({ request, env }) {
     !/(رفيق|النظام|التطبيق|الملف|يكتب|الخطه|المتابعه|السعر|كم سعر)/.test(norm);
   if (medAsk) {
     const reply = 'ما أقدر أعطي نصيحة طبية ولا وصفة ولا تشخيص، هذا قرار الطبيب فقط. رفيق نفسه يوثّق اللي يقوله الطبيب بس، وما يقترح علاج. إذا تبي أشرح لك كيف يكتب رفيق الوصفة اللي قالها الطبيب في الملف، اسألني.';
-    await logCall(env, { sid, kind: 'ask', ok: 1, intent: 'medical', screen, msg: message, reply, ms: Date.now() - t0 });
+    await logCall(env, { cid: sid, kind: 'ask', ok: 1, intent: 'medical', screen, msg: message, reply, ms: Date.now() - t0 });
     return json({ reply, intent: 'medical', action: { type: 'none' } });
   }
 
@@ -111,7 +114,7 @@ export async function onRequestPost({ request, env }) {
   const qualityFailed = !gate.passed;
   if (qualityFailed && !failed) { intent = 'unknown'; action = { type: 'none' }; }
   if (qualityFailed && failed) d = { reply: '', intent: 'human', urgency: 'normal', topic: 'تعطل المساعد', action: { type: 'none' } };
-  await logQuality(env, { clinic_id: b.clinic_id, sid, step: 'ask', passed: gate.passed, reasons: gate.reasons, rounds });
+  await logQuality(env, { cid: sid, step: 'ask', passed: gate.passed, reasons: gate.reasons, rounds });
   if (intent === 'smalltalk' && reply.length > 160) intent = 'unknown';
 
   // Post-checks the model cannot override.
@@ -125,13 +128,13 @@ export async function onRequestPost({ request, env }) {
   let ticket = '', urgency = d.urgency === 'urgent' ? 'urgent' : 'normal';
   if (needTicket) {
     try {
-      ticket = await newTicket(env, { sid, urgency, topic: d.topic || message.slice(0, 60), message, source: 'assistant:' + (failed ? 'model_failed' : qualityFailed ? 'quality_failed' : intent) });
+      ticket = await newTicket(env, { cid: sid, urgency, topic: d.topic || message.slice(0, 60), message, source: 'assistant:' + (failed ? 'model_failed' : qualityFailed ? 'quality_failed' : intent) });
       const lead = failed || intent === 'human' ? '' : intent === 'unknown' ? 'ما عندي جواب مؤكد على هذا، وما أبي أخمّن عليك.\n' : reply.replace(/\s*بحوّلك لفريقنا\.?\s*$/, '') + '\n';
       reply = `${lead}بحوّلك لفريقنا. فتحت لك تذكرة رقم ${ticket}، ويرد عليك إنسان من فريقنا على الإيميل ${SLA[urgency]}. اكتب إيميلك تحت عشان نرد عليك.`;
       action = { type: 'ticket', ticket, urgency };
     } catch (e) { reply = (reply || 'تعذّر الرد الحين.') + '\nما قدرت أفتح التذكرة، اضغط «كلّم إنسان».'; }
   }
-  await logCall(env, { sid, kind: 'ask', model: res.model, ok: !failed, ms: Date.now() - t0, intent, action: action.type, screen, msg: message, reply, ticket, error: qualityFailed ? 'quality:' + gate.reasons.join(',') : res && res.err });
+  await logCall(env, { cid: sid, kind: 'ask', model: res.model, ok: !failed, ms: Date.now() - t0, intent, action: action.type, screen, msg: message, reply, ticket, error: qualityFailed ? 'quality:' + gate.reasons.join(',') : res && res.err });
   return json({ reply, intent, action, ticket: ticket || undefined, urgency: ticket ? urgency : undefined, ask_email: !!ticket, unclear: intent === 'unclear', ms: Date.now() - t0, quality_rounds: rounds, quality_failed: qualityFailed || undefined });
 }
 
@@ -173,9 +176,9 @@ async function quiz(env, sid, b, t0) {
     gate = checkReply({ reply: prev, intent: 'smalltalk' }, ctx);
     if (gate.passed) break;
   }
-  await logQuality(env, { clinic_id: b.clinic_id, sid, step: 'quiz', passed: gate.passed, reasons: gate.reasons, rounds });
+  await logQuality(env, { cid: sid, step: 'quiz', passed: gate.passed, reasons: gate.reasons, rounds });
   const ai = gate.passed && !!res.data;
   const reply = ai ? String(res.data.reply).slice(0, 600) : `الصحيح: ${opts[correct] || ''}. راجع الخطوات فوق.`;
-  await logCall(env, { sid, kind: 'quiz', model: res.model, ok: ai, ms: Date.now() - t0, intent: 'quiz', screen: String(L.id || ''), msg: q, reply, error: ai ? null : (res.err || 'quality:' + gate.reasons.join(',')) });
+  await logCall(env, { cid: sid, kind: 'quiz', model: res.model, ok: ai, ms: Date.now() - t0, intent: 'quiz', screen: String(L.id || ''), msg: q, reply, error: ai ? null : (res.err || 'quality:' + gate.reasons.join(',')) });
   return json({ reply, ai });
 }
