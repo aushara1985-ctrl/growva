@@ -2,6 +2,10 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createMagicToken } from '@/lib/auth'
+import { rateLimit, clientIp } from '@/lib/rate-limit'
+
+const HOUR = 60 * 60 * 1000
+const LIMIT_PER_HOUR = 5
 
 // SECURITY: the magic link is a credential. It must only ever travel by email.
 // It is NEVER returned in an HTTP response in production. The only exception is a
@@ -33,6 +37,16 @@ export async function POST(req: NextRequest) {
   }
 
   const normalizedEmail = email.toLowerCase().trim()
+
+  // Abuse protection: max 5 login emails per hour per IP and per email address.
+  const ipRl = rateLimit(`authsend:ip:${clientIp(req.headers)}`, LIMIT_PER_HOUR, HOUR)
+  const emailRl = rateLimit(`authsend:email:${normalizedEmail}`, LIMIT_PER_HOUR, HOUR)
+  if (!ipRl.ok || !emailRl.ok) {
+    return NextResponse.json(
+      { sent: false, error: 'rate_limited', message: 'Too many login requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': String(Math.max(ipRl.retryAfter, emailRl.retryAfter)) } },
+    )
+  }
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${req.headers.get('host')}`
   const fromPath = (typeof from === 'string' && from.startsWith('/') && !from.startsWith('//')) ? from : '/dashboard'
 
