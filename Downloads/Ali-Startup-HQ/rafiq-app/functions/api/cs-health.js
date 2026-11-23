@@ -1,6 +1,9 @@
 // POST {sid, real:{...numbers}, example:{...numbers}} -> {suggestion, ai}
 // One plain suggestion for management. The AI may only use numbers we gave it; otherwise we fall back to a fixed rule.
-import { askJson, json, limited, logCall, cleanSid } from '../_lib/cs.js';
+// HARNESS: the at-risk decision is plain code over REAL usage signals (assessHealth). No data -> «ما فيه بيانات كافية» (never a score,
+// never example numbers). At risk -> one CS task (a ticket, source 'health:at_risk', max one open per session per 3 days).
+import { askJson, json, limited, logCall, logQuality, cleanSid, newTicket } from '../_lib/cs.js';
+import { assessHealth, riskText, NO_DATA } from '../_lib/harness.js';
 
 const RULES = `أنت مساعد «نجاح العميل» في رفيق (ذكاء اصطناعي، مو إنسان). تكتب اقتراح واحد قصير (١٥ إلى ٣٠ كلمة) للإدارة بالسعودي البسيط، بناءً على إشارات الاستخدام فقط.
 - استخدم فقط الأرقام الموجودة في الإشارات. ممنوع رقم جديد أو نسبة أو ريال من عندك.
@@ -18,11 +21,28 @@ export async function onRequestPost({ request, env }) {
   const sid = cleanSid(b.sid) || 'anon';
   const pick = (o) => { const r = {}; for (const k of Object.keys(o || {}).slice(0, 12)) { const v = o[k]; if (typeof v === 'number' && isFinite(v)) r[String(k).slice(0, 40)] = Math.round(v); } return r; };
   const real = pick(b.real), example = pick(b.example);
-  const fallback = (real.followups_sent_7d || 0) === 0 && (real.visits_7d || 0) === 0
-    ? 'ما انسجل نشاط في تجربتك بعد. جرّب تعتمد ملف زيارة وترسل متابعة، ونشوف لك الرقم الحقيقي. نساعدك؟'
-    : `الاستقبال ما أرسل متابعات من ${example.reception_days_without_send ?? 5} أيام (مثال). نساعدك؟`;
-  if (await limited(env, sid)) return json({ suggestion: fallback, ai: false, limited: true });
-  const user = `إشارات real (من جلسة المستخدم): ${JSON.stringify(real)}\nإشارات example (أرقام مثال توضيحية مو حقيقية): ${JSON.stringify(example)}\nأعطني JSON.`;
+  const age = Number(b.age_days);
+  const health = assessHealth(real, Number.isFinite(age) ? age : null);
+  if (health.status === 'no_data') {
+    await logQuality(env, { clinic_id: b.clinic_id, sid, step: 'health', passed: true, reasons: ['no_data'], rounds: 1 });
+    return json({ suggestion: NO_DATA, ai: false, status: 'no_data', reasons: [] });
+  }
+  // fallback uses REAL numbers only (example numbers are illustration for the screen, never a basis for a risk statement)
+  const fallback = health.status === 'at_risk'
+    ? `الإشارات الحقيقية تقول: ${riskText(health.reasons)}. نساعدك؟`
+    : 'الاستخدام ماشي طبيعي حسب إشاراتك. تبي نقترح لك خطوة تزيد المرضى اللي يرجعون؟ نساعدك؟';
+  let task = null;
+  if (health.status === 'at_risk') {
+    try {
+      const open = await env.DB.prepare("SELECT no FROM cs_tickets WHERE sid=? AND source='health:at_risk' AND status='open' AND ts>?").bind(sid, Date.now() - 3 * 86400000).first();
+      task = open ? open.no : await newTicket(env, { sid, urgency: 'normal', topic: 'عميل معرّض للخروج (نجاح العميل)', message: `إشارات الاستخدام: ${riskText(health.reasons)}. الأرقام الحقيقية: ${JSON.stringify(real)}، عمر الحساب ${Math.floor(age)} يوم.`, source: 'health:at_risk' });
+    } catch {}
+  }
+  const meta = { status: health.status, reasons: health.reasons, task: task || undefined };
+  await logQuality(env, { clinic_id: b.clinic_id, sid, step: 'health', passed: health.status !== 'at_risk', reasons: health.reasons, rounds: 1 });
+  if (await limited(env, sid)) return json({ suggestion: fallback, ai: false, limited: true, ...meta });
+  const user = `إشارات real (من جلسة المستخدم): ${JSON.stringify(real)}\nإشارات example (أرقام مثال توضيحية مو حقيقية، لا تبني عليها أي حكم عن العميل): ${JSON.stringify(example)}
+حكم الفحص (من كود، التزم به): ${health.status === 'at_risk' ? 'معرّض للخروج: ' + riskText(health.reasons) : 'طبيعي'}\nأعطني JSON.`;
   const res = await askJson(env, RULES, user, d => typeof d.suggestion === 'string' && d.suggestion.length > 8, 500);
   let suggestion = res.data ? String(res.data.suggestion).slice(0, 300) : '';
   let ai = !!suggestion;
@@ -32,5 +52,5 @@ export async function onRequestPost({ request, env }) {
   }
   if (!ai) suggestion = fallback;
   await logCall(env, { sid, kind: 'health', model: res.model, ok: ai, ms: Date.now() - t0, intent: 'health', msg: JSON.stringify(real), reply: suggestion, error: ai ? null : (res.err || 'numbers_not_in_signals') });
-  return json({ suggestion, ai });
+  return json({ suggestion, ai, ...meta });
 }

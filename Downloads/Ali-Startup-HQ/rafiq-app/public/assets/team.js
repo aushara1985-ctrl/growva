@@ -27,16 +27,26 @@
   /* =====================================================================
      Onboarding: every step is computed from the demo state
      ===================================================================== */
+  function goalData() {
+    return { importedRows: (S.imp && S.imp.length) || 0, summaryReady: T.sum ? T.sum.ready : null, flag: !!T.imp, visits: S.visits.length, recorded: !!T.rec,
+      sent: S.sent || 0, sentLog: (T.sentLog || []).length, invited: !!T.inv && !!T.invAt, seenReport: !!T.rep };
+  }
+  /* HARNESS: a step is done only when RQG.goalCheck finds its goal in the data. A flag set earlier but contradicted by the data is shown as "not verified". */
   function steps() {
-    var vis = S.visits.length;
-    return [
-      { id: 'imp', t: 'ارفع مواعيد اليوم', why: 'عشان ما أحد من الاستقبال يكتب المرضى بيده.', done: !!T.imp, detail: T.sum ? ar(T.sum.ready) + ' مريض انستوردوا (تجريبي)' : '', go: 'team.import', btn: 'ارفع الملف' },
-      { id: 'rec', t: 'سجّل أول زيارة', why: 'تشوف كيف الكلام يصير ملف جاهز بدون كتابة.', done: !!(T.rec || vis), go: 'doctor.home', btn: 'روح لعيادتي' },
-      { id: 'apr', t: 'اعتمد الملف', why: 'الطبيب هو اللي يقرر، ولا شيء يدخل الملف قبل اعتماده.', done: vis > 0, detail: vis ? ar(vis) + ' ملف معتمد' : '', go: 'doctor.home', btn: 'روح لعيادتي' },
-      { id: 'snd', t: 'أرسل أول متابعة', why: 'المريض اللي يتذكّره المجمع هو اللي يرجع.', done: S.sent > 0, detail: S.sent ? ar(S.sent) + ' رسالة انفتحت' : '', go: 'reception', btn: 'روح للاستقبال' },
-      { id: 'inv', t: 'ادعُ الاستقبال', why: 'الاستقبال هو اللي يرسل المتابعات كل يوم.', done: !!T.inv, action: 'invite', btn: 'جهّز الدعوة' },
-      { id: 'rep', t: 'شوف أول تقرير', why: 'تشوف كم ريال رجع، وهذا اللي يبرر الاشتراك.', done: !!T.rep, go: 'management', btn: 'افتح التقرير' }
+    var vis = S.visits.length, gd = goalData();
+    var list = [
+      { id: 'imp', t: 'ارفع مواعيد اليوم', why: 'عشان ما أحد من الاستقبال يكتب المرضى بيده.', detail: T.sum ? ar(T.sum.ready) + ' مريض انستوردوا (تجريبي)' : '', go: 'team.import', btn: 'ارفع الملف' },
+      { id: 'rec', t: 'سجّل أول زيارة', why: 'تشوف كيف الكلام يصير ملف جاهز بدون كتابة.', go: 'doctor.home', btn: 'روح لعيادتي' },
+      { id: 'apr', t: 'اعتمد الملف', why: 'الطبيب هو اللي يقرر، ولا شيء يدخل الملف قبل اعتماده.', detail: vis ? ar(vis) + ' ملف معتمد' : '', go: 'doctor.home', btn: 'روح لعيادتي' },
+      { id: 'snd', t: 'أرسل أول متابعة', why: 'المريض اللي يتذكّره المجمع هو اللي يرجع.', detail: S.sent ? ar(S.sent) + ' رسالة انفتحت' : '', go: 'reception', btn: 'روح للاستقبال' },
+      { id: 'inv', t: 'ادعُ الاستقبال', why: 'الاستقبال هو اللي يرسل المتابعات كل يوم.', action: 'invite', btn: 'جهّز الدعوة', detail: T.inv && T.invAt ? 'الدعوة انفتحت من جهازك (الديمو ما يقدر يعرف إذا الاستقبال دخل)' : '' },
+      { id: 'rep', t: 'شوف أول تقرير', why: 'تشوف كم ريال رجع، وهذا اللي يبرر الاشتراك.', go: 'management', btn: 'افتح التقرير' }
     ];
+    list.forEach(function (x) {
+      var g = window.RQG ? window.RQG.goalCheck(x.id, gd) : { ok: false, why: 'فحص الأهداف ما تحمّل' };
+      x.done = g.ok; x.unverified = !g.ok && !!({ imp: T.imp, inv: T.inv, rep: T.rep }[x.id]) ? g.why : '';
+    });
+    return list;
   }
   function progress() { var s = steps(); return { done: s.filter(function (x) { return x.done; }).length, total: s.length, s: s }; }
   function refresh() {
@@ -88,7 +98,7 @@
       '<div class="win" style="margin-top:14px">' + p.s.map(function (x, i) {
         var act = x.done ? '<span class="pill done">تم</span>' : '<button type="button" class="btn sm' + (i === nextIdx ? '' : ' ghost') + '" data-st="' + x.id + '">' + esc(x.btn) + '</button>';
         return '<div class="cs-st' + (x.done ? ' done' : (i === nextIdx ? ' next' : '')) + '"><span class="no">' + (x.done ? '✓' : ar(i + 1)) + '</span>' +
-          '<div><b>' + esc(x.t) + '</b><small>' + esc(x.why) + (x.detail ? ' · ' + esc(x.detail) : '') + '</small>' +
+          '<div><b>' + esc(x.t) + '</b><small>' + esc(x.why) + (x.detail ? ' · ' + esc(x.detail) : '') + (x.unverified ? ' · <b>ما تحقق: ' + esc(x.unverified) + '</b>' : '') + '</small>' +
           '<div class="vid"><span class="pill soon">فيديو الأكاديمية: قريباً</span></div></div><span class="act">' + act + '</span>' +
           (x.id === 'inv' && T.invOpen && !x.done ? inviteBox() : '') + '</div>';
       }).join('') + '</div>' +
@@ -110,14 +120,14 @@
   }
   function wireInvite() {
     if (!$('invWa')) return;
-    function done(how) { T.inv = 1; T.invOpen = 0; saveT(); track('invite_reception', { how: how }); toast('جاهزة الدعوة. انحسبت الخطوة'); refresh(); }
+    function done(how) { T.inv = 1; T.invAt = Date.now(); T.invOpen = 0; saveT(); track('invite_reception', { how: how }); toast('جاهزة الدعوة. انحسبت الخطوة'); refresh(); }
     $('invWa').onclick = function () {
       var n = ($('invName').value || '').trim();
       D.openWa('هلا' + (n ? ' ' + n : '') + '، ندعوك تدخل على رفيق من الاستقبال وتتابع المرضى: ' + $('invLink').textContent); done('wa');
     };
     $('invCopy').onclick = function () {
       var t = $('invLink').textContent;
-      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).catch(function () {}).then(function () { done('copy'); });
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { done('copy'); }, function () { toast('ما قدرنا ننسخ الرابط. انسخه بيدك من فوق، أو استخدم واتساب'); });
     };
   }
 
@@ -250,8 +260,10 @@
       var e = I.edits[ix] || {}, name, pr;
       if (merged != null) { var sp = splitMerged(colVal(r, merged)); name = sp.name; pr = sp.phone; }
       else { name = colVal(r, m.name); pr = colVal(r, m.phone); }
+      var au = (I.auto && I.auto[ix]) || {};
+      if (au.n != null) name = au.n; if (au.p != null) pr = au.p;
       if (e.n != null) name = e.n; if (e.p != null) pr = e.p;
-      var dr = e.d != null ? e.d : colVal(r, m.date);
+      var dr = e.d != null ? e.d : (au.d != null ? au.d : colVal(r, m.date));
       var o = { ix: ix, name: String(name).replace(/\s+/g, ' ').trim(), phoneRaw: pr, phone: null, dateRaw: dr, date: '', hijri: false, sp: colVal(r, m.specialty), dr: colVal(r, m.doctor), why: [], status: 'ready' };
       var f = firstPhone(pr) || (normPhone(pr) ? { phone: normPhone(pr) } : null);
       o.phone = f ? f.phone : null;
@@ -273,9 +285,33 @@
     if (!I.origFix) { I.origFix = {}; out.forEach(function (o) { if (o.status === 'fix') I.origFix[o.ix] = 1; }); }
     return out;
   }
+  /* HARNESS: validate, then auto-fix obvious issues (a phone sitting in another cell, a date in another cell or with a 2-digit year,
+     digits stuck in a name) and re-validate. Max 3 rounds. Anything still wrong stays in the "fix" list for the clinic: never dropped. */
+  function harden() {
+    I.auto = {}; I.autoRounds = 0; validate();
+    for (var round = 1; round <= 3; round++) {
+      var changed = 0, m = I.map;
+      I.parsed.filter(function (o) { return o.status === 'fix'; }).forEach(function (o) {
+        var r = I.rows[o.ix], a = I.auto[o.ix] = I.auto[o.ix] || {}, used = {};
+        used[m.name] = used[m.phone] = used[m.date] = 1;
+        if (o.why.indexOf('phone') > -1 && round === 1) {
+          for (var c = 0; c < r.length; c++) { if (used[c]) continue; var f = firstPhone(r[c]); if (f) { a.p = f.phone; changed++; break; } }
+        }
+        if (o.why.indexOf('date') > -1) {
+          if (round === 1) { for (var c2 = 0; c2 < r.length; c2++) { if (used[c2] || firstPhone(r[c2])) continue; if (parseDate(r[c2])) { a.d = r[c2]; changed++; break; } } }
+          if (round === 2) { var mt = nd(o.dateRaw).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})$/); if (mt) { a.d = mt[1] + '/' + mt[2] + '/20' + mt[3]; changed++; } }
+        }
+        if (o.why.indexOf('name') > -1 && round === 3) { var nn = String(o.name).replace(/[\d٠-٩۰-۹\-+.()\/]+/g, ' ').replace(/\s+/g, ' ').trim(); if (nn.length >= 2 && nn !== o.name) { a.n = nn; changed++; } }
+      });
+      if (!changed) { if (round >= 3) break; continue; }
+      I.autoRounds = round; validate();
+      if (!I.parsed.some(function (o) { return o.status === 'fix'; })) break;
+    }
+    return I.parsed;
+  }
   function counts() {
-    var c = { ready: 0, fix: 0, dup: 0, skip: 0, fixed: 0, hijri: 0 };
-    (I.parsed || []).forEach(function (o) { c[o.status]++; if (o.status === 'ready' && I.origFix && I.origFix[o.ix]) c.fixed++; if (o.status === 'ready' && o.hijri) c.hijri++; });
+    var c = { ready: 0, fix: 0, dup: 0, skip: 0, fixed: 0, hijri: 0, auto: 0 };
+    (I.parsed || []).forEach(function (o) { c[o.status]++; if (o.status === 'ready' && I.origFix && I.origFix[o.ix]) c.fixed++; if (o.status === 'ready' && I.auto && I.auto[o.ix] && !(I.edits[o.ix])) c.auto++; if (o.status === 'ready' && o.hijri) c.hijri++; });
     return c;
   }
   var WHY = { name: 'الاسم ناقص', phone: 'الجوال مو صحيح', date: 'التاريخ ما انفهم' };
@@ -291,7 +327,8 @@
       if (I.merged != null) { I.map.name = I.merged; I.map.phone = I.merged; }
       I.questions = (j.questions || []).filter(function (q) { return q.col != null; });
       sanity(j.confidence || {});
-      I.state = 'review'; validate(); track('map_ok', { ms: j.ms, q: I.questions.length, merged: I.merged != null }); renderImport();
+      ((j.check && j.check.issues) || []).forEach(function (w) { I.warn.push('فحص الربط: ' + w + '. راجع القوائم تحت.'); });
+      I.state = 'review'; harden(); track('map_ok', { ms: j.ms, q: I.questions.length, merged: I.merged != null }); renderImport();
     }).catch(function () { I.state = 'manual'; I.err = 'ما وصلت لرفيق. تأكد من النت، أو اختر الأعمدة بنفسك.'; renderImport(); });
   }
   /* The AI may be wrong. We test its proposal against all rows, and ask instead of guessing. */
@@ -312,7 +349,7 @@
     var q = I.questions[i]; if (!q) return;
     I.answers.push({ field: q.field, col: q.col, yes: yes }); I.questions.splice(i, 1);
     track('map_answer', { f: q.field, yes: yes });
-    if (yes) { I.map[q.field] = q.col; validate(); renderImport(); }
+    if (yes) { I.map[q.field] = q.col; harden(); renderImport(); }
     else { I.map[q.field] = null; askMap('', I.answers); }
   }
   function rerun(hint) {
@@ -321,14 +358,16 @@
   }
 
   function loadRows(rows, fname) {
+    var rawN = rows.length;
     rows = rows.filter(function (r) { return r && r.some(function (c) { return String(c == null ? '' : c).trim() !== ''; }); });
+    var blank = rawN - rows.length;
     if (rows.length < 2) { I.state = 'error'; I.err = 'الملف فاضي أو فيه سطر واحد. جرّب ملف ثاني.'; return renderImport(); }
     var hasHeader = !rows[0].some(function (c) { return !!firstPhone(c) || !!parseDate(c); });
     var width = Math.min(40, Math.max.apply(null, rows.slice(0, 50).map(function (r) { return r.length; })));
     I = { file: fname, headers: [], rows: [], map: {}, merged: null, questions: [], answers: [], note: '', edits: {}, skip: {}, origFix: null, state: 'mapping', err: '', total: 0, model: '', warn: [] };
     for (var c = 0; c < width; c++) I.headers.push(hasHeader ? String(rows[0][c] == null ? '' : rows[0][c]).trim() : 'عمود ' + (c + 1));
     I.rows = (hasHeader ? rows.slice(1) : rows).slice(0, 5000).map(function (r) { var o = []; for (var c = 0; c < width; c++) o.push(r[c] == null ? '' : String(r[c])); return o; });
-    I.total = I.rows.length;
+    I.total = I.rows.length; I.blank = blank; I.cut = Math.max(0, (hasHeader ? rows.length - 1 : rows.length) - 5000);
     track('import_file', { rows: I.total, cols: width, header: hasHeader });
     askMap('', []);
   }
@@ -409,7 +448,17 @@
     if (c.fixed) extra.push(ar(c.fixed) + ' انصلحوا بتصحيحك');
     if (c.skip) extra.push(ar(c.skip) + ' تجاهلتهم');
     if (I.map.date != null) extra.push('التواريخ بصيغة يوم/شهر/سنة، والهجري يتحوّل حسب تقويم أم القرى');
+    if (c.auto) extra.push(ar(c.auto) + ' انصلحوا تلقائياً (جوال أو تاريخ أو اسم) بعد ' + ar(I.autoRounds) + ' جولة فحص');
     if (extra.length) h += '<p class="cs-note">' + extra.map(esc).join(' · ') + '</p>';
+    /* HARNESS preview: required columns, row-count reconciliation, and everything that will NOT be imported, stated before the clinic confirms */
+    var tot = c.ready + c.fix + c.dup + c.skip, chk = [];
+    chk.push([I.map.name != null && I.map.phone != null, 'الأعمدة المطلوبة (الاسم والجوال) مربوطة']);
+    chk.push([tot === I.total, 'عدد الصفوف يتطابق: ' + ar(I.total) + ' في الملف = ' + ar(c.ready) + ' جاهز + ' + ar(c.fix) + ' تصحيح + ' + ar(c.dup) + ' مكرر + ' + ar(c.skip) + ' تجاهلتهم']);
+    chk.push([!c.fix, c.fix ? ar(c.fix) + ' صف جواله أو تاريخه أو اسمه ما انفهم: صحّحه تحت أو تجاهله، وما ينستورد لين يتصحح' : 'كل الصفوف الباقية جوالها سعودي صحيح وتواريخها تنقرأ']);
+    if (I.blank) chk.push([false, ar(I.blank) + ' صف فاضي انشال من الملف (ما فيه بيانات)']);
+    if (I.cut) chk.push([false, 'الملف أكبر من ٥٠٠٠ صف: ما قرأنا آخر ' + ar(I.cut) + ' صف. قسّم الملف واستورد الباقي']);
+    if (c.ready > 2000) chk.push([false, 'الديمو يحفظ ٢٠٠٠ جاهز في المرة: آخر ' + ar(c.ready - 2000) + ' ما ينحفظون']);
+    h += '<ul class="cs-note" style="list-style:none;padding:0;margin:8px 0">' + chk.map(function (x) { return '<li>' + (x[0] ? '✓ ' : '⚠ ') + esc(x[1]) + '</li>'; }).join('') + '</ul>';
     var fix = I.parsed.filter(function (o) { return o.status === 'fix'; });
     if (fix.length && !done) {
       h += '<h3 class="sh3" style="font-size:21px;margin:18px 0 0">صحّح هنا</h3>';
@@ -429,6 +478,7 @@
     }
     h += '</div></div>';
     h += '<div class="win" style="margin-top:16px"><div class="win-h"><div class="who-p"><b>٣. الاعتماد</b><small>لين تضغط، ما ينحفظ شي</small></div></div><div class="win-b">';
+    if (done && I.report) h += '<p class="cs-note">' + (I.report.ok ? '✓ تحقق بعد الاستيراد: المحفوظ ' + ar(I.report.stored) + ' = الجاهز من الملف ' + ar(I.report.expected) + '.' : '⚠ فرق في العدد: المتوقع ' + ar(I.report.expected) + ' والمحفوظ ' + ar(I.report.stored) + '.') + (I.report.rejected ? ' ' + ar(I.report.rejected) + ' صف رفضها الفحص النهائي وما انحفظت: ' + esc(I.report.why) : '') + (I.report.omitted ? ' ' + ar(I.report.omitted) + ' صف فوق الحد ما انحفظت.' : '') + '</p>';
     if (done) h += '<p class="never" style="font-size:20px">أضفنا ' + ar(T.sum && T.sum.appts || 0) + ' موعد لجدول اليوم و' + ar(T.sum && T.sum.fu || 0) + ' مريض لقائمة المتابعة. الجدول في «عيادتي اليوم» والمتابعات في «متابعاتي» (تجريبي). انحسبت الخطوة الأولى في قائمة التهيئة.</p><div class="row" style="justify-content:flex-start"><button class="btn" type="button" id="csToOnb">شوف قائمة التهيئة</button></div>';
     else h += '<button class="btn" type="button" id="csConfirm"' + (c.ready ? '' : ' disabled') + '>اعتمد استيراد ' + ar(c.ready) + ' مريض</button><p class="cs-note">اللي يحتاج تصحيح أو المكرر ما ينستورد. بيانات تجريبية بس. اللي موعده اليوم أو بعده ينزل في جدول «عيادتي اليوم»، والباقي في «متابعاتي». تنحفظ لجلستك وتنحذف بعد ٧ أيام.</p>';
     h += '</div></div>';
@@ -450,7 +500,7 @@
       s.onchange = function () {
         var v = s.value === '' ? null : +s.value; I.map[s.getAttribute('data-map')] = v;
         if (I.map.phone == null) I.warn = ['اختر عمود الجوال.']; else I.warn = [];
-        validate(); I.state = 'review'; track('map_manual', { f: s.getAttribute('data-map') }); renderImport();
+        harden(); I.state = 'review'; track('map_manual', { f: s.getAttribute('data-map') }); renderImport();
       };
     });
     document.querySelectorAll('[data-fx]').forEach(function (inp) {
@@ -461,13 +511,21 @@
     if ($('csToOnb')) $('csToOnb').onclick = function () { T.tab = 'onb'; saveT(); renderTeam(); };
   }
   function confirmImport() {
-    var c = counts(), rows = I.parsed.filter(function (o) { return o.status === 'ready'; }).map(function (o) { return { n: o.name, p: o.phone, d: o.date, s: o.sp, dr: o.dr }; });
-    var b = $('csConfirm'); b.disabled = true; b.textContent = 'يحفظ…';
-    post('/api/cs-import', { sid: SID, filename: I.file, rows: rows, ready: c.ready, fixed: c.fixed, dup: c.dup, mapping: I.map }).then(function (j) {
-      if (!j.id) { I.err = 'ما انحفظ الاستيراد. جرّب مرة ثانية أو كلّم إنسان.'; b.disabled = false; b.textContent = 'اعتمد استيراد ' + ar(c.ready) + ' مريض'; return renderImport(); }
-      D.setImp(rows); var sp = D.impSplit(); var na = 0; for (var k in sp.appts) na += sp.appts[k].length; var nf = sp.fu.length;
-      T.imp = 1; T.sum = { ready: c.ready, fixed: c.fixed, dup: c.dup, file: I.file, at: Date.now(), appts: na, fu: nf }; saveT();
-      I.state = 'done'; track('import_confirm', { ready: c.ready, fix: c.fix, dup: c.dup, fixed: c.fixed }); toast('أضفنا ' + ar(na) + ' موعد لجدول اليوم و' + ar(nf) + ' مريض لقائمة المتابعة'); refresh(); renderImport();
+    var c = counts(), all = I.parsed.filter(function (o) { return o.status === 'ready'; }).map(function (o) { return { n: o.name, p: o.phone, d: o.date, s: o.sp, dr: o.dr }; });
+    var rows = all.slice(0, 2000), omitted = all.length - rows.length;
+    var b = $('csConfirm'); b.disabled = true; b.textContent = 'يحفظ ويتحقق…';
+    post('/api/cs-import', { sid: SID, filename: I.file, rows: rows, ready: c.ready, fixed: c.fixed, dup: c.dup, mapping: I.map, omitted: omitted }).then(function (j) {
+      b.disabled = false; b.textContent = 'اعتمد استيراد ' + ar(c.ready) + ' مريض';
+      if (j.error === 'too_many_rows') { I.err = j.reply || 'الملف أكبر من الحد.'; return renderImport(); }
+      if (j.error === 'no_valid_rows') { I.err = 'الفحص النهائي رفض كل الصفوف (' + ar(j.rejected) + ' صف). ما انحفظ شيء. راجع الجوال والاسم.'; return renderImport(); }
+      if (!j.id) { I.err = 'ما انحفظ الاستيراد. جرّب مرة ثانية أو كلّم إنسان.'; return renderImport(); }
+      /* HARNESS: after import, the stored count must equal the valid source rows. A mismatch is reported, the step is NOT counted, nothing is hidden. */
+      var stored = (j.accepted || []).length, expected = rows.length;
+      I.report = { ok: !j.mismatch && stored === expected, stored: j.stored, expected: expected, rejected: j.rejected || 0, omitted: omitted, why: 'الجوال أو الاسم أو التاريخ ما نجح في الفحص' };
+      if (j.mismatch) { I.err = 'فرق في العدد بعد الحفظ: المتوقع ' + ar(j.expected) + ' والمحفوظ ' + ar(j.stored) + '. ما حسبنا الخطوة. جرّب مرة ثانية أو كلّم إنسان.'; track('import_mismatch', { exp: j.expected, got: j.stored }); return renderImport(); }
+      D.setImp(j.accepted); var sp = D.impSplit(); var na = 0; for (var k in sp.appts) na += sp.appts[k].length; var nf = sp.fu.length;
+      T.imp = 1; T.sum = { ready: stored, fixed: c.fixed, dup: c.dup, file: I.file, at: Date.now(), appts: na, fu: nf }; saveT();
+      I.state = 'done'; track('import_confirm', { ready: stored, fix: c.fix, dup: c.dup, fixed: c.fixed, rej: j.rejected || 0 }); toast('أضفنا ' + ar(na) + ' موعد لجدول اليوم و' + ar(nf) + ' مريض لقائمة المتابعة'); refresh(); renderImport();
     }).catch(function () { I.err = 'ما وصلنا الحفظ. تأكد من النت.'; b.disabled = false; renderImport(); });
   }
 
@@ -486,6 +544,7 @@
     var last = (T.sentLog || []).length ? Math.floor((now - T.sentLog[T.sentLog.length - 1]) / DAY) : null;
     if (last != null) real.days_since_last_send = last;
     var late = 0; try { late = D.allFU().filter(function (f) { return f.owner === 'reception' && !f.done && f.d < 0; }).length; } catch (e) {}
+    if (late) real.overdue_followups = late;
     var ex = { visits_week: EX.visits_week, followups_sent: EX.followups_sent, patients_returned: EX.patients_returned, reception_days_without_send: EX.reception_days_without_send, reception_overdue_followups: late };
     var daysLeft = Math.max(0, 7 - Math.floor((now - T.first) / DAY));
     var html = '<div class="win cs-health" style="margin-bottom:18px"><div class="win-h"><div class="who-p"><b>صحة الأسبوع</b><small>إشارات الاستخدام من اللي سويته في الديمو</small></div><span class="cs-ai">مساعد نجاح العميل</span></div>' +
@@ -499,7 +558,7 @@
     try { cached = sessionStorage.getItem(key); } catch (e) {}
     function show(t) { $('csSug').textContent = t; $('csSugAct').hidden = false; $('csSugHelp').onclick = function () { openChat(false, 'ساعدونا في هذا الاقتراح: ' + t); }; }
     if (cached) return show(cached);
-    post('/api/cs-health', { sid: SID, real: real, example: ex }).then(function (j) {
+    post('/api/cs-health', { sid: SID, real: real, example: ex, age_days: (now - T.first) / DAY }).then(function (j) {
       var t = j.suggestion || 'ما قدرت أكتب اقتراح الحين. جرّب بعد شوي.'; try { sessionStorage.setItem(key, t); } catch (e) {} if ($('csSug')) show(t); track('health_view', { ai: !!j.ai });
     }).catch(function () { if ($('csSug')) $('csSug').textContent = 'ما وصلت لرفيق. جرّب بعد شوي.'; });
   }

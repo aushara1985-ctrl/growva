@@ -86,3 +86,11 @@ export async function newTicket(env, { sid, urgency, topic, message, email, sour
 }
 function redact2(s) { return String(s || '').slice(0, 1000); }
 export const SLA = { urgent: 'خلال ٤ ساعات', normal: 'خلال ٢٤ ساعة' };
+
+// Harness log: one row per self-check (table: migrations/0003_cs_quality.sql). Never throws: a logging failure must not break the customer flow.
+export async function logQuality(env, { clinic_id, sid, step, passed, reasons, rounds }) {
+  try {
+    await env.DB.prepare('INSERT INTO cs_quality (ts,clinic_id,step,passed,reasons,rounds) VALUES (?,?,?,?,?,?)')
+      .bind(Date.now(), String(clinic_id || sid || '').slice(0, 64), step, passed ? 1 : 0, JSON.stringify((reasons || []).slice(0, 12)), Math.max(1, Number(rounds) || 1)).run();
+  } catch {}
+}
