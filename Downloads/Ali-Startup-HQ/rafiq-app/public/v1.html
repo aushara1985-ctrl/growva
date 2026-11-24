@@ -329,7 +329,7 @@ async function sendLead(e){
   var f=new FormData(e.target),o={};f.forEach(function(v,k){o[k]=v;});o.sid=RQ.sid;o.ref=RQ.ref;
   track('lead_submit',{specialty:o.specialty,doctors:o.doctors});
   try{var r=await fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(o)});
-    if(r.ok){e.target.querySelector('button').style.display='none';document.getElementById('ok').style.display='block';}
+    if(r.ok){if(window.track)track('lead_captured',{kind:'pilot_request',specialty:o.specialty});e.target.querySelector('button').style.display='none';document.getElementById('ok').style.display='block';}
     else alert('صار خطأ، جرّب مرة ثانية');}catch(x){alert('صار خطأ في الاتصال');}
   return false;
 }

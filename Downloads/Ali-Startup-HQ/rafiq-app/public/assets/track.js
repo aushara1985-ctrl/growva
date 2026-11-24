@@ -6,6 +6,20 @@
   var qp = new URLSearchParams(location.search);
   var ref = qp.get('ref') || store('rq_ref') || 'direct';
   if (qp.get('ref')) store('rq_ref', ref);
+  // First-touch attribution (30 days): utm_* + ref + document.referrer, first visit wins.
+  var attr = {};
+  try {
+    var saved = JSON.parse(store('rq_attr') || 'null');
+    if (saved && saved.t && Date.now() - saved.t < 30 * 864e5) attr = saved.a || {};
+    else {
+      var a = {}; ['utm_source', 'utm_medium', 'utm_campaign', 'ref'].forEach(function (k) { if (qp.get(k)) a[k] = String(qp.get(k)).slice(0, 80); });
+      var rf = ''; try { rf = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+      if (rf && rf !== location.hostname) a.referrer = rf;
+      if (Object.keys(a).length) { attr = a; store('rq_attr', JSON.stringify({ t: Date.now(), a: a })); }
+    }
+  } catch (e) {}
+  if (ref === 'direct' && (attr.utm_source || attr.ref)) ref = attr.ref || attr.utm_source;
+  var ftp = { src: attr.utm_source || attr.ref || attr.referrer || 'direct', first_utm_source: attr.utm_source || '', first_utm_medium: attr.utm_medium || '', first_utm_campaign: attr.utm_campaign || '', first_ref: attr.ref || '', first_referrer: attr.referrer || '' };
   var page = document.body ? (document.body.getAttribute('data-page') || location.pathname) : location.pathname;
   var q = [];
   function flush(beacon) {
@@ -17,7 +31,7 @@
     } catch (e) {}
   }
   window.track = function (name, props) { q.push({ name: name, props: props || {}, ts: Date.now() }); if (q.length >= 10) flush(false); };
-  window.RQ = { sid: sid, ref: ref };
+  window.RQ = { sid: sid, ref: ref, attr: ftp };
   setInterval(function () { flush(false); }, 4000);
   addEventListener('pagehide', function () { track('page_leave', { secs: Math.round(performance.now() / 1000), last: window.__rqStep || '' }); flush(true); });
   addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { track('tab_hidden', { last: window.__rqStep || '' }); flush(true); } });
@@ -46,7 +60,7 @@
   var orig = window.track;
   window.track = function (name, props) {
     orig(name, props);
-    if (window.posthog && window.posthog.__loaded) window.posthog.capture(name, Object.assign({ product: 'rafiq', ref: RQ.ref }, props || {}));
+    if (window.posthog && window.posthog.__loaded) window.posthog.capture(name, Object.assign({ product: 'rafiq', ref: RQ.ref }, RQ.attr, props || {}));
     else pending.push([name, props]);
   };
   var s = document.createElement('script');
@@ -54,8 +68,8 @@
   s.onload = function () {
     try {
       window.posthog.init(KEY, { api_host: HOST, person_profiles: 'identified_only', capture_pageview: true, autocapture: false,
-        loaded: function (ph) { ph.identify(RQ.sid, { ref: RQ.ref }); ph.register({ product: 'rafiq', ref: RQ.ref });
-          pending.splice(0).forEach(function (e) { ph.capture(e[0], Object.assign({ product: 'rafiq', ref: RQ.ref }, e[1] || {})); }); } });
+        loaded: function (ph) { ph.identify(RQ.sid, { ref: RQ.ref }); ph.register(Object.assign({ product: 'rafiq', ref: RQ.ref }, RQ.attr));
+          pending.splice(0).forEach(function (e) { ph.capture(e[0], Object.assign({ product: 'rafiq', ref: RQ.ref }, RQ.attr, e[1] || {})); }); } });
     } catch (e) {}
   };
   document.head.appendChild(s);
