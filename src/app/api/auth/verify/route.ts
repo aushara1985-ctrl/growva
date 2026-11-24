@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyMagicToken, createSessionToken, getSessionCookieOptions } from '@/lib/auth'
 import { sendWelcomeOnce } from '@/lib/welcome'
+import { attrFromCookie, capture } from '@/lib/track'
 
 const ADMIN_EMAIL = 'aushara1985@gmail.com'
 
@@ -45,6 +46,16 @@ export async function GET(req: NextRequest) {
   // Welcome email only for a brand-new account (never for existing users).
   if (!existedBefore) {
     await sendWelcomeOnce(user.id, user.email, baseUrl).catch(() => {})
+  }
+
+  // PostHog: exactly one signup_completed per NEW account, with the first-touch source saved on the first visit.
+  // Internal user id only (no email). Never blocks the login.
+  if (!existedBefore) {
+    await capture('signup_completed', user.id, {
+      user_id: user.id,
+      plan: 'free',
+      ...attrFromCookie(req.cookies.get('gv_attr')?.value),
+    })
   }
 
   // Backfill: assign all unowned products to admin on first/every login
