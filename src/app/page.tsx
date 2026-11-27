@@ -680,6 +680,8 @@ function DemoSection({ c, ctaHref }: { c: typeof COPY['en']['demo']; ctaHref: st
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const [lang, setLang] = useState<Lang>('en')
+  // Ali 2026-11-27: yearly first and selected by default (2 months free). Display only: Growth is still 'coming after founding access'.
+  const [yearly, setYearly] = useState(true)
   const [auth, setAuth] = useState<AuthState>('loading')
   const isAr = lang === 'ar'
   const c = COPY[lang]
@@ -1074,11 +1076,24 @@ export default function LandingPage() {
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
                 <span style={{ fontSize: 40, fontWeight: 700, color: C.text, letterSpacing: -1.5, lineHeight: 1 }}>
-                  {c.pricing.growth.price}
+                  {yearly ? '$82.50' : c.pricing.growth.price}
                 </span>
                 <span style={{ fontSize: 14, color: C.textMuted, fontWeight: 400 }}>
                   {c.pricing.growth.period}
                 </span>
+              </div>
+              <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 8 }}>
+                {yearly
+                  ? (lang === 'ar' ? 'تُدفع $990 مرة وحدة بالسنة · توفر 17%' : 'Billed $990 once a year · save 17%')
+                  : (lang === 'ar' ? 'تُدفع شهريًا بالسعر الكامل' : 'Billed monthly at the full price')}
+              </div>
+              <div role="group" aria-label="Billing period" style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                <button type="button" aria-pressed={yearly} onClick={() => setYearly(true)} style={{ padding: '5px 12px', borderRadius: 999, border: `1px solid ${C.border}`, background: yearly ? C.text : 'transparent', color: yearly ? C.bg : C.textMuted, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {lang === 'ar' ? 'سنوي' : 'Yearly'}
+                </button>
+                <button type="button" aria-pressed={!yearly} onClick={() => setYearly(false)} style={{ padding: '5px 12px', borderRadius: 999, border: `1px solid ${C.border}`, background: !yearly ? C.text : 'transparent', color: !yearly ? C.bg : C.textMuted, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {lang === 'ar' ? 'شهري' : 'Monthly'}
+                </button>
               </div>
               <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 24 }}>
                 {c.pricing.growth.for}
