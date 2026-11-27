@@ -20,7 +20,7 @@ export default function PricingPage() {
     emailWrap: { display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 8 },
     input: { padding: '10px 16px', background: '#15151D', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff', fontSize: 14, outline: 'none', width: 260, fontFamily: 'inherit' },
     emailNote: { fontSize: 12, color: '#5A5A6E', textAlign: 'center' as const },
-    plansGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 48 },
+    plansGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16, marginBottom: 48 },
     plan: { background: '#111116', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '44px 40px', position: 'relative' as const },
     planFeatured: { background: '#111116', border: '1px solid #E8A020', borderRadius: 20, padding: '44px 40px', position: 'relative' as const },
     badge: { position: 'absolute' as const, top: -12, left: '50%', transform: 'translateX(-50%)', background: '#E8A020', color: '#fff', fontSize: 11, fontWeight: 600, padding: '4px 16px', borderRadius: 100, whiteSpace: 'nowrap' as const },
