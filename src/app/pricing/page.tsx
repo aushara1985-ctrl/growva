@@ -1,10 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CATALOG } from '@/lib/stripe'
 
 export default function PricingPage() {
   const router = useRouter()
+  // Ali 2026-11-27: yearly first and selected by default (2 months free = 10x monthly). Display only: the recurring plan is
+  // still 'coming after the founding round' and no payment is live during the private beta.
+  const [yearly, setYearly] = useState(true)
 
   // During the private beta, founding access is reserved via beta signup —
   // payment opens once the core offer is validated. Add-ons are intentionally
@@ -61,6 +65,11 @@ export default function PricingPage() {
           <p style={s.sub}>Founding access for builders who are serious about knowing what works.</p>
         </div>
 
+        <div role="group" aria-label="Billing period" style={{ display: 'flex', justifyContent: 'center', gap: 4, padding: 4, margin: '0 auto 28px', width: 'max-content', maxWidth: '100%', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999 }}>
+          <button type="button" aria-pressed={yearly} onClick={() => setYearly(true)} style={{ padding: '9px 18px', border: 'none', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', background: yearly ? '#E8A020' : 'transparent', color: yearly ? '#000' : '#8A8A9A' }}>Yearly · save 17%</button>
+          <button type="button" aria-pressed={!yearly} onClick={() => setYearly(false)} style={{ padding: '9px 18px', border: 'none', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', background: !yearly ? '#E8A020' : 'transparent', color: !yearly ? '#000' : '#8A8A9A' }}>Monthly</button>
+        </div>
+
         {/* PLANS */}
         <div style={s.plansGrid}>
           {CATALOG.map(plan => (
@@ -68,10 +77,15 @@ export default function PricingPage() {
               {plan.badge && <div style={s.badge}>{plan.badge}</div>}
               <div style={s.planName}>{plan.name}</div>
               <div style={s.price}>
-                ${plan.price}
+                ${plan.type === 'recurring' && yearly ? (plan.price * 10 / 12).toFixed(2) : plan.price}
                 {plan.type === 'recurring' && <span style={{ fontSize: 16, color: '#5A5A6E', fontWeight: 300 }}>/mo</span>}
                 {plan.type === 'one_time' && <span style={{ fontSize: 16, color: '#5A5A6E', fontWeight: 300 }}> lifetime</span>}
               </div>
+              {plan.type === 'recurring' && (
+                <div style={{ fontSize: 12, color: '#E8A020', marginBottom: 8 }}>
+                  {yearly ? `Billed $${plan.price * 10} once a year · save 17%` : 'Billed monthly at the full price'}
+                </div>
+              )}
               <div style={s.priceSub}>{plan.description}</div>
               <div style={s.divider} />
               <ul style={s.features}>
